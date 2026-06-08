@@ -960,7 +960,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Phase 3 - Recovered Code Stabilization (pure functions first). Last updated: 2026-06-08.
+Active phase: Phase 3 - Recovered Code Stabilization (pure done; recovery-completeness + next tranche). Last updated: 2026-06-08.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -996,7 +996,7 @@ Phase status (names match Section 6):
 | 1 | PDF Text and Code Extraction | COMPLETE - merged PR #2 (squash `d87f1f6`); 33 pages OCR'd, 18 functions inventoried, evidence local-only | 2026-06-08 |
 | - | Governance: Deny-by-default tracking (ADR 0002 Draft) | COMPLETE - merged PR #3 (squash `ed7c535`) | - | 2026-06-08 |
 | 2 | Function-by-Function Detangling | COMPLETE - merged PR #4 (squash `337455d`); 18 reconciled (9 keep_A, 9 keep_B, 0 defer) | 2026-06-08 |
-| 3 | Recovered Code Stabilization | ACTIVE - assigned in current TASK.md (pure functions first; registry/orchestration deferred) | - | 2026-06-08 |
+| 3 | Recovered Code Stabilization | ACTIVE - 9 pure functions stabilized + merged (PR #5 / `650b6bb`); recovery-completeness check + next non-registry tranche in current TASK; registry/orchestration still deferred | - | 2026-06-08 |
 | 4 | Microsoft DSC Surface Audit | NOT STARTED | - | - |
 | 4b | Port/Adapt/Skip Checklist | NOT STARTED | - | - |
 | 5 | TargetState Contract Design | NOT STARTED | - | - |
@@ -1132,6 +1132,22 @@ Long-horizon (do NOT block Phase 0/1):
   + commit); registry-touching/orchestration functions are deferred to a follow-up
   cycle because their tests need an owner-approved registry test-isolation strategy
   (Locked Rule). Advanced ledger to Phase 3 ACTIVE.
+- 2026-06-08: Phase 3 (pure) executed by Codex on `recovery/phase-3-stabilization` and
+  AUDITED by Claude with INDEPENDENT re-runs: 9 pure functions stabilized into flat
+  `src/<Fn>.ps1`, all parse clean under PS 5.1 (0 errors), 16/16 Pester pass, no
+  registry access in tests, PII scan clean, PDFs byte-identical. Codex conservatively
+  demoted 3 initially-pure-looking functions to deferred after page-image review
+  (missing-callee/incomplete-branch risk), transparently flagged a faithful
+  `Enum.Parse` PS-5.1 adaptation in `Get-RegistryValueKindStr`, and cleaned a
+  UNC-shaped PII false-positive in a test fixture. Owner-authorized admin squash-merge
+  to `main` (PR #5 -> `650b6bb`); first committed source. GAPS.md lists 9 deferred
+  functions (6 registry/orchestration; 3 referencing helpers not in the recovered set).
+- 2026-06-08: Owner chose to CONTINUE recovery (vs pivot to the Phase 4 DSC audit).
+  Next cycle = a recovery-completeness investigation (classify every function the
+  recovered code calls but the 18-function inventory lacks: inventory gap / OCR-name
+  variant / built-in / genuinely absent) + stabilize the resolved non-registry
+  functions. Do NOT invent missing helpers. Registry/orchestration functions remain
+  deferred pending an owner-approved test-isolation strategy (a later cycle).
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads

@@ -64,16 +64,18 @@ NOT NOW (gated future phases - do not let Codex jump ahead):
 - No engine/contract design before its Draft ADR (Phase 5).
 
 Current expected next step:
-Phases 0-2 and the deny-by-default governance interlude (ADR 0002, Draft) are COMPLETE
-and merged to `main` (PR #1 `a02aaa0`, PR #2 `d87f1f6`, PR #3 `ed7c535`, PR #4
-`337455d`). The active phase is PLAN.md Phase 3 (Recovered Code Stabilization),
-specified in `_handoff/TASK.md` - scoped this cycle to the PURE parsing/normalization
-functions (committed to a flat `src/` after a PII scan; registry/orchestration
-functions deferred to a follow-up cycle). Your job: keep `_handoff/TASK.md` correct,
-audit Codex's REPORT against the PLAN Phase 3 acceptance criteria (zero parse errors,
-no behavior-changing OCR edits, PII scan clean, tests have no registry access), and -
-once merged - author the follow-up Phase 3 cycle (registry functions, once a test-
-isolation strategy is approved). PDFs + `_recovery/` stay ignored.
+Phases 0-2, the deny-by-default governance interlude (ADR 0002, Draft), and the first
+Phase 3 cycle (9 pure functions stabilized into `src/`) are COMPLETE and merged to
+`main` (PRs #1-#5; latest `650b6bb`). Phase 3 is STILL ACTIVE: the owner chose to
+continue recovery. The current `_handoff/TASK.md` is a recovery-completeness cycle -
+classify the functions the recovered code calls but the 18-name inventory lacks
+(inventory gap / OCR-name variant / built-in / genuinely absent) and stabilize the
+resolved NON-REGISTRY tranche; do NOT invent missing helpers. Your job: keep
+`_handoff/TASK.md` correct, audit each Codex REPORT (zero parse errors, no behavior-
+changing OCR edits, no invented helpers, PII scan clean, tests have no registry access),
+and - once the non-registry functions are done - author the registry/orchestration
+cycle (which first needs an owner-approved registry test-isolation strategy). PDFs +
+`_recovery/` stay ignored.
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
 introduce a separate "Step" counter; owner-initiated governance tasks may be
@@ -82,7 +84,7 @@ interleaved and are labeled "Governance:", not a Phase):
 - Phase 1 - PDF text/code extraction + function inventory (COMPLETE, merged)
 - Governance - Deny-by-default tracking policy / ADR 0002 (COMPLETE, merged; Draft)
 - Phase 2 - Function-by-function detangling (COMPLETE, merged)
-- Phase 3 - Recovered-code stabilization (ACTIVE; pure functions first)
+- Phase 3 - Recovered-code stabilization (ACTIVE; 9 pure done + merged; completeness + next tranche; registry/orchestration deferred)
 - Phase 4 - Microsoft DSC surface audit (official sources, audit-only)
 - Phase 4b - Port/adapt/skip checklist (separate downstream step)
 - Phase 5 - TargetState contract design (Draft ADRs)
