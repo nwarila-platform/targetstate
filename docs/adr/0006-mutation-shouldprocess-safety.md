@@ -35,11 +35,16 @@ and setup helpers should use `[CmdletBinding(SupportsShouldProcess = $true)]`
 and call `$PSCmdlet.ShouldProcess(...)` around each live change. The runner
 should preserve `-WhatIf` and confirmation semantics instead of bypassing them.
 
-For Registry work, Phase 6 must approve a test-isolation strategy before any
-side-effecting tests are written. Acceptable strategies may include mocks,
+For the first read-only Registry proof, the owner approved Pester mocks as the
+test-isolation strategy. Phase 6 tests must mock every registry-access cmdlet
+they exercise, including reads such as `Test-Path`, `Get-Item`, and
+`Get-ItemProperty`. Those tests must not read from or write to ordinary live
+HKLM/HKCU paths.
+
+Future side-effecting Registry tests still need a separate owner-approved
+strategy before they are written. Acceptable later strategies may include
 temporary isolated hives, temporary PSDrives backed by disposable files, or
-owner-approved isolated registry paths. Tests must not mutate ordinary live
-HKLM/HKCU paths by default.
+owner-approved isolated registry paths.
 
 `Mount-RegistryHive` and `Start-ProviderSetup` should remain deferred until the
 test-isolation design proves setup, cleanup, and failure behavior. Any apply-mode
@@ -61,8 +66,9 @@ explicit command choice, not a background node policy.
 
 ## Open questions for owner
 
-- Which registry test-isolation strategy should Phase 6 use first: mocks,
-  disposable hive files, or a tightly scoped owner-approved registry path?
+- Which registry test-isolation strategy should future apply-mode tests use:
+  disposable hive files, a tightly scoped owner-approved registry path, or
+  another explicitly approved approach?
 - Should Registry apply mode require an explicit `-Apply` switch in addition to
   an operation name, or is a top-level `Apply` command enough?
 - What `ConfirmImpact` should Registry mutation use for key creation, value
@@ -72,8 +78,7 @@ explicit command choice, not a background node policy.
 
 ## Owner gate
 
-This ADR remains Draft. Owner approval of the mutation-safety direction and the
-separate registry test-isolation strategy is required before Phase 6 performs
-live mutation or writes side-effecting registry tests. Approval of direction does
-not change this ADR to `Accepted` unless the owner explicitly approves that
-status transition.
+This ADR remains Draft. The owner approved Pester mocks for the first read-only
+Registry proof. Live mutation and side-effecting registry tests remain blocked
+until separately approved. Approval of direction does not change this ADR to
+`Accepted` unless the owner explicitly approves that status transition.

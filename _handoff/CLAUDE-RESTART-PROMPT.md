@@ -64,19 +64,20 @@ NOT NOW (gated future phases - do not let Codex jump ahead):
 - No engine/contract design before its Draft ADR (Phase 5).
 
 Current expected next step:
-Phases 0-4b and the deny-by-default governance interlude (ADR 0002, Draft) are COMPLETE
-and merged to `main` (PRs #1-#8; latest `c0cb730`). Phase 3 recovery is closed at 10/18
-functions stabilized; Phase 4 produced a citation-verified DSC surface audit; Phase 4b
-produced `docs/dsc-audit/CHECKLIST.md` + `BACKLOG.md`. The active phase is PLAN.md Phase 5
-(the first DESIGN phase), specified in `_handoff/TASK.md` - Codex drafts the four contract
-ADRs (`docs/adr/0003` resource contract, `0004` declaration-document format (YAML, no MOF),
-`0005` evidence/reporting model, `0006` mutation/ShouldProcess safety) as a PROPOSAL set,
-all `Status: Draft`, grounded in the audit + recovered functions + mission. They write no
-source and lock nothing until owner-accepted. Your job: keep `_handoff/TASK.md` correct,
-audit Codex's REPORT (every ADR Draft + internally consistent + traceable to audit/backlog;
-no source; real design forks surfaced as owner open-questions), and - once merged - author
-the next step (the missing-helper designs + Phase 6 Registry build). PDFs + `_recovery/`
-stay ignored.
+Phases 0-5 and the deny-by-default governance interlude (ADR 0002, Draft) are COMPLETE and
+merged to `main` (PRs #1-#9; latest `3ac0c3a`). Phase 5 produced 4 Draft contract ADRs
+(0003-0006); the owner reviewed them and DECIDED: declaration format = JSON (PS 5.1 native
+`ConvertFrom-Json`; YAML was only a suggestion); registry tests = Pester MOCKS. The active
+phase is PLAN.md Phase 6 (the first real implementation), specified in `_handoff/TASK.md` -
+a READ-ONLY Registry proof: parse a JSON `TargetDocument` and implement `Get`/`Test`/`Plan`
+(per ADR 0003) returning evidence objects (per ADR 0005), reusing the 10 recovered functions
++ fresh helpers, all Pester-MOCK-tested. It also revises ADR 0004 (JSON) and 0006 (mocks),
+still Draft. `Set`/`Apply`/live mutation and the deferred side-effect functions
+(Mount-RegistryHive, Start-ProviderSetup) stay OWNER-GATED for a later cycle. Your job: keep
+`_handoff/TASK.md` correct, audit Codex's REPORT (read-only only; all parse clean + Pester
+green with mocks; NO real registry touched; no Set/Apply; ADRs still Draft; PII clean), and
+- once merged - author the Apply/mutation cycle (still owner-gated). PDFs + `_recovery/` stay
+ignored.
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
 introduce a separate "Step" counter; owner-initiated governance tasks may be
@@ -88,6 +89,6 @@ interleaved and are labeled "Governance:", not a Phase):
 - Phase 3 - Recovered-code stabilization (COMPLETE as recovery baseline; 10/18 stabilized, 8 deferred to design)
 - Phase 4 - Microsoft DSC surface audit (COMPLETE, merged; 24 records, citations verified)
 - Phase 4b - Port/adapt/skip checklist + backlog (COMPLETE, merged)
-- Phase 5 - TargetState contract design (ACTIVE; Draft ADRs 0003-0006, proposals for owner review)
-- Phase 6 - Registry proof implementation
+- Phase 5 - TargetState contract design (COMPLETE, merged; 4 Draft ADRs; owner chose JSON + mocks)
+- Phase 6 - Registry proof implementation (ACTIVE; read-only proof first: JSON -> Get/Test/Plan, mocks; Apply deferred/owner-gated)
 - Phase 7 - Engine and STIG roadmap

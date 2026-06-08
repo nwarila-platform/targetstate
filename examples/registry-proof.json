@@ -1,0 +1,21 @@
+{
+  "apiVersion": "targetstate.nwarila.dev/v1alpha1",
+  "kind": "TargetDocument",
+  "metadata": {
+    "name": "registry-proof"
+  },
+  "resources": [
+    {
+      "type": "Registry",
+      "name": "example-registry-value",
+      "properties": {
+        "hive": "HKEY_LOCAL_MACHINE",
+        "path": "SOFTWARE\\TargetState\\Example",
+        "valueName": "Enabled",
+        "valueKind": "DWord",
+        "valueData": 1,
+        "ensure": "Present"
+      }
+    }
+  ]
+}

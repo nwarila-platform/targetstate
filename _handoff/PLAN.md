@@ -60,8 +60,8 @@ Owner bootstrap line for Codex:
 Build `TargetState`: a GitOps-friendly replacement for Microsoft's PowerShell
 Desired State Configuration. The explicit goal is to declare, test, and enforce
 explicit Windows system state from human-readable, version-controllable
-declaration documents (YAML or a similar format) and reusable resource modules -
-eliminating the generated-MOF compile/runtime requirement that makes Microsoft
+declaration documents (JSON for the first proof; YAML was the initial suggestion)
+and reusable resource modules - eliminating the generated-MOF compile/runtime requirement that makes Microsoft
 DSC a poor fit for GitOps. There is no MOF compilation step: configuration is
 plain declarative text that lives in git, diffs cleanly, and is the user-facing
 artifact (explicitly not `Target.mof`).
@@ -192,9 +192,10 @@ These are working assumptions. They are not final architecture.
   Eliminating Microsoft DSC's MOF compile/runtime requirement is a primary
   motivation, not a side effect.
 - Declaration language: human-readable, version-controllable declaration
-  documents - YAML or a similar format - explicitly NOT `Target.mof` and NOT a
-  MOF-compile step. Default working assumption is YAML; exact extension and schema
-  remain open (Section 9).
+  documents - explicitly NOT `Target.mof` and NOT a MOF-compile step. RESOLVED
+  2026-06-08: JSON for the first Registry proof (PS 5.1 parses it natively via
+  `ConvertFrom-Json`, no parser dependency); YAML was the initial suggestion and may
+  return as a later option. ADR 0004 to be revised to JSON-first (still Draft).
 - Engine verbs: Get, Test, Set, Invoke/Apply, and Export Evidence.
 - ADR status policy: every ADR is `Draft` until owner-approved.
 - Canonical generated-evidence directory: `_recovery/` at repo root (default
@@ -960,7 +961,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Phase 5 - TargetState Contract Design (Draft ADRs 0003-0006). Last updated: 2026-06-08.
+Active phase: Phase 6 - Registry Proof Implementation (read-only proof first: JSON declaration -> Get/Test/Plan + evidence, Pester mocks; Apply deferred). Last updated: 2026-06-08.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -999,8 +1000,8 @@ Phase status (names match Section 6):
 | 3 | Recovered Code Stabilization | COMPLETE (as recovery baseline) - 10/18 functions stabilized + merged (PRs #5 `650b6bb`, #6 `69325cd`); 8 deferred in `docs/recovery/GAPS.md` (2 blocked on genuinely-absent helpers, 6 registry/orchestration). Owner accepted + pivoted to Phase 4 | 2026-06-08 |
 | 4 | Microsoft DSC Surface Audit | COMPLETE - merged PR #7 (squash `bafe8c2`); 24 surfaces audited from primary sources (citations Claude-verified), cross-ref covers 32 GAPS | 2026-06-08 |
 | 4b | Port/Adapt/Skip Checklist | COMPLETE - merged PR #8 (squash `c0cb730`); CHECKLIST (24 surfaces) + BACKLOG (20 items, traceable) | 2026-06-08 |
-| 5 | TargetState Contract Design | ACTIVE - assigned in current TASK.md (Draft ADRs 0003-0006; proposals for owner review) | - | 2026-06-08 |
-| 6 | Registry Proof Implementation | NOT STARTED | - | - |
+| 5 | TargetState Contract Design | COMPLETE - merged PR #9 (squash `3ac0c3a`); 4 Draft contract ADRs 0003-0006 (proposals; owner reviewed, decided JSON + mocks) | 2026-06-08 |
+| 6 | Registry Proof Implementation | ACTIVE - assigned in current TASK.md (read-only proof: JSON -> Get/Test/Plan + evidence, Pester mocks; Apply/mutation deferred) | - | 2026-06-08 |
 | 7 | Engine and STIG Roadmap | NOT STARTED | - | - |
 
 Rule: whenever a phase's status changes, update this table AND add a Section 10
@@ -1040,9 +1041,11 @@ Blocking (gate the move from Phase 0 to Phase 1; default applied if owner silent
   Microsoft-GitHub source.
 
 Long-horizon (do NOT block Phase 0/1):
-- The declaration document format/extension/schema. Owner direction: YAML or a
-  similar human-readable format (NOT MOF); confirm the exact extension and schema
-  in the Phase 5 contract-design ADRs.
+- Declaration document format: RESOLVED 2026-06-08 - JSON for the first proof
+  (owner; YAML was a suggestion). Exact extension/schema finalized in ADR 0004
+  (to be revised to JSON, still Draft).
+- Registry test-isolation strategy: RESOLVED 2026-06-08 - Pester MOCKS (no real
+  registry touched) for the first Registry tests (owner). ADR 0006 to record this.
 - Module skeleton: RESOLVED 2026-06-08 - flat `src/<FunctionName>.ps1` scripts, no
   `.psd1`/`.psm1` manifest yet (deferred to a later phase). Stabilized `src/`/`tests/`
   ARE committed after a clean PII scan; `src/`/`tests/` allowlisted in `.gitignore`
@@ -1194,6 +1197,19 @@ Long-horizon (do NOT block Phase 0/1):
   PROPOSAL set, all `Status: Draft`, grounded in the audit verdicts + the 10 recovered
   functions + the mission. They lock nothing until owner-accepted (Locked Rule). The
   missing-helper designs (P5-DESIGN-006-008) and Phase 6 build follow.
+- 2026-06-08: Phase 5 executed by Codex on `recovery/phase-5-contract-adrs` and AUDITED
+  by Claude (substantive read of all 4 ADRs): coherent, internally-consistent, mission-
+  aligned Draft proposals, each traceable to BACKLOG + AUDIT, with genuine "Open questions
+  for owner" (notably the no-YAML-parser-on-5.1 constraint and the read-only/Apply split).
+  All 7 ADRs still Draft; no source/.mof. Owner-authorized admin squash-merge to `main`
+  (PR #9 -> `3ac0c3a`).
+- 2026-06-08: Owner reviewed the Draft ADRs and DECIDED two Phase-6-shaping questions:
+  (a) declaration format = JSON for the first proof (PS 5.1 native `ConvertFrom-Json`;
+  YAML was only a suggestion) - ADR 0004 to be revised to JSON-first (Draft); (b) registry
+  test-isolation = Pester MOCKS (no real registry) - ADR 0006 to record it. Advanced to
+  Phase 6, scoped to a READ-ONLY Registry proof first (JSON declaration -> Get/Test/Plan +
+  evidence objects, all mock-tested); Apply/mutation and the registry side-effect functions
+  (Mount-RegistryHive, Start-ProviderSetup) remain deferred to a later, still-owner-gated cycle.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads
