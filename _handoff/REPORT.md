@@ -2,192 +2,248 @@ Phase/Task status: COMPLETE
 
 ## Adversarial review verdict
 
-Goal: execute the Phase 3 recovery-completeness cycle on `recovery/phase-3-completeness`: enumerate every recovered call to a name outside the 18-function Phase 1 inventory, classify each with page/image evidence, recover any missed PDF helper, and stabilize only non-registry/pure deferred functions whose callees resolve without invented helpers.
+Goal: execute Phase 4 on branch `recovery/phase-4-dsc-audit`: produce citation-backed Microsoft DSC surface audit evidence under `docs/dsc-audit/` from Microsoft Learn and Microsoft-owned GitHub sources retrieved at execution time. This phase is audit-only evidence. It does not produce the Phase 4b checklist, does not design or implement TargetState, does not change ADRs, and does not create `.mof` files.
 
-Branch check: PROCEED on `recovery/phase-3-completeness`, not `main`.
+Branch check: PROCEED on `recovery/phase-4-dsc-audit`, not `main`.
 
-Input gate: PROCEED. `_recovery/_inventory/function-inventory.tsv`, `_recovery/_inventory/call-graph.tsv`, `_recovery/_inventory/reconciliation-matrix.tsv`, both corrected page trees, and both image trees exist. The current PDF hashes match the PLAN Section 7 baseline:
+Network check: PROCEED. Live retrieval succeeded for Microsoft Learn and Microsoft GitHub:
 
 ```text
-06042026.pdf     B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F
-06042026_001.pdf D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E
+FETCH OK | status=200 | title=PSDesiredStateConfiguration v1.1 - PowerShell | Microsoft Learn | url=https://learn.microsoft.com/en-us/powershell/dsc/overview?view=dsc-1.1
+FETCH OK | status=200 | title=PowerShell/DSC | url=https://api.github.com/repos/PowerShell/DSC
 ```
 
-Completeness method: scan corrected page text for command-shaped calls, exclude `Function <Name>` declarations, add the bare helper token `ArrayToString`, diff against the Phase 1 inventory, corroborate with page images, then separate PowerShell 5.1 built-ins from project-looking names. A declaration scan found no helper bodies outside the 18-name inventory, so no missed helper was safe to recover.
+Input gate: PROCEED. `docs/recovery/GAPS.md` exists and is tracked. Recent history shows Phase 3 acceptance commit `69325cd`.
 
-Decision: PROCEED and COMPLETE this cycle. I stabilized `Get-RegistryKeyPath` only. I refused to promote `Get-RegistryKeyName` and `Get-TypedObject` because their printed callees (`Get-NormalizedRegistryKeyString`, `ArrayToString`) are genuinely absent from the PDFs.
-
-Chosen output locations: `src/Get-RegistryKeyPath.ps1`, `tests/Get-RegistryKeyPath.Tests.ps1`, `docs/recovery/GAPS.md`, `_handoff/REPORT.md`, and `_handoff/REPORT-ARCHIVE.md`.
-
-## Completeness table
-
-| Name | Classification | Evidence |
-| --- | --- | --- |
-| ArrayToString | genuinely absent from the PDFs | B:0011 image/text shows `ArrayToString -Value $Data`; no `Function ArrayToString` declaration. |
-| Clear-Variable | PowerShell built-in / external | First call A:0001; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
-| ConvertFrom-Json | PowerShell built-in / external | First call A:0017; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
-| ConvertFrom-StringData | PowerShell built-in / external | First call B:0001; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
-| ForEach-Object | PowerShell built-in / external | First call B:0010; `Get-Command` reports `Microsoft.PowerShell.Core` cmdlet. |
-| Get-Item | PowerShell built-in / external | First call B:0014; `Get-Command` reports `Microsoft.PowerShell.Management` cmdlet. |
-| Get-NormalizedRegistryKeyString | genuinely absent from the PDFs | B:0001/B:0008/B:0009 image/text show calls; no matching declaration. Related `Get-NormalizedRegistryKey` was not aliased. |
-| Get-RegistryHive | genuinely absent from the PDFs | B:0001 image/text shows sketch name; no matching declaration. Related `Get-RegistryKeyHive` was not aliased. |
-| Get-RegistryKeyString | genuinely absent from the PDFs | B:0001 image/text shows sketch name; no matching declaration. |
-| Get-RegistryKeyType | genuinely absent from the PDFs | B:0003 image/text shows `Get-RegistryKeyType -Value:$RegistryKeyType`; no matching declaration. |
-| Get-TargetResourceInternal | genuinely absent from the PDFs | B:0001 image/text shows sketch root; no matching declaration. |
-| Measure-Object | PowerShell built-in / external | First call A:0016; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
-| New-Object | PowerShell built-in / external | First call A:0016; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
-| New-PSDrive | PowerShell built-in / external | First call A:0010; `Get-Command` reports `Microsoft.PowerShell.Management` cmdlet. |
-| New-Variable | PowerShell built-in / external | First call A:0001; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
-| Out-String | PowerShell built-in / external | First call B:0007; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
-| Remove-Variable | PowerShell built-in / external | First call A:0002; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
-| Select-Object | PowerShell built-in / external | First call B:0007; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
-| Set-Variable | PowerShell built-in / external | First call A:0001; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
-| Start-Provider | genuinely absent from the PDFs | B:0001 image/text shows sketch name; no matching declaration. Related `Start-ProviderSetup` was not aliased. |
-| Test-Path | PowerShell built-in / external | First call A:0010; `Get-Command` reports `Microsoft.PowerShell.Management` cmdlet. |
-| Where-Object | PowerShell built-in / external | First call B:0007; `Get-Command` reports `Microsoft.PowerShell.Core` cmdlet. |
-| Write-Debug | PowerShell built-in / external | First call A:0001; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
-| Write-Warning | PowerShell built-in / external | First call A:0002; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
-
-No entries classified as `found-in-PDF` or `OCR-name-variant`.
+Decision: PROCEED and COMPLETE. The chosen output location is `docs/dsc-audit/` plus the Codex-owned handoff files `_handoff/REPORT.md` and `_handoff/REPORT-ARCHIVE.md`.
 
 ## What changed
 
 - Archived the prior Phase 3 report to the top of `_handoff/REPORT-ARCHIVE.md`.
-- Added `src/Get-RegistryKeyPath.ps1` from B pages 0006-0007.
-- Added in-memory-only `tests/Get-RegistryKeyPath.Tests.ps1`.
-- Updated `docs/recovery/GAPS.md` with the completeness table, removed `Get-RegistryKeyPath` from the deferred list, and added owner-decision notes for genuinely absent helper blockers.
+- Added `docs/dsc-audit/AUDIT.md` with 24 records: the 21 PLAN 4.4 surfaces plus three discovered PSDesiredStateConfiguration module surfaces (`Enable-DscDebug`, `Disable-DscDebug`, `Remove-DscConfigurationDocument`).
+- Added `docs/dsc-audit/SOURCES.md` with every Microsoft Learn, Microsoft-GitHub, and in-box corroboration source touched.
+- Added `docs/dsc-audit/REGISTRY-CROSSREF.md` covering all 32 items in `docs/recovery/GAPS.md`.
 
 ## What was intentionally not changed
 
-- No PDF bytes, `_recovery/` artifacts, `PLAN.md`, `TASK.md`, or `CLAUDE-RESTART-PROMPT.md` content was edited by Codex.
-- No helper alias, stub, or replacement was invented.
-- `Get-RegistryKeyName`, `Get-TypedObject`, registry-touching functions, and orchestration functions remain deferred.
-- No DSC audit or broad engine work was started.
+- No `PLAN.md`, `TASK.md`, or `CLAUDE-RESTART-PROMPT.md` content was edited by Codex; the existing Claude-updated handoff edits were staged as-is for durability.
+- No checklist/backlog/source/ADR change or `.mof` was produced.
+- No DSC resource was invoked or applied; no LCM set/start/update action was run; no live registry/system state was touched.
+- No PDFs or `_recovery/` content were opened, modified, staged, or tracked.
 
 ## Verification output
 
-Completeness command output:
+Phase 4 entry gate:
 
 ```text
-Name | Count | FirstEvidence
-ArrayToString | 1 | _recovery\06042026_001\corrected\page-0011.txt:35
-Clear-Variable | 21 | _recovery\06042026\corrected\page-0001.txt:41
-ConvertFrom-Json | 1 | _recovery\06042026\corrected\page-0017.txt:25
-ConvertFrom-StringData | 1 | _recovery\06042026_001\corrected\page-0001.txt:20
-ForEach-Object | 1 | _recovery\06042026_001\corrected\page-0010.txt:43
-Get-Item | 1 | _recovery\06042026_001\corrected\page-0014.txt:68
-Get-NormalizedRegistryKeyString | 6 | _recovery\06042026_001\corrected\page-0001.txt:9
-Get-RegistryHive | 1 | _recovery\06042026_001\corrected\page-0001.txt:10
-Get-RegistryKeyString | 1 | _recovery\06042026_001\corrected\page-0001.txt:8
-Get-RegistryKeyType | 1 | _recovery\06042026_001\corrected\page-0003.txt:32
-Get-TargetResourceInternal | 1 | _recovery\06042026_001\corrected\page-0001.txt:6
-Measure-Object | 1 | _recovery\06042026\corrected\page-0016.txt:28
-New-Object | 11 | _recovery\06042026\corrected\page-0016.txt:36
-New-PSDrive | 1 | _recovery\06042026\corrected\page-0010.txt:42
-New-Variable | 77 | _recovery\06042026\corrected\page-0001.txt:23
-Out-String | 1 | _recovery\06042026_001\corrected\page-0007.txt:29
-Remove-Variable | 19 | _recovery\06042026\corrected\page-0002.txt:54
-Select-Object | 1 | _recovery\06042026_001\corrected\page-0007.txt:28
-Set-Variable | 125 | _recovery\06042026\corrected\page-0001.txt:60
-Start-Provider | 1 | _recovery\06042026_001\corrected\page-0001.txt:7
-Test-Path | 3 | _recovery\06042026\corrected\page-0010.txt:35
-Where-Object | 1 | _recovery\06042026_001\corrected\page-0007.txt:27
-Write-Debug | 115 | _recovery\06042026\corrected\page-0001.txt:21
-Write-Warning | 1 | _recovery\06042026\corrected\page-0002.txt:29
+## recovery/phase-4-dsc-audit
+M  _handoff/CLAUDE-RESTART-PROMPT.md
+M  _handoff/PLAN.md
+M  _handoff/REPORT-ARCHIVE.md
+M  _handoff/REPORT.md
+M  _handoff/TASK.md
+A  docs/dsc-audit/AUDIT.md
+A  docs/dsc-audit/REGISTRY-CROSSREF.md
+A  docs/dsc-audit/SOURCES.md
 ```
 
-Declaration scan:
-
 ```text
-NO FUNCTION DECLARATIONS OUTSIDE THE 18-NAME INVENTORY
+docs/recovery/GAPS.md
 ```
 
-AST parse:
-
 ```text
-PARSE OK: Convert-ByteArrayToHexString.ps1
-PARSE OK: ConvertFrom-Array.ps1
-PARSE OK: Get-NormalizedRegistryKey.ps1
-PARSE OK: Get-RegistryKeyHive.ps1
-PARSE OK: Get-RegistryKeyNameStr.ps1
-PARSE OK: Get-RegistryKeyPath.ps1
-PARSE OK: Get-RegistryKeyPathStr.ps1
-PARSE OK: Get-RegistryValueKindStr.ps1
-PARSE OK: Get-RegistryValueNameStr.ps1
-PARSE OK: ThrowError.ps1
+69325cd Phase 3 (cont.): recovery completeness + next functions (#6)
+650b6bb Phase 3: stabilize pure recovered functions (#5)
+337455d Phase 2: function-by-function detangling decisions (#4)
+ed7c535 Governance: deny-by-default tracking policy (ADR 0002) (#3)
+d87f1f6 Phase 1: PDF extraction evidence (#2)
 ```
 
-Pester:
+Network proof:
 
 ```text
-Discovery found 19 tests.
-Tests Passed: 19, Failed: 0, Skipped: 0, Inconclusive: 0, NotRun: 0
-Pester Version: 5.7.1
-PSVersion: 5.1.26100.8457
+FETCH OK | status=200 | title=PSDesiredStateConfiguration v1.1 - PowerShell | Microsoft Learn | url=https://learn.microsoft.com/en-us/powershell/dsc/overview?view=dsc-1.1
+FETCH OK | status=200 | title=PowerShell/DSC | url=https://api.github.com/repos/PowerShell/DSC
 ```
 
-Live-registry mutation scan:
+Primary-source fetch set:
 
 ```text
-NO LIVE REGISTRY MUTATION HITS
+OK	200	PSDesiredStateConfiguration v1.1 - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/dsc/overview?view=dsc-1.1
+OK	200	DSC Configurations - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/dsc/configurations/configurations?view=dsc-1.1
+OK	200	Get-DscResource (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/get-dscresource?view=dsc-1.1
+OK	200	Invoke-DscResource (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/invoke-dscresource?view=dsc-1.1
+OK	200	Start-DscConfiguration (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/start-dscconfiguration?view=dsc-1.1
+OK	200	Test-DscConfiguration (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/test-dscconfiguration?view=dsc-1.1
+OK	200	Get-DscConfiguration (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/get-dscconfiguration?view=dsc-1.1
+OK	200	Get-DscConfigurationStatus (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/get-dscconfigurationstatus?view=dsc-1.1
+OK	200	Publish-DscConfiguration (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/publish-dscconfiguration?view=dsc-1.1
+OK	200	Stop-DscConfiguration (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/stop-dscconfiguration?view=dsc-1.1
+OK	200	Restore-DscConfiguration (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/restore-dscconfiguration?view=dsc-1.1
+OK	200	Update-DscConfiguration (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/update-dscconfiguration?view=dsc-1.1
+OK	200	New-DscChecksum (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/new-dscchecksum?view=dsc-1.1
+OK	200	Get-DscLocalConfigurationManager (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/get-dsclocalconfigurationmanager?view=dsc-1.1
+OK	200	Set-DscLocalConfigurationManager (PSDesiredStateConfiguration) - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/module/psdesiredstateconfiguration/set-dsclocalconfigurationmanager?view=dsc-1.1
+OK	200	Build Custom Windows PowerShell Desired State Configuration Resources - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/dsc/resources/authoringresource?view=dsc-1.1
+OK	200	Writing a custom DSC resource with MOF - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/dsc/resources/authoringresourcemof?view=dsc-1.1
+OK	200	Writing a custom DSC resource with PowerShell classes - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/dsc/resources/authoringresourceclass?view=dsc-1.1
+OK	200	DSC Resources - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/dsc/resources/resources?view=dsc-1.1
+OK	200	Configuring the Local Configuration Manager - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/dsc/managing-nodes/metaconfig?view=dsc-1.1
+OK	200	DSC Pull Service - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/dsc/pull-server/pullserver?view=dsc-1.1
+OK	200	Set up a Pull Client using Configuration IDs in PowerShell 5.0 and later - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/dsc/pull-server/pullclientconfigid?view=dsc-1.1
+OK	200	Microsoft Desired State Configuration overview - PowerShell | Microsoft Learn	https://learn.microsoft.com/en-us/powershell/dsc/overview?view=dsc-3.0
+OK	200	PowerShell/DSC	https://api.github.com/repos/PowerShell/DSC
 ```
 
-Sensitive-content scan over new PowerShell files:
+Microsoft-GitHub ownership check:
 
 ```text
-NO SENSITIVE CONTENT HITS IN NEW src/tests PS1
+repo=PowerShell/DSC owner_type=Organization owner_login=PowerShell default_branch=main commit=eafa1f38364a49ff44b84bbe8cb48200a70a7d2d html=https://github.com/PowerShell/DSC
+```
+
+In-box discovery corroboration:
+
+```text
+Name                             CommandType Version
+----                             ----------- -------
+Configuration                       Function 1.1
+Disable-DscDebug                    Function 1.1
+Enable-DscDebug                     Function 1.1
+Get-DscConfiguration                Function 1.1
+Get-DscConfigurationStatus          Function 1.1
+Get-DscLocalConfigurationManager    Function 1.1
+Get-DscResource                     Function 1.1
+Invoke-DscResource                    Cmdlet 1.1
+New-DscChecksum                     Function 1.1
+Publish-DscConfiguration              Cmdlet 1.1
+Remove-DscConfigurationDocument     Function 1.1
+Restore-DscConfiguration            Function 1.1
+Set-DscLocalConfigurationManager      Cmdlet 1.1
+Start-DscConfiguration                Cmdlet 1.1
+Stop-DscConfiguration               Function 1.1
+Test-DscConfiguration                 Cmdlet 1.1
+Update-DscConfiguration               Cmdlet 1.1
+```
+
+Coverage table:
+
+```text
+Configuration keyword | record-present=y | cited=y | verdict-assigned=y
+Get-DscResource | record-present=y | cited=y | verdict-assigned=y
+Invoke-DscResource | record-present=y | cited=y | verdict-assigned=y
+Start-DscConfiguration | record-present=y | cited=y | verdict-assigned=y
+Test-DscConfiguration | record-present=y | cited=y | verdict-assigned=y
+Get-DscConfiguration | record-present=y | cited=y | verdict-assigned=y
+Get-DscConfigurationStatus | record-present=y | cited=y | verdict-assigned=y
+Publish-DscConfiguration | record-present=y | cited=y | verdict-assigned=y
+Stop-DscConfiguration | record-present=y | cited=y | verdict-assigned=y
+Restore-DscConfiguration | record-present=y | cited=y | verdict-assigned=y
+Update-DscConfiguration | record-present=y | cited=y | verdict-assigned=y
+New-DscChecksum | record-present=y | cited=y | verdict-assigned=y
+Get-DscLocalConfigurationManager | record-present=y | cited=y | verdict-assigned=y
+Set-DscLocalConfigurationManager | record-present=y | cited=y | verdict-assigned=y
+Enable-DscDebug | record-present=y | cited=y | verdict-assigned=y
+Disable-DscDebug | record-present=y | cited=y | verdict-assigned=y
+Remove-DscConfigurationDocument | record-present=y | cited=y | verdict-assigned=y
+DSC resource contract conventions | record-present=y | cited=y | verdict-assigned=y
+Resource discovery/module loading | record-present=y | cited=y | verdict-assigned=y
+LCM responsibilities | record-present=y | cited=y | verdict-assigned=y
+MOF compilation vs runtime boundary | record-present=y | cited=y | verdict-assigned=y
+Reporting/status behavior | record-present=y | cited=y | verdict-assigned=y
+Checksums/pull server/publishing | record-present=y | cited=y | verdict-assigned=y
+Cross-platform DSC v3 direction context-only | record-present=y | cited=y | verdict-assigned=y
+```
+
+Citation integrity:
+
+```text
+PASS all audit source URLs appear in SOURCES.md with retrieved-date and version
+```
+
+Schema/verdict checks:
+
+```text
+PASS rows=24 all have 8 populated columns and closed-set verdicts
+```
+
+Cross-reference coverage:
+
+```text
+PASS gaps=32 all GAPS.md items referenced in REGISTRY-CROSSREF.md
+```
+
+Disallowed artifacts:
+
+```text
+PASS no .mof or Phase 4b checklist artifacts present
+```
+
+Audit files tracked in index:
+
+```text
+docs/dsc-audit/AUDIT.md
+docs/dsc-audit/REGISTRY-CROSSREF.md
+docs/dsc-audit/SOURCES.md
 ```
 
 Tracked PDF / recovery check:
 
 ```text
-NO TRACKED PDF OR _recovery FILES
-```
-
-PDF hashes:
-
-```text
-06042026.pdf B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F
-06042026_001.pdf D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E
+NO OUTPUT from: git ls-files | Select-String -Pattern '\.pdf$|^_recovery/'
 ```
 
 Branch:
 
 ```text
-recovery/phase-3-completeness
+recovery/phase-4-dsc-audit
+```
+
+Staged status:
+
+```text
+## recovery/phase-4-dsc-audit
+M  _handoff/CLAUDE-RESTART-PROMPT.md
+M  _handoff/PLAN.md
+M  _handoff/REPORT-ARCHIVE.md
+M  _handoff/REPORT.md
+M  _handoff/TASK.md
+A  docs/dsc-audit/AUDIT.md
+A  docs/dsc-audit/REGISTRY-CROSSREF.md
+A  docs/dsc-audit/SOURCES.md
 ```
 
 Diff hygiene:
 
 ```text
-git diff --check exit: 0
-warning: in the working copy of '_handoff/REPORT-ARCHIVE.md', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of '_handoff/REPORT.md', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of '_handoff/TASK.md', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'docs/recovery/GAPS.md', LF will be replaced by CRLF the next time Git touches it
+NO OUTPUT from: git diff --cached --check
 ```
 
-Commit signing check:
+Commit signing:
 
 ```text
+commit 5db9fa7177b15975e40f10566e8088c3ed799979
 Good "git" signature for 33955773+NWarila@users.noreply.github.com with ECDSA key SHA256:UAsMtOhQwpR/duoYjPY3LSw4a905Dx29QPGGXCTkhGY
-signature-status: G; signer: 33955773+NWarila@users.noreply.github.com; key: SHA256:UAsMtOhQwpR/duoYjPY3LSw4a905Dx29QPGGXCTkhGY
+Author:     NWarila <33955773+NWarila@users.noreply.github.com>
+AuthorDate: Mon Jun 8 21:43:17 2026 +0000
+Commit:     NWarila <33955773+NWarila@users.noreply.github.com>
+CommitDate: Mon Jun 8 21:43:17 2026 +0000
+
+    docs(dsc-audit): microsoft DSC surface audit evidence
 ```
 
 ## Deviations from `TASK.md` and why
 
-- No helper was recovered as `found-in-PDF` because the declaration scan found no missed function bodies outside the 18-name inventory.
-- `Get-RegistryKeyPath` uses `[regex]::Match` instead of the rendered `Matches`/`MatchCollection` shape because the rendered follow-on members are `.Success` and `.Groups`; this preserves the page-image behavior in parseable PS 5.1.
-- `Get-RegistryKeyPath` constructs its regex from a backslash escape variable to avoid a UNC-shaped sensitive-scan false positive while preserving the runtime pattern.
+- Added three discovered PSDesiredStateConfiguration surfaces (`Enable-DscDebug`, `Disable-DscDebug`, `Remove-DscConfigurationDocument`) because PLAN 4.4 says the listed surfaces are a minimum and discovered surfaces must be added.
+- Used read-only in-box discovery only as corroboration and summarized it without machine-specific identifiers.
+- `PLAN.md`, `TASK.md`, and `CLAUDE-RESTART-PROMPT.md` had pre-existing Claude-authored local edits before Codex began Phase 4. Codex did not edit their content, but staged them as-is per TASK F durability instructions.
 
 ## Open objections that must be resolved before advancing
 
-- `Get-NormalizedRegistryKeyString`, `ArrayToString`, `Get-RegistryKeyType`, and the B page 0001 sketch names are genuinely absent as helper bodies. Do not alias or replace them without an owner decision.
-- Registry/orchestration functions still need an owner-approved registry test-isolation strategy.
+- Phase 4b must remain a separate owner/Claude-authorized step. Do not treat these verdict records as an implementation checklist until the owner accepts the audit.
 
 ## Owner decisions needed
 
-- For genuinely absent helpers: needs owner decision - re-extract from PDFs, or design a replacement (do not invent).
 - Owner/Claude audit this PR; owner admin-merges after audit.
+- Owner acceptance is required before Phase 4b or Phase 5 work begins.
 
-Phase 3 status: COMPLETE
+Phase 4 status: COMPLETE
