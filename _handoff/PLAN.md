@@ -332,7 +332,9 @@ Acceptance criteria (checkable, Windows PowerShell 5.1; each must pass):
    `Get-ChildItem docs\adr\*.md | Where-Object { (Get-Content $_ -Raw) -notmatch "(?m)^Status:\s*Draft\s*$" } | ForEach-Object { Write-Error "ADR not Draft: $($_.Name)" }`
 4. PDFs are ignored: `git check-ignore -v 06042026.pdf 06042026_001.pdf` prints a
    matching rule for each (exit 0).
-5. `_recovery/` is ignored: `git check-ignore -v _recovery` prints a matching rule.
+5. `_recovery/` is ignored: `git check-ignore -v _recovery/` prints a matching rule
+   (trailing slash required; `/_recovery/` is directory-only, so a bare `_recovery`
+   will not match while the directory is absent).
 6. Nothing oversized/binary tracked: `git ls-files` lists no `.pdf` and nothing
    under `_recovery/`; both PDFs and `_recovery/` are absent from `git status --short`
    staged output.
@@ -347,8 +349,10 @@ Phase 1 (PDF extraction) MUST NOT begin until every item holds. While any is
 unmet this gate is RED and no Phase 1 artifact may be written.
 - [ ] `.gitignore` and `.gitattributes` exist and ignore both named PDFs and
       `/_recovery/`. Verify (record output verbatim in `REPORT.md`):
-      (a) `git check-ignore -v 06042026.pdf 06042026_001.pdf _recovery` each prints
-      a matching rule and exits 0;
+      (a) `git check-ignore -v 06042026.pdf 06042026_001.pdf _recovery/` each prints
+      a matching rule and exits 0 (note the trailing slash on `_recovery/`: the rule
+      `/_recovery/` is directory-only, so a bare `_recovery` will not match while the
+      directory is absent);
       (b) `git ls-files -- 06042026.pdf 06042026_001.pdf _recovery/` returns EMPTY
       (if any appear tracked, STOP and ask the owner before `git rm --cached`);
       (c) `git status --short` shows no PDF or `_recovery/` path staged.
@@ -957,24 +961,29 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Phase 0 - Repo Governance Baseline. Last updated: 2026-06-08.
+Active phase: Phase 1 - PDF Text and Code Extraction. Last updated: 2026-06-08.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
   `nwarila-platform/targetstate`.
 - Local checkout: `C:\Users\HellBomb\Documents\GitHub\nwarila-platform\targetstate`
-- Tracked in git: `.github/CODEOWNERS`, `README.md` (only).
-- Untracked at seed: `_handoff/*.md` (commit pending), `06042026.pdf`
-  (19,780,374 bytes), `06042026_001.pdf` (2,780,237 bytes). PDF commit-vs-local is
-  Phase 0 step 6 / Section 9 (default local-only).
+- Tracked on `main` after Phase 0 merge (PR #1 / squash `a02aaa0`):
+  `.github/CODEOWNERS`, `README.md`, `.gitignore`, `.gitattributes`,
+  `docs/adr/0000-adr-process.md`, `docs/adr/0001-targetstate-charter.md`,
+  `docs/governance.md`, `_handoff/*.md`.
+- Untracked, local-only by policy (D1): `06042026.pdf` (19,780,374 bytes,
+  SHA-256 `B6BD5239...155F`) and `06042026_001.pdf` (2,780,237 bytes, SHA-256
+  `D6BE7305...051E`); both git-ignored. Full hashes are in the archived Phase 0
+  REPORT.
 - `NWarila/powershell-template` is currently a bare skeleton with no conventions
   to adopt.
-- `README.md` currently headlines "STIG-aligned system hardening" - to be REFRAMED
-  in Phase 0 step 7 to the GitOps-friendly-DSC-replacement / YAML-not-MOF
-  positioning (owner decision D5).
-- Owner decisions resolved 2026-06-08: sequencing = Phase 0 governance first; D1 =
-  PDFs local-only + SHA-256 manifest; D5 = reframe README per the mission above.
-  D2/D3/D4/D6 remain on their documented defaults.
+- `README.md` was REFRAMED in Phase 0 (PR #1) to the GitOps-friendly
+  DSC-replacement / YAML-not-MOF positioning; STIG is a downstream use case.
+- Owner decisions resolved 2026-06-08: sequencing = Phase 0 first; D1 = PDFs
+  local-only + SHA-256 manifest; D5 = README reframed. D2/D3/D4/D6 remain on their
+  documented defaults.
+- Gate 0 -> 1 is GREEN (Phase 0 merged; PDFs + `_recovery/` ignored and untracked;
+  ADRs Draft; governance recorded; commits signed).
 - The PDFs are scanned/code-printout source material for the first Registry
   resource/provider design (DSC-like vocabulary: provider setup, target resource,
   Registry normalization, `Ensure`, `ValueKind`, `ValueData`).
@@ -984,8 +993,8 @@ Phase status (names match Section 6):
 
 | Phase | Name | Status | Evidence | Date |
 |-------|------|--------|----------|------|
-| 0 | Repo Governance Baseline | ACTIVE - assigned in current TASK.md | REPORT.md seed | 2026-06-08 |
-| 1 | PDF Text and Code Extraction | NOT STARTED (blocked behind Gate 0->1) | - | - |
+| 0 | Repo Governance Baseline | COMPLETE - merged PR #1 (squash `a02aaa0`); Gate 0->1 GREEN | 2026-06-08 |
+| 1 | PDF Text and Code Extraction | ACTIVE - assigned in current TASK.md | - | - |
 | 2 | Function-by-Function Detangling | NOT STARTED | - | - |
 | 3 | Recovered Code Stabilization | NOT STARTED | - | - |
 | 4 | Microsoft DSC Surface Audit | NOT STARTED | - | - |
@@ -1069,6 +1078,16 @@ Long-horizon (do NOT block Phase 0/1):
   Updated Section 1 (Mission), Section 5 (GitOps/YAML design drivers), the
   README-reframe step (Phase 0 step 7 / D5), and the declaration-language open
   decision accordingly.
+- 2026-06-08: Phase 0 (governance baseline) executed by Codex on branch
+  `recovery/phase-0-governance` and AUDITED by Claude: scope clean (only
+  `.gitignore`/`.gitattributes`/`docs/adr/0000-0001`/`docs/governance.md`/README
+  reframe/handoff); both PDFs byte-identical to baseline; ADRs Draft; no engine
+  files; commits signed. Codex correctly flagged that the Gate 0 -> 1 verification
+  used a bare `_recovery` where the rule `/_recovery/` is directory-only - resolved
+  by accepting the trailing-slash `_recovery/` proof and correcting the command
+  wording in Gate 0 -> 1 and Phase 0 acceptance #5. Gate 0 -> 1 declared GREEN.
+  Owner-authorized admin squash-merge to `main` (PR #1 -> commit `a02aaa0`); no CI
+  workflows exist, nothing to watch. Advanced ledger to Phase 1 ACTIVE.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads
