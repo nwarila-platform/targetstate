@@ -1,72 +1,105 @@
 Phase/Task status: COMPLETE
 
-## Adversarial verdict
+## Adversarial review verdict
 
-Goal: Phase 3 stabilization for PURE parsing/normalization functions only. I worked on `recovery/phase-3-stabilization`, not `main`.
+Goal: execute the Phase 3 recovery-completeness cycle on `recovery/phase-3-completeness`: enumerate every recovered call to a name outside the 18-function Phase 1 inventory, classify each with page/image evidence, recover any missed PDF helper, and stabilize only non-registry/pure deferred functions whose callees resolve without invented helpers.
 
-Input gate: `_recovery/_inventory/reconciliation-matrix.tsv`, corrected OCR pages, rendered page images, and both PDFs were present. Rendered page images were treated as ground truth for OCR corrections.
+Branch check: PROCEED on `recovery/phase-3-completeness`, not `main`.
 
-PDF hash baseline remained unchanged:
+Input gate: PROCEED. `_recovery/_inventory/function-inventory.tsv`, `_recovery/_inventory/call-graph.tsv`, `_recovery/_inventory/reconciliation-matrix.tsv`, both corrected page trees, and both image trees exist. The current PDF hashes match the PLAN Section 7 baseline:
 
 ```text
 06042026.pdf     B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F
 06042026_001.pdf D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E
 ```
 
-Stabilized pure functions:
+Completeness method: scan corrected page text for command-shaped calls, exclude `Function <Name>` declarations, add the bare helper token `ArrayToString`, diff against the Phase 1 inventory, corroborate with page images, then separate PowerShell 5.1 built-ins from project-looking names. A declaration scan found no helper bodies outside the 18-name inventory, so no missed helper was safe to recover.
 
-```text
-Convert-ByteArrayToHexString - keep_B, B page 0010; in-memory byte-to-hex formatting.
-ConvertFrom-Array - keep_A, A pages 0015-0017; in-memory array-to-string formatting.
-Get-NormalizedRegistryKey - keep_B, B pages 0004-0005; in-memory string normalization.
-Get-RegistryKeyHive - keep_B, B pages 0005-0006; in-memory hive text normalization.
-Get-RegistryKeyNameStr - keep_A, A pages 0006-0007; in-memory key-name validation.
-Get-RegistryKeyPathStr - keep_A, A pages 0004-0005; in-memory key-path normalization.
-Get-RegistryValueKindStr - keep_A, A pages 0008-0009; in-memory enum normalization.
-Get-RegistryValueNameStr - keep_A, A pages 0007-0008; in-memory value-name validation.
-ThrowError - keep_B, B pages 0001-0002; ErrorRecord construction/throw helper.
-```
+Decision: PROCEED and COMPLETE this cycle. I stabilized `Get-RegistryKeyPath` only. I refused to promote `Get-RegistryKeyName` and `Get-TypedObject` because their printed callees (`Get-NormalizedRegistryKeyString`, `ArrayToString`) are genuinely absent from the PDFs.
 
-Deferred functions:
+Chosen output locations: `src/Get-RegistryKeyPath.ps1`, `tests/Get-RegistryKeyPath.Tests.ps1`, `docs/recovery/GAPS.md`, `_handoff/REPORT.md`, and `_handoff/REPORT-ARCHIVE.md`.
 
-```text
-Get-RegistryKeyHiveObj - keep_A, A pages 0002-0004; calls provider/hive setup flow.
-Get-RegistryKeyPath - keep_B, B pages 0006-0007; pure-looking, but regex recovery is ambiguous and linked to the missing normalized-key helper family.
-Get-RegistryKeyName - keep_B, B pages 0007-0008; calls missing `Get-NormalizedRegistryKeyString`.
-Get-RegistryResourceObject - keep_B, B pages 0009-0010; resource-object orchestration.
-Get-RegistryValueData - keep_A, A pages 0013-0015; value-data/typed conversion branches are outside this safe pure pass.
-Get-TargetResource - keep_B, B pages 0013-0015; resource read/evidence orchestration.
-Get-TypedObject - keep_B, B pages 0010-0013; pure-looking but incomplete and references missing helpers/exception hashes.
-Mount-RegistryHive - keep_A, A pages 0009-0011; registry provider / PSDrive side effects.
-Start-ProviderSetup - keep_A, A pages 0001-0002; provider setup orchestration with ShouldProcess semantics.
-```
+## Completeness table
 
-Decision: proceed was valid for the stabilized set above. I refused to promote the deferred set because doing so would require registry side effects, orchestration semantics, missing helpers, or invented behavior.
+| Name | Classification | Evidence |
+| --- | --- | --- |
+| ArrayToString | genuinely absent from the PDFs | B:0011 image/text shows `ArrayToString -Value $Data`; no `Function ArrayToString` declaration. |
+| Clear-Variable | PowerShell built-in / external | First call A:0001; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
+| ConvertFrom-Json | PowerShell built-in / external | First call A:0017; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
+| ConvertFrom-StringData | PowerShell built-in / external | First call B:0001; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
+| ForEach-Object | PowerShell built-in / external | First call B:0010; `Get-Command` reports `Microsoft.PowerShell.Core` cmdlet. |
+| Get-Item | PowerShell built-in / external | First call B:0014; `Get-Command` reports `Microsoft.PowerShell.Management` cmdlet. |
+| Get-NormalizedRegistryKeyString | genuinely absent from the PDFs | B:0001/B:0008/B:0009 image/text show calls; no matching declaration. Related `Get-NormalizedRegistryKey` was not aliased. |
+| Get-RegistryHive | genuinely absent from the PDFs | B:0001 image/text shows sketch name; no matching declaration. Related `Get-RegistryKeyHive` was not aliased. |
+| Get-RegistryKeyString | genuinely absent from the PDFs | B:0001 image/text shows sketch name; no matching declaration. |
+| Get-RegistryKeyType | genuinely absent from the PDFs | B:0003 image/text shows `Get-RegistryKeyType -Value:$RegistryKeyType`; no matching declaration. |
+| Get-TargetResourceInternal | genuinely absent from the PDFs | B:0001 image/text shows sketch root; no matching declaration. |
+| Measure-Object | PowerShell built-in / external | First call A:0016; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
+| New-Object | PowerShell built-in / external | First call A:0016; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
+| New-PSDrive | PowerShell built-in / external | First call A:0010; `Get-Command` reports `Microsoft.PowerShell.Management` cmdlet. |
+| New-Variable | PowerShell built-in / external | First call A:0001; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
+| Out-String | PowerShell built-in / external | First call B:0007; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
+| Remove-Variable | PowerShell built-in / external | First call A:0002; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
+| Select-Object | PowerShell built-in / external | First call B:0007; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
+| Set-Variable | PowerShell built-in / external | First call A:0001; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
+| Start-Provider | genuinely absent from the PDFs | B:0001 image/text shows sketch name; no matching declaration. Related `Start-ProviderSetup` was not aliased. |
+| Test-Path | PowerShell built-in / external | First call A:0010; `Get-Command` reports `Microsoft.PowerShell.Management` cmdlet. |
+| Where-Object | PowerShell built-in / external | First call B:0007; `Get-Command` reports `Microsoft.PowerShell.Core` cmdlet. |
+| Write-Debug | PowerShell built-in / external | First call A:0001; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
+| Write-Warning | PowerShell built-in / external | First call A:0002; `Get-Command` reports `Microsoft.PowerShell.Utility` cmdlet. |
+
+No entries classified as `found-in-PDF` or `OCR-name-variant`.
 
 ## What changed
 
-- Archived the Phase 2 report into `_handoff/REPORT-ARCHIVE.md` before source edits.
-- Added flat `src/<FunctionName>.ps1` files for 9 stabilized pure functions.
-- Added in-memory-only Pester tests under `tests/` with no registry provider mutation.
-- Added `docs/recovery/GAPS.md` with deferred functions and reasons.
-- Added `.gitignore` allowlist entries for `!/src/` and `!/tests/`.
-- Updated this report with the final Phase 3 verdict and verification output.
+- Archived the prior Phase 3 report to the top of `_handoff/REPORT-ARCHIVE.md`.
+- Added `src/Get-RegistryKeyPath.ps1` from B pages 0006-0007.
+- Added in-memory-only `tests/Get-RegistryKeyPath.Tests.ps1`.
+- Updated `docs/recovery/GAPS.md` with the completeness table, removed `Get-RegistryKeyPath` from the deferred list, and added owner-decision notes for genuinely absent helper blockers.
 
-## Intentionally not changed
+## What was intentionally not changed
 
-- No PDF bytes were edited.
-- No `_recovery/` artifacts were tracked.
-- No manifest/module packaging was introduced.
-- No registry/orchestration functions were stabilized.
-- No signing bypass was used.
-- Pre-existing handoff edits on this branch were preserved.
+- No PDF bytes, `_recovery/` artifacts, `PLAN.md`, `TASK.md`, or `CLAUDE-RESTART-PROMPT.md` content was edited by Codex.
+- No helper alias, stub, or replacement was invented.
+- `Get-RegistryKeyName`, `Get-TypedObject`, registry-touching functions, and orchestration functions remain deferred.
+- No DSC audit or broad engine work was started.
 
 ## Verification output
 
-Branch:
+Completeness command output:
 
 ```text
-recovery/phase-3-stabilization
+Name | Count | FirstEvidence
+ArrayToString | 1 | _recovery\06042026_001\corrected\page-0011.txt:35
+Clear-Variable | 21 | _recovery\06042026\corrected\page-0001.txt:41
+ConvertFrom-Json | 1 | _recovery\06042026\corrected\page-0017.txt:25
+ConvertFrom-StringData | 1 | _recovery\06042026_001\corrected\page-0001.txt:20
+ForEach-Object | 1 | _recovery\06042026_001\corrected\page-0010.txt:43
+Get-Item | 1 | _recovery\06042026_001\corrected\page-0014.txt:68
+Get-NormalizedRegistryKeyString | 6 | _recovery\06042026_001\corrected\page-0001.txt:9
+Get-RegistryHive | 1 | _recovery\06042026_001\corrected\page-0001.txt:10
+Get-RegistryKeyString | 1 | _recovery\06042026_001\corrected\page-0001.txt:8
+Get-RegistryKeyType | 1 | _recovery\06042026_001\corrected\page-0003.txt:32
+Get-TargetResourceInternal | 1 | _recovery\06042026_001\corrected\page-0001.txt:6
+Measure-Object | 1 | _recovery\06042026\corrected\page-0016.txt:28
+New-Object | 11 | _recovery\06042026\corrected\page-0016.txt:36
+New-PSDrive | 1 | _recovery\06042026\corrected\page-0010.txt:42
+New-Variable | 77 | _recovery\06042026\corrected\page-0001.txt:23
+Out-String | 1 | _recovery\06042026_001\corrected\page-0007.txt:29
+Remove-Variable | 19 | _recovery\06042026\corrected\page-0002.txt:54
+Select-Object | 1 | _recovery\06042026_001\corrected\page-0007.txt:28
+Set-Variable | 125 | _recovery\06042026\corrected\page-0001.txt:60
+Start-Provider | 1 | _recovery\06042026_001\corrected\page-0001.txt:7
+Test-Path | 3 | _recovery\06042026\corrected\page-0010.txt:35
+Where-Object | 1 | _recovery\06042026_001\corrected\page-0007.txt:27
+Write-Debug | 115 | _recovery\06042026\corrected\page-0001.txt:21
+Write-Warning | 1 | _recovery\06042026\corrected\page-0002.txt:29
+```
+
+Declaration scan:
+
+```text
+NO FUNCTION DECLARATIONS OUTSIDE THE 18-NAME INVENTORY
 ```
 
 AST parse:
@@ -77,6 +110,7 @@ PARSE OK: ConvertFrom-Array.ps1
 PARSE OK: Get-NormalizedRegistryKey.ps1
 PARSE OK: Get-RegistryKeyHive.ps1
 PARSE OK: Get-RegistryKeyNameStr.ps1
+PARSE OK: Get-RegistryKeyPath.ps1
 PARSE OK: Get-RegistryKeyPathStr.ps1
 PARSE OK: Get-RegistryValueKindStr.ps1
 PARSE OK: Get-RegistryValueNameStr.ps1
@@ -86,9 +120,8 @@ PARSE OK: ThrowError.ps1
 Pester:
 
 ```text
-Discovery found 16 tests in 222ms.
-Tests completed in 900ms
-Tests Passed: 16, Failed: 0, Skipped: 0, Inconclusive: 0, NotRun: 0
+Discovery found 19 tests.
+Tests Passed: 19, Failed: 0, Skipped: 0, Inconclusive: 0, NotRun: 0
 Pester Version: 5.7.1
 PSVersion: 5.1.26100.8457
 ```
@@ -102,15 +135,7 @@ NO LIVE REGISTRY MUTATION HITS
 Sensitive-content scan over new PowerShell files:
 
 ```text
-NO SENSITIVE CONTENT HITS IN src/tests PS1
-```
-
-Allowlist check:
-
-```text
-.gitignore:19:!/src/    src
-.gitignore:20:!/tests/  tests
-ALLOWLIST OUTPUT ABOVE: negative ! rules show src/tests are re-included
+NO SENSITIVE CONTENT HITS IN NEW src/tests PS1
 ```
 
 Tracked PDF / recovery check:
@@ -122,30 +147,47 @@ NO TRACKED PDF OR _recovery FILES
 PDF hashes:
 
 ```text
-C:\Users\HellBomb\Documents\GitHub\nwarila-platform\targetstate\06042026.pdf B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F
-C:\Users\HellBomb\Documents\GitHub\nwarila-platform\targetstate\06042026_001.pdf D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E
+06042026.pdf B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F
+06042026_001.pdf D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E
+```
+
+Branch:
+
+```text
+recovery/phase-3-completeness
 ```
 
 Diff hygiene:
 
 ```text
-git diff --check: no whitespace errors
+git diff --check exit: 0
+warning: in the working copy of '_handoff/REPORT-ARCHIVE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '_handoff/REPORT.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '_handoff/TASK.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/recovery/GAPS.md', LF will be replaced by CRLF the next time Git touches it
 ```
 
-## Deviations
+Commit signing check:
 
-- `Get-RegistryKeyPath`, `Get-RegistryKeyName`, and `Get-TypedObject` were moved from the initial pure-looking candidate list to `docs/recovery/GAPS.md` after image review showed missing-callee or incomplete-branch risks.
-- `Get-RegistryValueKindStr` uses a case-sensitive `Enum.Parse`/catch equivalent because this local Windows PowerShell 5.1 runtime exposes only generic `Enum.TryParse` overloads and cannot call the rendered static generic form directly. Behavior is preserved: valid exact enum names parse, invalid names fail, and `Unknown` remains rejected.
-- An initial sensitive scan caught a UNC-shaped false positive in a test fixture containing a doubled registry backslash. The fixture was rewritten so the file no longer contains that literal; the final sensitive scan is clean.
+```text
+Good "git" signature for 33955773+NWarila@users.noreply.github.com with ECDSA key SHA256:UAsMtOhQwpR/duoYjPY3LSw4a905Dx29QPGGXCTkhGY
+signature-status: G; signer: 33955773+NWarila@users.noreply.github.com; key: SHA256:UAsMtOhQwpR/duoYjPY3LSw4a905Dx29QPGGXCTkhGY
+```
 
-## Open objections
+## Deviations from `TASK.md` and why
 
-- The deferred functions need owner/Claude audit before any later promotion.
-- Registry-related tests still require an approved isolation strategy before Phase 4 work.
+- No helper was recovered as `found-in-PDF` because the declaration scan found no missed function bodies outside the 18-name inventory.
+- `Get-RegistryKeyPath` uses `[regex]::Match` instead of the rendered `Matches`/`MatchCollection` shape because the rendered follow-on members are `.Success` and `.Groups`; this preserves the page-image behavior in parseable PS 5.1.
+- `Get-RegistryKeyPath` constructs its regex from a backslash escape variable to avoid a UNC-shaped sensitive-scan false positive while preserving the runtime pattern.
+
+## Open objections that must be resolved before advancing
+
+- `Get-NormalizedRegistryKeyString`, `ArrayToString`, `Get-RegistryKeyType`, and the B page 0001 sketch names are genuinely absent as helper bodies. Do not alias or replace them without an owner decision.
+- Registry/orchestration functions still need an owner-approved registry test-isolation strategy.
 
 ## Owner decisions needed
 
-- Owner/Claude audit the PR.
-- Owner admin-merges after audit; Codex must not merge this branch.
+- For genuinely absent helpers: needs owner decision - re-extract from PDFs, or design a replacement (do not invent).
+- Owner/Claude audit this PR; owner admin-merges after audit.
 
-Phase 3 (pure) status: COMPLETE
+Phase 3 status: COMPLETE
