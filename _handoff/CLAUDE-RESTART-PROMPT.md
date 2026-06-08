@@ -64,17 +64,19 @@ NOT NOW (gated future phases - do not let Codex jump ahead):
 - No engine/contract design before its Draft ADR (Phase 5).
 
 Current expected next step:
-Phases 0-4 and the deny-by-default governance interlude (ADR 0002, Draft) are COMPLETE
-and merged to `main` (PRs #1-#7; latest `bafe8c2`). Phase 3 recovery is closed at 10/18
-functions stabilized (the PDFs are fully mined; ~6 referenced helpers are absent). Phase
-4 produced a primary-source DSC surface audit under `docs/dsc-audit/` (24 records,
-citations Claude-verified by independent WebFetch). The active phase is PLAN.md Phase 4b
-(synthesis), specified in `_handoff/TASK.md` - turn the audit verdicts + the 10 stabilized
-functions + the GAPS into `docs/dsc-audit/CHECKLIST.md` (one action per surface) and
-`BACKLOG.md` (steps mapped to Phase 5/6). Phase 4b designs nothing and writes no ADR/
-source. Your job: keep `_handoff/TASK.md` correct, audit Codex's REPORT (every surface
-has a concrete action; backlog items trace to audit/GAP ids), and - once merged - author
-Phase 5 (the Draft contract ADRs). PDFs + `_recovery/` stay ignored.
+Phases 0-4b and the deny-by-default governance interlude (ADR 0002, Draft) are COMPLETE
+and merged to `main` (PRs #1-#8; latest `c0cb730`). Phase 3 recovery is closed at 10/18
+functions stabilized; Phase 4 produced a citation-verified DSC surface audit; Phase 4b
+produced `docs/dsc-audit/CHECKLIST.md` + `BACKLOG.md`. The active phase is PLAN.md Phase 5
+(the first DESIGN phase), specified in `_handoff/TASK.md` - Codex drafts the four contract
+ADRs (`docs/adr/0003` resource contract, `0004` declaration-document format (YAML, no MOF),
+`0005` evidence/reporting model, `0006` mutation/ShouldProcess safety) as a PROPOSAL set,
+all `Status: Draft`, grounded in the audit + recovered functions + mission. They write no
+source and lock nothing until owner-accepted. Your job: keep `_handoff/TASK.md` correct,
+audit Codex's REPORT (every ADR Draft + internally consistent + traceable to audit/backlog;
+no source; real design forks surfaced as owner open-questions), and - once merged - author
+the next step (the missing-helper designs + Phase 6 Registry build). PDFs + `_recovery/`
+stay ignored.
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
 introduce a separate "Step" counter; owner-initiated governance tasks may be
@@ -85,7 +87,7 @@ interleaved and are labeled "Governance:", not a Phase):
 - Phase 2 - Function-by-function detangling (COMPLETE, merged)
 - Phase 3 - Recovered-code stabilization (COMPLETE as recovery baseline; 10/18 stabilized, 8 deferred to design)
 - Phase 4 - Microsoft DSC surface audit (COMPLETE, merged; 24 records, citations verified)
-- Phase 4b - Port/adapt/skip checklist + backlog (ACTIVE; synthesis only)
-- Phase 5 - TargetState contract design (Draft ADRs)
+- Phase 4b - Port/adapt/skip checklist + backlog (COMPLETE, merged)
+- Phase 5 - TargetState contract design (ACTIVE; Draft ADRs 0003-0006, proposals for owner review)
 - Phase 6 - Registry proof implementation
 - Phase 7 - Engine and STIG roadmap
