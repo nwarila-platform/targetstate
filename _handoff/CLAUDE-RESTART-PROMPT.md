@@ -64,18 +64,20 @@ NOT NOW (gated future phases - do not let Codex jump ahead):
 - No engine/contract design before its Draft ADR (Phase 5).
 
 Current expected next step:
-Phase 0 (governance baseline) is COMPLETE and merged to `main` (PR #1 / squash
-`a02aaa0`); Gate 0 -> 1 is GREEN. The active phase is PLAN.md Phase 1 (PDF Text
-and Code Extraction); `_handoff/TASK.md` specifies it. Your job is to keep
-`_handoff/TASK.md` correct, audit Codex's Phase 1 REPORT against the PLAN 1.10
-acceptance criteria, and - once Phase 1 is owner-accepted/merged - author the
-Phase 2 detangling task.
+Phase 0 and Phase 1 are COMPLETE and merged to `main` (PR #1 `a02aaa0`, PR #2
+`d87f1f6`). The owner initiated a DENY-BY-DEFAULT tracking policy; the active task
+is an owner-initiated governance interlude - Draft ADR 0002 + an allowlist
+`.gitignore` - specified in `_handoff/TASK.md`. After it merges, author the Phase 2
+detangling task. Your job: keep `_handoff/TASK.md` correct and audit each Codex
+REPORT (PDFs + `_recovery/` must stay ignored; evidence stays local-only).
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
-introduce a separate "Step" counter):
+introduce a separate "Step" counter; owner-initiated governance tasks may be
+interleaved and are labeled "Governance:", not a Phase):
 - Phase 0 - Repo governance baseline (COMPLETE, merged)
-- Phase 1 - PDF text/code extraction + function inventory (ACTIVE)
-- Phase 2 - Function-by-function detangling
+- Phase 1 - PDF text/code extraction + function inventory (COMPLETE, merged)
+- Governance - Deny-by-default tracking policy / ADR 0002 (ACTIVE interlude)
+- Phase 2 - Function-by-function detangling (next)
 - Phase 3 - Recovered-code stabilization
 - Phase 4 - Microsoft DSC surface audit (official sources, audit-only)
 - Phase 4b - Port/adapt/skip checklist (separate downstream step)
