@@ -960,7 +960,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Phase 4 - Microsoft DSC Surface Audit (audit-only, primary sources). Last updated: 2026-06-08.
+Active phase: Phase 4b - Port/Adapt/Skip Checklist + implementation backlog (synthesis). Last updated: 2026-06-08.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -997,8 +997,8 @@ Phase status (names match Section 6):
 | - | Governance: Deny-by-default tracking (ADR 0002 Draft) | COMPLETE - merged PR #3 (squash `ed7c535`) | - | 2026-06-08 |
 | 2 | Function-by-Function Detangling | COMPLETE - merged PR #4 (squash `337455d`); 18 reconciled (9 keep_A, 9 keep_B, 0 defer) | 2026-06-08 |
 | 3 | Recovered Code Stabilization | COMPLETE (as recovery baseline) - 10/18 functions stabilized + merged (PRs #5 `650b6bb`, #6 `69325cd`); 8 deferred in `docs/recovery/GAPS.md` (2 blocked on genuinely-absent helpers, 6 registry/orchestration). Owner accepted + pivoted to Phase 4 | 2026-06-08 |
-| 4 | Microsoft DSC Surface Audit | ACTIVE - assigned in current TASK.md (audit-only; needs network) | - | 2026-06-08 |
-| 4b | Port/Adapt/Skip Checklist | NOT STARTED | - | - |
+| 4 | Microsoft DSC Surface Audit | COMPLETE - merged PR #7 (squash `bafe8c2`); 24 surfaces audited from primary sources (citations Claude-verified), cross-ref covers 32 GAPS | 2026-06-08 |
+| 4b | Port/Adapt/Skip Checklist | ACTIVE - assigned in current TASK.md (synthesis only) | - | 2026-06-08 |
 | 5 | TargetState Contract Design | NOT STARTED | - | - |
 | 6 | Registry Proof Implementation | NOT STARTED | - | - |
 | 7 | Engine and STIG Roadmap | NOT STARTED | - | - |
@@ -1166,6 +1166,21 @@ Long-horizon (do NOT block Phase 0/1):
   only in-box discovery allowed as corroboration only. The 8 deferred functions + the
   missing helpers are now design work for Phase 5/6, informed by the audit. Advanced
   ledger to Phase 4 ACTIVE.
+- 2026-06-08: Phase 4 (DSC surface audit) executed by Codex on
+  `recovery/phase-4-dsc-audit` with live network, and AUDITED by Claude - including
+  INDEPENDENT WebFetch of two cited Microsoft Learn pages (Invoke-DscResource,
+  DSC v3 overview), both confirming Codex's summaries verbatim (citations are real,
+  not hallucinated). 24 surface records (21 planned + 3 discovered in-box surfaces),
+  each with a primary-source citation, retrieved-date, version, and one closed-set
+  verdict; verdicts are mission-aligned (Configuration/MOF/LCM -> replace; Get/Test/Set
+  contract + Invoke-DscResource -> adapt; pull/checksum/debug -> skip; DSC v3 ->
+  defer/context-only). `REGISTRY-CROSSREF.md` maps all 32 GAPS items. No checklist/
+  design/source/.mof produced (audit-only respected). Owner-authorized admin squash-
+  merge to `main` (PR #7 -> `bafe8c2`), which constitutes owner acceptance of the audit.
+- 2026-06-08: Advanced to Phase 4b (synthesis): turn the audit verdicts + the 10
+  stabilized functions + the GAPS into `docs/dsc-audit/CHECKLIST.md` (one action per
+  surface) and an implementation `BACKLOG.md` mapped to Phase 5 (contract ADRs) and
+  Phase 6 (Registry build). Phase 4b designs nothing and writes no ADR/source.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads
