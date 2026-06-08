@@ -1,95 +1,97 @@
-# TASK - Phase 4b: Port/Adapt/Skip Checklist + Implementation Backlog (synthesis)
-_Read `_handoff/PLAN.md` first - especially Section 6 "Phase 4b" and "Phase 4" (the audit you are synthesizing), plus Sections 0.2, 2, 4. This is a synthesis cycle: it turns committed evidence into a plan. It writes NO source, NO ADR, and makes NO design decisions._
+# TASK - Phase 5: TargetState Contract Design (Draft ADRs)
+_Read `_handoff/PLAN.md` first - especially Section 1 (Mission), Section 5 (Draft Decisions / design drivers), Section 6 "Phase 5", the Locked Rules (Section 4), and Sections 0.2, 2. This is the first DESIGN phase: it writes Draft ADRs (proposals), not source._
 
 ## Gate status
-Phase 4 (DSC audit) is owner-accepted and merged (PR #7 / `bafe8c2`). Its evidence is
-on `main`: `docs/dsc-audit/AUDIT.md` (24 surface records + verdicts),
-`docs/dsc-audit/SOURCES.md`, `docs/dsc-audit/REGISTRY-CROSSREF.md` (32 GAPS items). The
-10 stabilized functions are in `src/`; the gaps are in `docs/recovery/GAPS.md`. Work on
-a NEW branch `recovery/phase-4b-checklist`.
+Phase 4b is merged (PR #8 / `c0cb730`). The design inputs are on `main`:
+`docs/dsc-audit/CHECKLIST.md` and `docs/dsc-audit/BACKLOG.md` (items P5-ADR-001..004,
+P5-SCOPE-005, P5-DESIGN-006..008), `docs/dsc-audit/AUDIT.md` (verdicts), the 10 stabilized
+functions in `src/`, and `docs/recovery/GAPS.md`. Work on a NEW branch
+`recovery/phase-5-contract-adrs`.
 
 ## Goal
-Synthesize the committed audit + recovered code + GAPS into two artifacts:
-1. `docs/dsc-audit/CHECKLIST.md` - the port/adapt/replace/skip/defer checklist: one row
-   per audited surface with the CONCRETE next action for TargetState.
-2. `docs/dsc-audit/BACKLOG.md` - the implementation backlog, split into reviewable steps
-   mapped to the upcoming phases (Phase 5 contract ADRs, Phase 6 Registry build).
-This phase DESIGNS NOTHING and writes no ADR content, no source, no `.mof`. It only
-organizes what the audit and recovery already established into an actionable plan.
+Draft the four TargetState contract ADRs as a coherent PROPOSAL set, all `Status: Draft`,
+grounded in the DSC audit verdicts, the recovered functions, and the mission (a
+GitOps-friendly DSC replacement driven by human-readable YAML-style declaration documents
+instead of generated MOF). These ADRs PROPOSE the contract; they LOCK NOTHING until the
+owner accepts them (Locked Rule). Write NO source, tests, module, or `.mof`.
 
 ## A0. Owner Decisions
-- None new. This cycle consumes already-merged, already-accepted evidence. Do not
-  introduce new DSC research (the audit is the source of DSC facts) and do not lock any
-  design decision (those are Phase 5 Draft ADRs, owner-gated).
+- Every ADR is `Status: Draft`. Do NOT mark any ADR `Accepted` - the owner decides that.
+- These ADRs are PROPOSALS for owner review. Where a genuine design choice exists, propose
+  the option you judge best AND list the alternatives under an explicit "Open questions for
+  owner" section in that ADR, rather than silently deciding.
 
 ## A. Adversarial Review Gate
-Archive the current Phase 4 `_handoff/REPORT.md` to the TOP of
-`_handoff/REPORT-ARCHIVE.md` (`## Archived <UTC date> - Phase 4b`, append-only), then
-write a new `REPORT.md` beginning with a verdict that:
-1. Restates the goal; confirms branch is `recovery/phase-4b-checklist` (not `main`).
-2. Confirms the inputs exist on `main`: `docs/dsc-audit/AUDIT.md`,
-   `docs/dsc-audit/REGISTRY-CROSSREF.md`, `docs/recovery/GAPS.md`, and `src/`.
-3. Confirms SYNTHESIS-ONLY: no design decisions, no ADR, no source, no `.mof`, no new
-   DSC research. Every checklist action is traceable to an AUDIT.md verdict or a GAP.
+Archive the current Phase 4b `_handoff/REPORT.md` to the TOP of
+`_handoff/REPORT-ARCHIVE.md` (`## Archived <UTC date> - Phase 5`, append-only), then write
+a new `REPORT.md` beginning with a verdict that:
+1. Restates the goal; confirms branch is `recovery/phase-5-contract-adrs` (not `main`).
+2. Confirms the inputs exist on `main` (CHECKLIST, BACKLOG, AUDIT, `src/`, GAPS).
+3. Confirms DRAFT-ONLY: every new ADR is `Status: Draft`; no source/tests/module/`.mof`;
+   nothing locked. Each ADR decision traces to an AUDIT verdict, a BACKLOG item, a recovered
+   function, and/or the mission.
 
-## B. Expected Changes (branch `recovery/phase-4b-checklist`)
-- `docs/dsc-audit/CHECKLIST.md`: one row per surface in `AUDIT.md` (all 24), columns:
-  `surface | verdict | concrete-next-action | target-phase`. The action must be specific
-  and derived from the audit verdict:
-  - `adapt conceptually` / `replace with TargetState-native` -> name exactly what
-    TargetState must DESIGN (e.g. "design the Get/Test/Set resource contract", "design
-    the YAML declaration-document format") and the phase that owns it (usually Phase 5).
-  - `port directly` -> name what is reused as-is.
-  - `explicitly skip` -> action = "no action (out of scope)".
-  - `defer until after Registry proof` -> name the condition that unblocks it.
-- `docs/dsc-audit/BACKLOG.md`: the implementation backlog as a numbered list of
-  reviewable steps. Each item: `id | description | depends-on | target-phase | source`
-  (source = the AUDIT.md surface(s) and/or GAP id(s) it derives from). The backlog MUST:
-  - include the four Phase 5 contract ADRs implied by the `adapt`/`replace` verdicts
-    (resource contract, declaration-document format, evidence/reporting model, mutation/
-    ShouldProcess safety);
-  - include the missing helpers from GAPS as DESIGN items (`Get-NormalizedRegistryKeyString`,
-    `ArrayToString`, `Get-RegistryKeyType`) - flagged "design fresh; original absent";
-  - include the 6 deferred registry/orchestration functions as Phase 6 items gated on the
-    registry test-isolation strategy;
-  - note the 10 already-stabilized functions as reusable inputs.
+## B. Expected Changes (branch `recovery/phase-5-contract-adrs`)
+Create four ADRs under `docs/adr/`, each with `Status: Draft`, `Date`, and sections
+`Context` / `Decision` / `Consequences` / `Open questions for owner` / `Owner gate`. Each
+must cite the BACKLOG item and the AUDIT surface(s) it derives from.
+- `docs/adr/0003-resource-contract.md` (BACKLOG P5-ADR-001): the TargetState resource
+  contract - Get/Test/Set operations, `Ensure` (Present/Absent), typed properties, resource
+  discovery/module loading, direct resource dispatch (adapting `Invoke-DscResource`'s
+  Get/Set/Test shape), and evidence-friendly return objects. Show how the 10 recovered
+  normalization functions fit the contract. Record the DSC-compatibility boundary
+  (BACKLOG P5-SCOPE-005): which DSC surfaces TargetState intentionally does NOT provide.
+- `docs/adr/0004-declaration-document-format.md` (BACKLOG P5-ADR-002): the human-readable
+  declaration-document format - YAML (or a clearly-justified similar format), explicitly NO
+  MOF and NO DSC `Configuration` keyword. Include a SMALL illustrative example declaring a
+  Registry resource instance (hive/path/value name/value kind/value data/Ensure). Mark the
+  example Draft/illustrative.
+- `docs/adr/0005-evidence-reporting-model.md` (BACKLOG P5-ADR-003): the evidence/reporting
+  model - structured results for Get/Test/plan/apply, per-resource status, and
+  compliance-review-friendly output (files and/or command output, NOT an LCM/pull store).
+- `docs/adr/0006-mutation-shouldprocess-safety.md` (BACKLOG P5-ADR-004): mutation safety -
+  plan vs apply separation, owner-gated live mutation, `ShouldProcess`/`-WhatIf` semantics
+  where PS 5.1 supports them, and the registry test-isolation requirement (GAP D07/D08).
 
 ## C. Guardrails
-- SYNTHESIS ONLY. Do NOT design the contract, write ADR content, change any ADR status,
-  write source/tests, or write `.mof`. Do NOT perform new DSC research - cite the audit
-  rows, not the web. (If you find an audit gap, note it in REPORT for Claude; do not fix
-  it by re-auditing.)
-- Every checklist action and backlog item must trace to a committed `AUDIT.md` verdict
-  and/or a `GAPS.md`/`REGISTRY-CROSSREF.md` id. Do not invent new surfaces or scope.
-- Branch `recovery/phase-4b-checklist`, never `main`; preserve signing; stage explicit
-  paths only (`docs/dsc-audit/CHECKLIST.md`, `docs/dsc-audit/BACKLOG.md`, `_handoff/*.md`).
-  PDFs + `_recovery/` stay ignored/untouched. Do NOT edit `PLAN.md`/`TASK.md`/
-  `CLAUDE-RESTART-PROMPT.md` content, but commit them as-is for durability. ASCII; offline is fine.
+- DRAFT ADRs ONLY. Every new ADR is `Status: Draft`; do NOT mark any ADR `Accepted`. Do
+  NOT write source, tests, a module manifest, or `.mof`. These are design proposals.
+- Ground every decision in committed evidence: cite the AUDIT surface(s), the BACKLOG item,
+  the recovered function(s), and/or the mission. Do not contradict the Locked Rules
+  (PS 5.1 first; YAML not MOF; GitOps; owner-gated live mutation; STIG is a use case, not
+  the goal; isolated/mocked registry tests until a strategy is approved).
+- Surface real design forks as "Open questions for owner" in the relevant ADR; do not bury
+  a consequential choice as if settled.
+- Branch `recovery/phase-5-contract-adrs`, never `main`; preserve signing; stage explicit
+  paths only (`docs/adr/0003..0006`, `_handoff/*.md`). PDFs + `_recovery/` stay ignored.
+  Do NOT edit `PLAN.md`/`TASK.md`/`CLAUDE-RESTART-PROMPT.md` content, but commit them as-is
+  for durability. ASCII; offline is fine (no new research - the audit is the source).
 
 ## D. Verification (run each; paste output verbatim into REPORT.md)
-- Coverage: every surface in `AUDIT.md` has exactly one `CHECKLIST.md` row (count match);
-  every `adapt`/`replace`/`port`/`defer` row has a non-empty concrete action.
-- Traceability: every `BACKLOG.md` item's `source` names a real AUDIT surface or GAP id.
-- The four Phase 5 contract ADRs and the three missing-helper design items are present in
-  the backlog.
-- Hygiene: `git ls-files docs/dsc-audit/` shows CHECKLIST.md + BACKLOG.md; no `.mof`, no
-  source/ADR changes; `git branch --show-current` (not `main`); `git log --show-signature -1` good.
+- All four ADRs exist: `Test-Path docs\adr\0003-resource-contract.md,docs\adr\0004-declaration-document-format.md,docs\adr\0005-evidence-reporting-model.md,docs\adr\0006-mutation-shouldprocess-safety.md`.
+- Every ADR (including the existing 0000-0002) is Draft - this prints nothing:
+  `Get-ChildItem docs\adr\*.md | Where-Object { (Get-Content $_ -Raw) -notmatch "(?m)^Status:\s*Draft\s*$" } | ForEach-Object { Write-Error "ADR not Draft: $($_.Name)" }`
+- Traceability: each new ADR names its BACKLOG item id and >= 1 AUDIT surface.
+- No source/module/.mof created:
+  `Get-ChildItem -Recurse -Include *.psm1,*.psd1,*.mof -Path . -ErrorAction SilentlyContinue` (returns nothing new), and no new `.ps1` under `src/`.
+- `git branch --show-current` (not `main`); `git log --show-signature -1` good.
 
-## E. Definition of Done (ALL hold; else REPORT `Phase 4b status: BLOCKED | NEEDS-OWNER`)
-- `CHECKLIST.md` covers all 24 surfaces with a concrete action + target phase each.
-- `BACKLOG.md` lists the work as reviewable steps mapped to Phase 5/6, including the four
-  contract ADRs, the three missing-helper design items, the 6 deferred functions (gated
-  on test-isolation), and the 10 reusable stabilized functions; every item is traceable.
-- No design decision locked, no ADR/source/.mof written.
-- `REPORT.md` has the verdict, the coverage/traceability output, and a final line
-  `Phase 4b status: COMPLETE | BLOCKED | NEEDS-OWNER`.
+## E. Definition of Done (ALL hold; else REPORT `Phase 5 status: BLOCKED | NEEDS-OWNER`)
+- The four ADRs (0003-0006) exist, each `Status: Draft`, with Context/Decision/Consequences/
+  Open-questions/Owner-gate, internally consistent and not contradicting each other or the
+  Locked Rules; each cites its BACKLOG item + AUDIT surface(s).
+- 0004 includes an illustrative YAML Registry declaration example (marked Draft).
+- No ADR is `Accepted`; no source/tests/module/`.mof` written.
+- `REPORT.md` has the verdict, the Section D output, a short summary of each ADR's proposed
+  decision + its open questions, and a final line `Phase 5 status: COMPLETE | BLOCKED | NEEDS-OWNER`
+  (COMPLETE = the four Draft ADRs are written and ready for owner review).
 
 ## F. End State (how this cycle hands back)
-- Commit on `recovery/phase-4b-checklist` with a signed message (e.g.
-  `docs(dsc-audit): port/adapt/skip checklist + implementation backlog`). Commit
-  `docs/dsc-audit/CHECKLIST.md`, `docs/dsc-audit/BACKLOG.md`, `_handoff/REPORT*.md`, and
-  the Claude-updated planner docs. Never commit to `main`; never bypass signing.
-- Push the branch and open a PR to `main` titled `Phase 4b: DSC port/adapt/skip checklist
-  + backlog`; paste the Section D coverage output in the PR body.
+- Commit on `recovery/phase-5-contract-adrs` with a signed message (e.g.
+  `docs(adr): draft TargetState contract ADRs 0003-0006`). Commit `docs/adr/0003..0006`,
+  `_handoff/REPORT*.md`, and the Claude-updated planner docs. Never commit to `main`; never
+  bypass signing.
+- Push the branch and open a PR to `main` titled `Phase 5: draft TargetState contract ADRs`;
+  in the PR body, list each ADR's proposed decision + open questions so the owner can review.
 - Finish `REPORT.md` per Section E, then STOP. Do NOT merge - the owner admin-merges after
-  Claude's audit.
+  Claude's audit. These ADRs stay Draft; owner acceptance is a separate decision.

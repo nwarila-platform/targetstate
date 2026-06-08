@@ -960,7 +960,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Phase 4b - Port/Adapt/Skip Checklist + implementation backlog (synthesis). Last updated: 2026-06-08.
+Active phase: Phase 5 - TargetState Contract Design (Draft ADRs 0003-0006). Last updated: 2026-06-08.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -998,8 +998,8 @@ Phase status (names match Section 6):
 | 2 | Function-by-Function Detangling | COMPLETE - merged PR #4 (squash `337455d`); 18 reconciled (9 keep_A, 9 keep_B, 0 defer) | 2026-06-08 |
 | 3 | Recovered Code Stabilization | COMPLETE (as recovery baseline) - 10/18 functions stabilized + merged (PRs #5 `650b6bb`, #6 `69325cd`); 8 deferred in `docs/recovery/GAPS.md` (2 blocked on genuinely-absent helpers, 6 registry/orchestration). Owner accepted + pivoted to Phase 4 | 2026-06-08 |
 | 4 | Microsoft DSC Surface Audit | COMPLETE - merged PR #7 (squash `bafe8c2`); 24 surfaces audited from primary sources (citations Claude-verified), cross-ref covers 32 GAPS | 2026-06-08 |
-| 4b | Port/Adapt/Skip Checklist | ACTIVE - assigned in current TASK.md (synthesis only) | - | 2026-06-08 |
-| 5 | TargetState Contract Design | NOT STARTED | - | - |
+| 4b | Port/Adapt/Skip Checklist | COMPLETE - merged PR #8 (squash `c0cb730`); CHECKLIST (24 surfaces) + BACKLOG (20 items, traceable) | 2026-06-08 |
+| 5 | TargetState Contract Design | ACTIVE - assigned in current TASK.md (Draft ADRs 0003-0006; proposals for owner review) | - | 2026-06-08 |
 | 6 | Registry Proof Implementation | NOT STARTED | - | - |
 | 7 | Engine and STIG Roadmap | NOT STARTED | - | - |
 
@@ -1181,6 +1181,19 @@ Long-horizon (do NOT block Phase 0/1):
   stabilized functions + the GAPS into `docs/dsc-audit/CHECKLIST.md` (one action per
   surface) and an implementation `BACKLOG.md` mapped to Phase 5 (contract ADRs) and
   Phase 6 (Registry build). Phase 4b designs nothing and writes no ADR/source.
+- 2026-06-08: Phase 4b executed by Codex on `recovery/phase-4b-checklist` and AUDITED by
+  Claude: `CHECKLIST.md` covers all 24 audited surfaces with a concrete action + target
+  phase each; `BACKLOG.md` has 20 traceable items (4 contract ADRs, 3 missing-helper
+  design items, the 10 reusable stabilized functions, the 8 deferred functions gated on
+  the contract + registry test-isolation, test/plan/apply modes), each citing real AUDIT
+  surfaces + GAP ids. Synthesis-only respected (no design locked, no ADR/source/.mof).
+  Owner-authorized admin squash-merge to `main` (PR #8 -> `c0cb730`).
+- 2026-06-08: Advanced to Phase 5 - the first DESIGN phase. Codex drafts the four
+  contract ADRs (0003 resource contract, 0004 declaration-document format (YAML, no MOF),
+  0005 evidence/reporting model, 0006 mutation/ShouldProcess safety) as a coherent
+  PROPOSAL set, all `Status: Draft`, grounded in the audit verdicts + the 10 recovered
+  functions + the mission. They lock nothing until owner-accepted (Locked Rule). The
+  missing-helper designs (P5-DESIGN-006-008) and Phase 6 build follow.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads
