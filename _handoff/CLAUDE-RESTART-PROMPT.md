@@ -64,13 +64,16 @@ NOT NOW (gated future phases - do not let Codex jump ahead):
 - No engine/contract design before its Draft ADR (Phase 5).
 
 Current expected next step:
-Phases 0-1 and the deny-by-default governance interlude (ADR 0002, Draft) are
-COMPLETE and merged to `main` (PR #1 `a02aaa0`, PR #2 `d87f1f6`, PR #3 `ed7c535`).
-The active phase is PLAN.md Phase 2 (Function-by-Function Detangling), specified in
-`_handoff/TASK.md`. Your job: keep `_handoff/TASK.md` correct, audit Codex's Phase 2
-REPORT against the PLAN 2.7 acceptance criteria, and - once Phase 2 is owner-merged -
-author the Phase 3 stabilization task. PDFs + `_recovery/` stay ignored; evidence
-stays local-only.
+Phases 0-2 and the deny-by-default governance interlude (ADR 0002, Draft) are COMPLETE
+and merged to `main` (PR #1 `a02aaa0`, PR #2 `d87f1f6`, PR #3 `ed7c535`, PR #4
+`337455d`). The active phase is PLAN.md Phase 3 (Recovered Code Stabilization),
+specified in `_handoff/TASK.md` - scoped this cycle to the PURE parsing/normalization
+functions (committed to a flat `src/` after a PII scan; registry/orchestration
+functions deferred to a follow-up cycle). Your job: keep `_handoff/TASK.md` correct,
+audit Codex's REPORT against the PLAN Phase 3 acceptance criteria (zero parse errors,
+no behavior-changing OCR edits, PII scan clean, tests have no registry access), and -
+once merged - author the follow-up Phase 3 cycle (registry functions, once a test-
+isolation strategy is approved). PDFs + `_recovery/` stay ignored.
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
 introduce a separate "Step" counter; owner-initiated governance tasks may be
@@ -78,8 +81,8 @@ interleaved and are labeled "Governance:", not a Phase):
 - Phase 0 - Repo governance baseline (COMPLETE, merged)
 - Phase 1 - PDF text/code extraction + function inventory (COMPLETE, merged)
 - Governance - Deny-by-default tracking policy / ADR 0002 (COMPLETE, merged; Draft)
-- Phase 2 - Function-by-function detangling (ACTIVE)
-- Phase 3 - Recovered-code stabilization (next)
+- Phase 2 - Function-by-function detangling (COMPLETE, merged)
+- Phase 3 - Recovered-code stabilization (ACTIVE; pure functions first)
 - Phase 4 - Microsoft DSC surface audit (official sources, audit-only)
 - Phase 4b - Port/adapt/skip checklist (separate downstream step)
 - Phase 5 - TargetState contract design (Draft ADRs)

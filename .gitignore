@@ -16,6 +16,8 @@
 !/README.md
 !/_handoff/
 !/docs/
+!/src/
+!/tests/
 
 # --- Hard-deny (defense-in-depth; also excluded by /*, must never be allowlisted) ---
 /06042026.pdf

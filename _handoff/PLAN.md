@@ -738,12 +738,11 @@ stabilization.
 Purpose: turn selected recovered functions into parseable, testable PowerShell.
 
 Steps:
-1. Create a single named staging area for recovered code. The committed source
-   layout is an Open Owner Decision (Section 9 - whether to land a PS 5.1 module
-   skeleton). Recommended default: `src/TargetState.Recovered/` with one
-   `Public/<FunctionName>.ps1` per function. Until the owner decides, propose the
-   path in `REPORT.md` and use exactly ONE consistent directory name (do not
-   reuse `_recovery/`, which holds evidence, not source).
+1. Stabilize recovered code into a FLAT `src/` directory (owner decision,
+   2026-06-08): one `src/<FunctionName>.ps1` per recovered function. No module
+   manifest (`.psd1`/`.psm1`) yet - deferred to a later phase. Do not reuse
+   `_recovery/` (evidence, not source). `src/` and `tests/` must be allowlisted in
+   `.gitignore` per the deny-by-default policy (ADR 0002: add `!/src/`, `!/tests/`).
 2. Add functions one at a time from the reconciliation matrix (final selected
    list).
 3. Correct OCR damage without changing intended behavior; log each correction.
@@ -753,7 +752,7 @@ Steps:
    ```powershell
    $tokens = $null; $errors = $null
    [System.Management.Automation.Language.Parser]::ParseFile(
-     "src\TargetState.Recovered\Public\<FunctionName>.ps1", [ref]$tokens, [ref]$errors) | Out-Null
+     "src\<FunctionName>.ps1", [ref]$tokens, [ref]$errors) | Out-Null
    if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_.Message }; throw "PARSE FAILED" }
    else { "PARSE OK: <FunctionName>" }
    ```
@@ -764,7 +763,7 @@ Steps:
 6. Keep live registry mutation out of tests until a safe strategy is approved.
    This read-only scan must return nothing (enforces the live-system Locked Rules):
    ```powershell
-   Select-String -Path tests\Recovered\*.ps1 -Pattern 'Set-Item(Property)?|New-Item(Property)?|Remove-Item(Property)?' |
+   Select-String -Path tests\*.ps1 -Pattern 'Set-Item(Property)?|New-Item(Property)?|Remove-Item(Property)?' |
      Where-Object { $_.Line -match 'HK(LM|CU|CR|U|CC)|HKEY_|Registry::' }
    ```
 7. Keep `_recovery/_inventory/PROVENANCE` (or a leading comment block in each
@@ -773,16 +772,17 @@ Steps:
    inline comments are convenience only.
 
 Expected artifacts:
-- Staging module: `src/TargetState.Recovered/Public/<FunctionName>.ps1` (one per
-  function) plus `TargetState.Recovered.psd1`/`.psm1` (path per owner decision).
-- Test harness: `tests/Recovered/<FunctionName>.Tests.ps1` for pure functions.
+- Stabilized source: `src/<FunctionName>.ps1` (one per function; flat, no manifest).
+- Test harness: `tests/<FunctionName>.Tests.ps1` for pure functions.
 - Known gaps list at a NAMED committed path (record the exact path in `REPORT.md`;
   recommended `docs/recovery/GAPS.md`). Phase 4's gate depends on this path.
-- Commit-vs-local for recovered/generated artifacts follows the still-open Section 9
-  decision; do not commit until resolved.
+- Source commit policy (owner decision, 2026-06-08): the stabilized `src/`/`tests/`
+  ARE committed, but ONLY after a clean sensitive-content scan (PLAN 1.9 patterns)
+  over the new `.ps1`; on any hit, do not commit and flag the owner. `src/`/`tests/`
+  are allowlisted in `.gitignore` per ADR 0002.
 
 Acceptance (Windows PowerShell 5.1):
-1. Every `.ps1` under the staging `Public/` parses with zero errors.
+1. Every `.ps1` under `src/` parses with zero errors.
 2. Pester green if Pester is available; if not, say so plainly in `REPORT.md`
    (do not fabricate results).
 3. The Step 6 live-mutation scan returns nothing.
@@ -960,7 +960,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Phase 2 - Function-by-Function Detangling. Last updated: 2026-06-08.
+Active phase: Phase 3 - Recovered Code Stabilization (pure functions first). Last updated: 2026-06-08.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -995,8 +995,8 @@ Phase status (names match Section 6):
 | 0 | Repo Governance Baseline | COMPLETE - merged PR #1 (squash `a02aaa0`); Gate 0->1 GREEN | 2026-06-08 |
 | 1 | PDF Text and Code Extraction | COMPLETE - merged PR #2 (squash `d87f1f6`); 33 pages OCR'd, 18 functions inventoried, evidence local-only | 2026-06-08 |
 | - | Governance: Deny-by-default tracking (ADR 0002 Draft) | COMPLETE - merged PR #3 (squash `ed7c535`) | - | 2026-06-08 |
-| 2 | Function-by-Function Detangling | ACTIVE - assigned in current TASK.md | - | 2026-06-08 |
-| 3 | Recovered Code Stabilization | NOT STARTED | - | - |
+| 2 | Function-by-Function Detangling | COMPLETE - merged PR #4 (squash `337455d`); 18 reconciled (9 keep_A, 9 keep_B, 0 defer) | 2026-06-08 |
+| 3 | Recovered Code Stabilization | ACTIVE - assigned in current TASK.md (pure functions first; registry/orchestration deferred) | - | 2026-06-08 |
 | 4 | Microsoft DSC Surface Audit | NOT STARTED | - | - |
 | 4b | Port/Adapt/Skip Checklist | NOT STARTED | - | - |
 | 5 | TargetState Contract Design | NOT STARTED | - | - |
@@ -1041,8 +1041,10 @@ Long-horizon (do NOT block Phase 0/1):
 - The declaration document format/extension/schema. Owner direction: YAML or a
   similar human-readable format (NOT MOF); confirm the exact extension and schema
   in the Phase 5 contract-design ADRs.
-- Whether the first public artifact includes a PS 5.1 module skeleton copied/
-  adapted from `NWarila/powershell-template` (sets the Phase 3 staging path).
+- Module skeleton: RESOLVED 2026-06-08 - flat `src/<FunctionName>.ps1` scripts, no
+  `.psd1`/`.psm1` manifest yet (deferred to a later phase). Stabilized `src/`/`tests/`
+  ARE committed after a clean PII scan; `src/`/`tests/` allowlisted in `.gitignore`
+  per ADR 0002.
 - Phase numbering: keep Phase 4b as a sub-phase, or renumber 5-7.
 - Phase 3 Known-gaps committed path (recommended `docs/recovery/GAPS.md`).
 
@@ -1113,6 +1115,23 @@ Long-horizon (do NOT block Phase 0/1):
   not `/*`, and added `probe.unlisted` as stronger proof. Owner-authorized admin
   squash-merge to `main` (PR #3 -> `ed7c535`). ADR 0002 remains Draft pending owner
   acceptance. Advanced ledger to Phase 2 ACTIVE.
+- 2026-06-08: Phase 2 (detangling) executed by Codex on `recovery/phase-2-detangling`
+  and AUDITED by Claude: all 18 `function_key`s reconciled exactly once (9 keep_A, 9
+  keep_B, 0 merge/discard/defer); the 2 genuine cross-PDF duplicates resolved by
+  maturity (R4) - `Start-ProviderSetup` -> keep_A, `Get-TargetResource` -> keep_B (B
+  is the more DSC-contract-shaped version); Codex verified via page images that the
+  `...Obj`/`...Str` suffix pairs are genuinely distinct functions, not OCR variants;
+  PDFs byte-identical; matrix/decisions local-only. Owner-authorized admin squash-merge
+  to `main` (PR #4 -> `337455d`). NOTE: the merged Phase 2 TASK.md referenced a
+  `PLAN 2.9` that does not exist (Phase 2 stops at 2.8) - Codex used the TASK D checks;
+  avoid that dangling ref in future TASKs.
+- 2026-06-08: Owner decisions for Phase 3 - (a) the stabilized recovered source is
+  COMMITTED after a clean PII scan (not local-only); (b) FLAT `src/<Fn>.ps1` layout,
+  no module manifest yet (resolves the Section 9 module-skeleton question). Scoped the
+  first Phase 3 cycle to PURE parsing/normalization functions (stabilize + Pester-test
+  + commit); registry-touching/orchestration functions are deferred to a follow-up
+  cycle because their tests need an owner-approved registry test-isolation strategy
+  (Locked Rule). Advanced ledger to Phase 3 ACTIVE.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads
