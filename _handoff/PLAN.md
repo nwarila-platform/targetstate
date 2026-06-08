@@ -198,7 +198,7 @@ These are working assumptions. They are not final architecture.
 - Engine verbs: Get, Test, Set, Invoke/Apply, and Export Evidence.
 - ADR status policy: every ADR is `Draft` until owner-approved.
 - Canonical generated-evidence directory: `_recovery/` at repo root (default
-  local-only). DSC audit evidence: `_audit/dsc/`. Both are working defaults the
+  local-only). DSC audit evidence: `docs/dsc-audit/`. Both are working defaults the
   owner may rename (Section 9).
 
 ## 6. Work Plan
@@ -831,7 +831,7 @@ non-Microsoft forks.
 Citation capture (every source touched): `source-url` (exact resolved URL +
 anchor), `source-class` (Learn|MS-GitHub|in-box), `retrieved-date` (UTC ISO-8601),
 `version` (documented product/module version, or repo commit SHA/tag; if unstated,
-`version: unstated` + SHA/tag/last-updated). Accumulate in `_audit/dsc/SOURCES.md`.
+`version: unstated` + SHA/tag/last-updated). Accumulate in `docs/dsc-audit/SOURCES.md`.
 
 #### 4.2 Per-surface audit record schema (EXACT columns; one record per surface)
 `surface | source-url | retrieved-date | PS5.1-behavior | TargetState-relevance |
@@ -863,15 +863,15 @@ explicitly skip` with that rationale.
 #### 4.5 Cross-reference to recovered/stabilized Registry functions (gap list)
 Read the Phase 3 final selected list and Known-gaps file (path confirmed by the
 4.0 gate). For every gap item, record which DSC surface(s) are relevant in
-`_audit/dsc/REGISTRY-CROSSREF.md` (`gap-id, gap-description, related-surface(s),
+`docs/dsc-audit/REGISTRY-CROSSREF.md` (`gap-id, gap-description, related-surface(s),
 does-DSC-address-it (yes|partial|no), note`). Every surface record's
 `registry-proof-impact` must name the gap id(s) it touches or state none. Cross-
 reference only: do not modify recovered functions, the gaps file, or port anything.
 
 #### 4.6 Artifacts committed by this phase (audit evidence only)
-- `_audit/dsc/AUDIT.md` (per-surface records, 4.2/4.3/4.4).
-- `_audit/dsc/SOURCES.md` (citation ledger, 4.1).
-- `_audit/dsc/REGISTRY-CROSSREF.md` (gap cross-reference, 4.5).
+- `docs/dsc-audit/AUDIT.md` (per-surface records, 4.2/4.3/4.4).
+- `docs/dsc-audit/SOURCES.md` (citation ledger, 4.1).
+- `docs/dsc-audit/REGISTRY-CROSSREF.md` (gap cross-reference, 4.5).
 - `_handoff/REPORT.md` (adversarial review, 4.0 gate output, coverage table).
 Explicitly NOT committed here: any checklist/backlog (Phase 4b), any TargetState
 source, any ADR change, any `.mof`.
@@ -895,7 +895,7 @@ Building the port/adapt/replace/skip/defer checklist and splitting the
 implementation backlog into reviewable steps is NOT part of Phase 4. It may only
 begin after the owner accepts the Phase 4 audit. Phase 4b consumes the per-surface
 verdicts (evidence) to produce the actionable checklist and backlog. Expected
-artifacts: `_audit/dsc/CHECKLIST.md` (one line per surface: verdict + the concrete
+artifacts: `docs/dsc-audit/CHECKLIST.md` (one line per surface: verdict + the concrete
 next action) and an updated implementation backlog split into separate steps. No
 source/ADR change here. (If the owner prefers strict phase-number stability, Phase
 4b may instead open Phase 5; record the choice in Section 9 / Change Log.)
@@ -960,7 +960,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Phase 3 - Recovered Code Stabilization (pure done; recovery-completeness + next tranche). Last updated: 2026-06-08.
+Active phase: Phase 4 - Microsoft DSC Surface Audit (audit-only, primary sources). Last updated: 2026-06-08.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -996,8 +996,8 @@ Phase status (names match Section 6):
 | 1 | PDF Text and Code Extraction | COMPLETE - merged PR #2 (squash `d87f1f6`); 33 pages OCR'd, 18 functions inventoried, evidence local-only | 2026-06-08 |
 | - | Governance: Deny-by-default tracking (ADR 0002 Draft) | COMPLETE - merged PR #3 (squash `ed7c535`) | - | 2026-06-08 |
 | 2 | Function-by-Function Detangling | COMPLETE - merged PR #4 (squash `337455d`); 18 reconciled (9 keep_A, 9 keep_B, 0 defer) | 2026-06-08 |
-| 3 | Recovered Code Stabilization | ACTIVE - 9 pure functions stabilized + merged (PR #5 / `650b6bb`); recovery-completeness check + next non-registry tranche in current TASK; registry/orchestration still deferred | - | 2026-06-08 |
-| 4 | Microsoft DSC Surface Audit | NOT STARTED | - | - |
+| 3 | Recovered Code Stabilization | COMPLETE (as recovery baseline) - 10/18 functions stabilized + merged (PRs #5 `650b6bb`, #6 `69325cd`); 8 deferred in `docs/recovery/GAPS.md` (2 blocked on genuinely-absent helpers, 6 registry/orchestration). Owner accepted + pivoted to Phase 4 | 2026-06-08 |
+| 4 | Microsoft DSC Surface Audit | ACTIVE - assigned in current TASK.md (audit-only; needs network) | - | 2026-06-08 |
 | 4b | Port/Adapt/Skip Checklist | NOT STARTED | - | - |
 | 5 | TargetState Contract Design | NOT STARTED | - | - |
 | 6 | Registry Proof Implementation | NOT STARTED | - | - |
@@ -1034,8 +1034,10 @@ Blocking (gate the move from Phase 0 to Phase 1; default applied if owner silent
   the GitOps-friendly DSC-replacement / YAML-not-MOF mission; STIG is a downstream
   use case, not a current claim (Phase 0 step 7).
 - D6 May Phase 4 use read-only in-box `Get-DscResource`/`Get-Help` discovery as
-  corroboration, or Learn + GitHub sources only? Default: Learn + GitHub only
-  unless approved.
+  corroboration? RESOLVED 2026-06-08 - YES, allowed as read-only CORROBORATION only
+  (reads module metadata, not live registry/system state; does not invoke/apply any
+  DSC resource). Every AUTHORITATIVE behavioral claim must still cite a Learn or
+  Microsoft-GitHub source.
 
 Long-horizon (do NOT block Phase 0/1):
 - The declaration document format/extension/schema. Owner direction: YAML or a
@@ -1148,6 +1150,22 @@ Long-horizon (do NOT block Phase 0/1):
   variant / built-in / genuinely absent) + stabilize the resolved non-registry
   functions. Do NOT invent missing helpers. Registry/orchestration functions remain
   deferred pending an owner-approved test-isolation strategy (a later cycle).
+- 2026-06-08: Phase 3 completeness cycle executed by Codex on
+  `recovery/phase-3-completeness` and AUDITED by Claude (independent parse/Pester/scans):
+  stabilized `Get-RegistryKeyPath` (10/18 now done); classified every called-but-not-
+  inventoried name - 17 are PS built-ins, ~6 are project helpers GENUINELY ABSENT from
+  the PDFs (`Get-NormalizedRegistryKeyString` x6, `ArrayToString`, `Get-RegistryKeyType`,
+  plus B:0001 sketch names). A declaration scan found no missed function bodies, so the
+  two PDFs are FULLY MINED; the source itself is incomplete. Codex did not invent/alias
+  helpers. Owner-authorized admin squash-merge to `main` (PR #6 -> `69325cd`).
+- 2026-06-08: Owner ACCEPTED Phase 3 as the recovery baseline (10 stabilized functions
+  + GAPS) and PIVOTED to Phase 4. Gate 3 -> 4 GREEN: Phase 3 owner-accepted; GAPS file
+  exists (`docs/recovery/GAPS.md`); Phase 2 matrix has 0 unresolved defers. Phase 4 is
+  AUDIT-ONLY and needs network (Microsoft Learn + GitHub); audit evidence lives under
+  `docs/dsc-audit/` (already allowlisted - no `.gitignore` change). D6 resolved: read-
+  only in-box discovery allowed as corroboration only. The 8 deferred functions + the
+  missing helpers are now design work for Phase 5/6, informed by the audit. Advanced
+  ledger to Phase 4 ACTIVE.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads
