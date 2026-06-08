@@ -1,0 +1,21 @@
+# Source recovery PDFs - local-only by default (Open Owner Decision: PDF disposition,
+# Section 9). Do not un-ignore without owner sign-off in the Change Log. To commit a
+# curated copy later, force-add explicitly: git add -f <name>.
+/06042026.pdf
+/06042026_001.pdf
+
+# Generated recovery/extraction evidence (Phase 1/2). Local-only by default.
+/_recovery/
+
+# DSC audit working area (Phase 4) - commit policy decided at Phase 4.
+# (left tracked by default for audit evidence; see Phase 4.6)
+
+# Tooling / OS noise
+*.log
+*.tmp
+TestResults/
+coverage.xml
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vs/

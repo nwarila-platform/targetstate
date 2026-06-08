@@ -1,0 +1,17 @@
+*.md   text
+*.ps1  text
+*.psm1 text
+*.psd1 text
+*.json text
+*.tsv  text
+*.csv  text
+.gitignore     text
+.gitattributes text
+
+# Binaries: never diff or line-ending-mangle. No LFS filter while PDFs are local-only.
+*.pdf  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.tif  binary
+*.tiff binary
