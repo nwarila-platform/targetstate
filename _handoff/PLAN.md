@@ -960,8 +960,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Governance interlude - Deny-by-default tracking policy (ADR 0002,
-owner-initiated), then Phase 2 - Function-by-Function Detangling. Last updated: 2026-06-08.
+Active phase: Phase 2 - Function-by-Function Detangling. Last updated: 2026-06-08.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -995,8 +994,8 @@ Phase status (names match Section 6):
 |-------|------|--------|----------|------|
 | 0 | Repo Governance Baseline | COMPLETE - merged PR #1 (squash `a02aaa0`); Gate 0->1 GREEN | 2026-06-08 |
 | 1 | PDF Text and Code Extraction | COMPLETE - merged PR #2 (squash `d87f1f6`); 33 pages OCR'd, 18 functions inventoried, evidence local-only | 2026-06-08 |
-| - | Governance: Deny-by-default tracking (ADR 0002) | ACTIVE - assigned in current TASK.md (owner-initiated interlude) | - | 2026-06-08 |
-| 2 | Function-by-Function Detangling | NOT STARTED | - | - |
+| - | Governance: Deny-by-default tracking (ADR 0002 Draft) | COMPLETE - merged PR #3 (squash `ed7c535`) | - | 2026-06-08 |
+| 2 | Function-by-Function Detangling | ACTIVE - assigned in current TASK.md | - | 2026-06-08 |
 | 3 | Recovered Code Stabilization | NOT STARTED | - | - |
 | 4 | Microsoft DSC Surface Audit | NOT STARTED | - | - |
 | 4b | Port/Adapt/Skip Checklist | NOT STARTED | - | - |
@@ -1105,6 +1104,15 @@ Long-horizon (do NOT block Phase 0/1):
   interlude before Phase 2: Draft ADR 0002 + a correctly-allowlisted `.gitignore`
   (the bare `**` ignores new files but does not allowlist tracked paths). PDFs and
   `_recovery/` must remain ignored under the new policy.
+- 2026-06-08: Governance ADR 0002 (deny-by-default tracking) executed by Codex on
+  `recovery/governance-deny-by-default` and AUDITED by Claude with functional
+  `git check-ignore` probes: PDFs + `_recovery/` still ignored; all currently-tracked
+  files still trackable; a new unlisted top-level file is denied by `/*`; new files
+  under allowlisted `docs/`/`_handoff/` are trackable; ADR 0002 `Status: Draft`;
+  commits signed. Codex noted the `probe.tmp` check matched the `*.tmp` noise rule,
+  not `/*`, and added `probe.unlisted` as stronger proof. Owner-authorized admin
+  squash-merge to `main` (PR #3 -> `ed7c535`). ADR 0002 remains Draft pending owner
+  acceptance. Advanced ledger to Phase 2 ACTIVE.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads

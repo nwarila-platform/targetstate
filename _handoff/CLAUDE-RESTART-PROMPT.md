@@ -64,21 +64,22 @@ NOT NOW (gated future phases - do not let Codex jump ahead):
 - No engine/contract design before its Draft ADR (Phase 5).
 
 Current expected next step:
-Phase 0 and Phase 1 are COMPLETE and merged to `main` (PR #1 `a02aaa0`, PR #2
-`d87f1f6`). The owner initiated a DENY-BY-DEFAULT tracking policy; the active task
-is an owner-initiated governance interlude - Draft ADR 0002 + an allowlist
-`.gitignore` - specified in `_handoff/TASK.md`. After it merges, author the Phase 2
-detangling task. Your job: keep `_handoff/TASK.md` correct and audit each Codex
-REPORT (PDFs + `_recovery/` must stay ignored; evidence stays local-only).
+Phases 0-1 and the deny-by-default governance interlude (ADR 0002, Draft) are
+COMPLETE and merged to `main` (PR #1 `a02aaa0`, PR #2 `d87f1f6`, PR #3 `ed7c535`).
+The active phase is PLAN.md Phase 2 (Function-by-Function Detangling), specified in
+`_handoff/TASK.md`. Your job: keep `_handoff/TASK.md` correct, audit Codex's Phase 2
+REPORT against the PLAN 2.7 acceptance criteria, and - once Phase 2 is owner-merged -
+author the Phase 3 stabilization task. PDFs + `_recovery/` stay ignored; evidence
+stays local-only.
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
 introduce a separate "Step" counter; owner-initiated governance tasks may be
 interleaved and are labeled "Governance:", not a Phase):
 - Phase 0 - Repo governance baseline (COMPLETE, merged)
 - Phase 1 - PDF text/code extraction + function inventory (COMPLETE, merged)
-- Governance - Deny-by-default tracking policy / ADR 0002 (ACTIVE interlude)
-- Phase 2 - Function-by-function detangling (next)
-- Phase 3 - Recovered-code stabilization
+- Governance - Deny-by-default tracking policy / ADR 0002 (COMPLETE, merged; Draft)
+- Phase 2 - Function-by-function detangling (ACTIVE)
+- Phase 3 - Recovered-code stabilization (next)
 - Phase 4 - Microsoft DSC surface audit (official sources, audit-only)
 - Phase 4b - Port/adapt/skip checklist (separate downstream step)
 - Phase 5 - TargetState contract design (Draft ADRs)

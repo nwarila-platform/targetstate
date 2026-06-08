@@ -1,123 +1,112 @@
-# TASK - Governance: Deny-by-default tracking policy (ADR 0002)
-_Read `_handoff/PLAN.md` first (Sections 0.2, 2, 4, and Section 10 Change Log). This is an owner-initiated governance interlude between Phase 1 (COMPLETE, merged `d87f1f6`) and Phase 2._
+# TASK - Phase 2: Function-by-Function Detangling
+_Read `_handoff/PLAN.md` first - especially Section 6 "Phase 2" (subsections 2.1-2.8: matrix schema, maturity scoring, conflict-resolution rules, verification), plus Sections 0.2, 2, 4. This is the operational layer; PLAN Phase 2 is the detail._
 
-## Why this task
-The owner added `**` to the top of `.gitignore` (currently an uncommitted
-working-tree change) and asked for it to be recorded as an ADR. The intent is a
-DENY-BY-DEFAULT tracking policy: nothing is tracked unless explicitly allowlisted,
-so an accidental `git add` cannot leak the scanned PDFs, `_recovery/` OCR evidence
-(which may contain PII), or any large binary into this PUBLIC repo. A bare `**`
-ignores *new* files but does not allowlist the paths we DO track, so this task
-formalizes the policy correctly.
+## Gate status
+Gate 1 -> 2 is GREEN: Phase 1 merged (PR #2 / `d87f1f6`); the deny-by-default
+governance interlude (ADR 0002) merged (PR #3 / `ed7c535`). Work on a NEW branch
+`recovery/phase-2-detangling`. Phase 1 evidence is LOCAL-ONLY in `_recovery/` on
+this machine - it is the input to this phase.
 
 ## Goal
-1. Record `docs/adr/0002-deny-by-default-tracking.md` (`Status: Draft`).
-2. Replace `.gitignore` with a correct deny-by-default allowlist (below) that keeps
-   currently-tracked paths trackable, ignores new unlisted files by default, and
-   HARD-DENIES the PDFs and `_recovery/` (never allowlisted).
-Do NOT extract PDFs, write engine/source, audit DSC, or start Phase 2.
+For each function in the Phase 1 inventory, decide the mature source of truth across
+the two PDFs and record an evidence-backed decision BEFORE any porting. Produce the
+reconciliation matrix + decisions ledger. This phase writes NO engine/source/port
+code, rewrites no logic, corrects no OCR, and executes nothing. Decision artifacts
+only. (OCR correction is Phase 3; the Microsoft DSC audit is Phase 4.)
+
+## Context from Phase 1 (verify, do not assume)
+- Inventory: 18 unique function names, 20 occurrences (10 per PDF) - so ~2 names
+  appear in BOTH PDFs (the genuine cross-PDF reconciliations) and ~16 are
+  single-source. WATCH for OCR-induced name mismatches: a function present in both
+  PDFs may have been OCR'd to slightly different names and not auto-deduped; apply
+  the 2.1 normalization AND manual review of the page images to catch these.
+- All 33 pages are `needs_correction` with OCR hazards (smart quotes, `degree`-for-
+  backtick, spacing). Where OCR genuinely blocks a signature/behavior comparison,
+  DEFER (rules 2.5 R3/R7); do not guess and do not "fix" the OCR here.
+
+## A0. Owner Decisions (record status in REPORT.md; apply defaults)
+- D2 commit policy: DEFAULT = the reconciliation matrix and decisions stay LOCAL-ONLY
+  under `_recovery/` (git-ignored), summarized in REPORT.md. (Option to surface, do
+  not act without approval: since the matrix is a hand-curated decision record - not
+  raw OCR - the owner may want it committed for PR review after a clean PLAN 1.9
+  sensitive-content scan. Default remains local-only.)
 
 ## A. Adversarial Review Gate
-Archive the current Phase 1 `_handoff/REPORT.md` to the top of
-`_handoff/REPORT-ARCHIVE.md` (`## Archived <UTC date> - Governance ADR 0002`,
-append-only), then write a new `REPORT.md` beginning with a verdict that:
-1. Restates the goal and confirms you are on a new branch (not `main`).
-2. Challenges the policy and the MECHANISM: bare `**` is recursive and fights
-   re-inclusion (git cannot re-include a path whose parent dir is excluded); the
-   `/*` (top-level ignore) + allowlist form below is the maintainable equivalent.
-   Recommend the chosen form; note that ADR 0002 stays Draft pending owner approval.
-3. Confirms the PDFs and `_recovery/` will remain ignored under the new file.
-If you believe a different mechanism is objectively better, propose it in REPORT.md
-with evidence; do not silently deviate.
+Archive the current Phase-1-governance `_handoff/REPORT.md` to the TOP of
+`_handoff/REPORT-ARCHIVE.md` (`## Archived <UTC date> - Phase 2`, append-only), then
+write a new `REPORT.md` beginning with a verdict that:
+1. Restates the goal; confirms you are on `recovery/phase-2-detangling` (not `main`).
+2. Confirms the `_recovery/` Phase 1 inputs exist (function-inventory.tsv,
+   `corrected/` pages, call-graph.tsv, page images) and records both PDFs' SHA-256,
+   confirming they still match the PLAN Section 7 baseline.
+3. Confirms decisions-only: no logic rewrite, no porting, no OCR correction, nothing
+   executed.
+4. Challenges the approach; states how you will normalize names (2.1) and which
+   tie-break source you use (page images, not memory).
+If misaligned or inputs are missing, `Decision: REFUSE`/`BLOCKED` and stop.
 
-## B. Expected Changes (branch `recovery/governance-deny-by-default`)
-1. Replace `/.gitignore` ENTIRELY with exactly this (ASCII, no BOM):
-```
-# ============================================================================
-# Deny-by-default tracking policy (ADR 0002, Draft).
-# Ignore everything at the repo root; explicitly allowlist tracked paths below.
-# Rationale: this PUBLIC repo handles scanned PII and large binaries (the source
-# PDFs and the _recovery/ OCR evidence). Deny-by-default means an accidental
-# `git add` cannot leak anything that was not deliberately allowlisted.
-# To track a NEW top-level directory later (e.g. src/, tests/), add a matching
-# `!/<dir>/` line below. NEVER add a `!` allowlist entry for the PDFs or _recovery/.
-# ============================================================================
-/*
-
-# --- Allowlist: tracked top-level entries (directories need a trailing slash) ---
-!/.github/
-!/.gitattributes
-!/.gitignore
-!/README.md
-!/_handoff/
-!/docs/
-
-# --- Hard-deny (defense-in-depth; also excluded by /*, must never be allowlisted) ---
-/06042026.pdf
-/06042026_001.pdf
-/_recovery/
-
-# --- Noise: ignored even inside allowlisted directories ---
-*.log
-*.tmp
-TestResults/
-coverage.xml
-Thumbs.db
-Desktop.ini
-.DS_Store
-.vs/
-```
-2. Create `docs/adr/0002-deny-by-default-tracking.md` with `Status: Draft` and
-   sections: Context (public repo + scanned PII + large binaries; allow-by-default
-   risk), Decision (deny-by-default via `/*` + explicit allowlist; PDFs and
-   `_recovery/` are never allowlisted; to track a new top-level dir add `!/<dir>/`),
-   Consequences (new files are ignored unless allowlisted - a deliberate friction;
-   contributors add an allowlist line or use `git add -f` for one-offs), Owner gate
-   (Draft until the owner accepts; supersedes the Phase 0 allow-by-default
-   `.gitignore`).
-3. Optionally add one line to `docs/governance.md` pointing at ADR 0002 as the
-   tracking policy. Do not change any other governance content.
+## B. Expected Changes (write ONLY under `_recovery/` and `_handoff/REPORT*.md`)
+- `_recovery/_inventory/reconciliation-matrix.tsv` - PLAN 2.2 schema, EXACTLY one
+  row per `function_key`; `decision` in {keep_A, keep_B, merge, discard, defer};
+  `rationale` non-empty for every merge/discard/defer; maturity scored per 2.4;
+  conflict-resolution rule recorded per 2.5.
+- `_recovery/_inventory/decisions.tsv` - PLAN 2.3, append-only, one current row per
+  `function_key`.
+- Update `_recovery/_inventory/UNCERTAIN.md` with every `defer` and low-confidence call.
+- REPORT.md summary: decision histogram (counts per decision), the cross-PDF
+  duplicate functions found (and any OCR-name-mismatch pairs you merged into one
+  key), and the list of functions whose final decision is `defer` pending Phase 3
+  OCR correction.
 
 ## C. Guardrails
-- Branch `recovery/governance-deny-by-default`, never `main`; preserve signing.
-- Stage only explicit paths; never `git add -A`/`.`/`*`.
-- The PDFs and `_recovery/` MUST remain ignored and untracked. If either becomes
-  staged/tracked, STOP and report.
-- ADR 0002 is `Status: Draft`. Do not mark it Accepted.
-- ASCII, no BOM (PowerShell 5.1: use `Set-Content -Encoding utf8` or
-  `[IO.File]::WriteAllText(...,[Text.UTF8Encoding]::new($false))`).
-- Do NOT open/OCR the PDFs, write `.ps1`/`.psm1`/`.psd1` or `src/`/`tests/`, audit
-  DSC, or touch live system state.
+- DECISIONS ONLY. Do NOT rewrite logic, port, stabilize, or execute recovered code;
+  do NOT correct OCR (that is Phase 3). Any code-editing impulse is out of scope -
+  refuse it (PLAN 2.8).
+- Where OCR blocks a confident comparison, DEFER (2.5 R7) and log it; never coin-flip
+  a keep. Any `merge`/`discard` REQUIRES confidence >= medium, else downgrade to `defer`.
+- Preserve the PDFs byte-for-byte: hash before and after; do not open them except to
+  view the already-rendered `_recovery/.../images/*.png` for tie-breaking (the PDFs
+  themselves stay untouched).
+- Offline; no tooling installs; no live system changes.
+- Branch `recovery/phase-2-detangling`, never `main`; preserve commit signing.
+- `_recovery/` stays git-ignored/local-only (deny-by-default policy); confirm nothing
+  under `_recovery/` is staged. Never `git add -A`/`.`/`*`.
+- Keep hand-authored handoff files ASCII; the matrix/decisions TSVs are UTF-8 without
+  BOM and must NOT strip non-ASCII quoted from evidence.
 - Do NOT edit `PLAN.md`, `TASK.md`, or `CLAUDE-RESTART-PROMPT.md` content, but DO
   commit them as-is for durability (Claude updated them this cycle).
 
 ## D. Verification (run each; paste output verbatim into REPORT.md)
-- PDFs + `_recovery/` STILL ignored: `git check-ignore -v 06042026.pdf 06042026_001.pdf _recovery/` (a rule for each).
-- Currently-tracked files STILL trackable (not ignored): `git check-ignore -v README.md _handoff/PLAN.md docs/governance.md .gitattributes` prints NOTHING (exit 1 = not ignored).
-- New unlisted top-level file is ignored by default: create `probe.tmp`, run
-  `git check-ignore -v probe.tmp` (must print a rule), then delete `probe.tmp`.
-- New file in an allowlisted dir IS trackable: `git check-ignore -v docs/adr/0002-deny-by-default-tracking.md` prints NOTHING (trackable).
-- Tracked set intact: `git status --short` and `git ls-files` show no PDFs, nothing
-  under `_recovery/`, and the new ADR addable by explicit path.
-- ADR is Draft: `Get-ChildItem docs\adr\*.md | Where-Object { (Get-Content $_ -Raw) -notmatch "(?m)^Status:\s*Draft\s*$" } | ForEach-Object { Write-Error "ADR not Draft: $($_.Name)" }` prints nothing.
-- `git branch --show-current` (not `main`) and `git log --show-signature -1` (good signature).
+- PLAN 2.9 command set (a)-(f): every inventory `function_key` reconciled exactly
+  once (`Compare-Object` of unique inventory keys vs matrix keys prints nothing);
+  every `decision` populated and from the allowed five; no low-confidence
+  `merge`/`discard`; decision histogram; every `defer` logged in `UNCERTAIN.md`;
+  both PDFs hash-identical to the Phase 1 baseline.
+- Hygiene: `git check-ignore -v _recovery/` prints a rule; `git ls-files` shows no
+  `.pdf` and nothing under `_recovery/`; no `.ps1`/`.psm1`/`.psd1` created.
+- `git branch --show-current` (not `main`); `git log --show-signature -1` (good).
 
-## E. Definition of Done (ALL hold; else REPORT `Governance status: BLOCKED | NEEDS-OWNER`)
-- `.gitignore` replaced with the deny-by-default allowlist above; both PDFs and
-  `_recovery/` still ignored and untracked; all currently-tracked files still
-  trackable; a new unlisted top-level file is ignored; a new file under `docs/` is
-  trackable.
-- `docs/adr/0002-deny-by-default-tracking.md` exists with `Status: Draft`.
-- No engine/source/PDF-extraction/DSC; no live-system change.
-- `_handoff/REPORT.md` has the verdict, the full Section D output, and a final line
-  `Governance status: COMPLETE | BLOCKED | NEEDS-OWNER`.
+## E. Definition of Done (ALL hold; else REPORT `Phase 2 status: BLOCKED | NEEDS-OWNER`)
+Meet every PLAN 2.7 criterion:
+- Every distinct `function_key` appears exactly once in the matrix (no orphans/dupes).
+- Every matrix row has non-empty `decision`, `decision_rule`, `rationale`; every
+  `decision` is one of the five tokens; no `merge`/`discard` at `confidence=low`.
+- Every `defer` has a matching `UNCERTAIN.md` entry; `decisions.tsv` current-row
+  count == distinct `function_key` count.
+- Zero engine/source/port code; no OCR correction performed; PDFs hash-identical.
+- REPORT.md has the verdict, the full Section D output, the decision summary, and a
+  final line `Phase 2 status: COMPLETE | BLOCKED | NEEDS-OWNER`.
 
 ## F. End State (how this cycle hands back)
-- Commit on `recovery/governance-deny-by-default` with a signed message
-  (e.g. `chore(governance): deny-by-default tracking policy (ADR 0002)`). Never
-  commit to `main`; never bypass signing.
+- Commit on `recovery/phase-2-detangling` with a signed message (e.g.
+  `recovery(phase-2): function reconciliation decisions + report`). Because
+  `_recovery/` is local-only, the committed change is `_handoff/REPORT.md`,
+  `_handoff/REPORT-ARCHIVE.md`, and the Claude-updated planner docs. Never commit to
+  `main`; never bypass signing; never stage `_recovery/` or the PDFs.
 - Push the branch and open a PR to `main` titled
-  `Governance: deny-by-default tracking policy (ADR 0002)`; paste the Section D
-  output in the PR body.
+  `Phase 2: function-by-function detangling decisions`. The PR body pastes the
+  Section D output and the decision summary, and LISTS (does not commit) the
+  local-only `_recovery/_inventory/` artifacts produced.
 - Finish `REPORT.md` per Section E, then STOP. Do NOT merge - the owner admin-merges
-  after Claude's audit.
+  after Claude's audit. If `BLOCKED`/`NEEDS-OWNER`, still push + open the PR and name
+  the blocker.
