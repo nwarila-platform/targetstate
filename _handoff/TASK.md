@@ -1,125 +1,127 @@
-# TASK - Phase 0: Repo Governance Baseline
-_Read `_handoff/PLAN.md` first (especially Sections 0, 2, 4, and Section 6 Phase 0 + Gate 0 -> 1). This repo is a proof-of-concept for `NWarila/powershell-template` and `nwarila-platform/targetstate`._
+# TASK - Phase 1: PDF Text and Code Extraction
+_Read `_handoff/PLAN.md` first - especially Section 6 "Phase 1" (subsections 1.0-1.12, which hold the authoritative tree, schemas, OCR rules, and verification commands), plus Sections 0.2, 2, 4. This task is the operational layer; PLAN Phase 1 is the detail._
 
-## Re-sequencing note (why this is Phase 0, not PDF extraction)
-The prior handoff pointed the next cycle at PDF extraction. Adversarial review
-found Phase 1 extraction is HARD-BLOCKED behind Gate 0 -> 1: there is no
-`.gitignore`/`.gitattributes`, no ADR/governance scaffold, no working branch, and
-the PDF commit decision is unresolved, so a literal extraction cycle could commit
-a 19.8 MB binary or scanned PII to public history. This task does the governance
-baseline that makes the repo safe to extract into. Phase 1 (PDF extraction) is the
-NEXT task and is fully specified in PLAN.md Section 6 Phase 1; it starts only after
-Gate 0 -> 1 is GREEN. The owner confirmed this sequencing on 2026-06-08.
+## Gate status
+Gate 0 -> 1 is GREEN (Phase 0 merged via PR #1 / `a02aaa0`; PDFs + `_recovery/`
+ignored and untracked; ADRs Draft; governance recorded). You may begin Phase 1.
+Work on a NEW branch `recovery/phase-1-extraction`.
 
 ## Goal
-Establish the Phase 0 governance baseline on a working branch: branch discipline,
-`.gitignore`/`.gitattributes`, a Draft ADR scaffold, a governance rule ledger, and
-README STIG-claim reconciliation - then bring Gate 0 -> 1 to GREEN. Do NOT extract
-the PDFs, do NOT audit DSC, do NOT write engine/source code.
+Deterministically extract ALL recoverable text/code from `06042026.pdf` and
+`06042026_001.pdf` into the `_recovery/` tree with full provenance, surviving OCR
+damage. This phase PRODUCES EVIDENCE ONLY. Do NOT rewrite logic, port, detangle,
+reconcile, stabilize, or run any recovered code; do NOT write engine/source; do
+NOT audit DSC. Detangling is Phase 2 and is gated.
 
-## A0. Owner Decisions (record the status in REPORT.md; apply defaults for the rest)
-- D1 PDF disposition: ANSWERED - local-only + SHA-256 manifest. PDFs stay
-  git-ignored; record their hashes + sizes. (Owner: keep a separate backup; this
-  checkout may be the only copy.)
-- D5 README positioning: ANSWERED - reframe README to the GitOps-friendly
-  DSC-replacement / YAML-not-MOF mission; STIG is a downstream use case, not a
-  current claim (see Expected Changes + PLAN Phase 0 step 7).
-- D2 Generated-artifact commit policy for later `_recovery/` output: default =
-  all local-only until decided (a Phase 1 concern; record and move on).
-- D3 Recovery dir = repo-root `_recovery/`: default = yes (a Phase 1 concern).
-- D4 OCR/PDF tooling install vs present-only: default = present-only; `tesseract`
-  and `pdfplumber` are already present (a Phase 1 concern).
+## A0. Owner Decisions (record status in REPORT.md; apply defaults)
+- D2 Generated-artifact commit policy: DEFAULT = keep the entire `_recovery/` tree
+  LOCAL-ONLY (git-ignored, uncommitted) this cycle. Do not commit any extraction
+  output. (Recommendation to surface for the owner, do not act on it without
+  approval: later adopt PLAN 1.9's split - commit only the small metadata
+  `manifest.json`/`pages.index.tsv`/`corrected/`/`_inventory/` AFTER a clean
+  sensitive-content scan, keep `raw/`/`images/`/`ocr/` ignored. Until the owner
+  approves, commit nothing under `_recovery/`.)
+- D3 Recovery dir = repo-root `_recovery/`: default = yes.
+- D4 OCR/PDF tooling: present-only, no installs. `tesseract` 5.5 and `pdfplumber`
+  (rasterizer) were present at planning; re-probe and record actual versions.
 
 ## A. Adversarial Review Gate
-REPORT.md is Codex-owned and is replaced each cycle. FIRST archive the current
-`_handoff/REPORT.md` to the top of `_handoff/REPORT-ARCHIVE.md` under a heading
-`## Archived <UTC date> - Phase 0` (append-only). THEN write the new `REPORT.md`
-beginning with a verdict that:
-1. Restates the goal.
-2. Confirms repo state: `git branch --show-current`, `git ls-files`, and that both
-   PDFs + `_handoff/` are untracked.
-3. Challenges this governance approach and the proposed `.gitignore`/ADR layout.
-4. Confirms no PDF will be opened/OCR'd and no engine/source will be written.
-5. States the chosen branch name and that all commits land there, not on `main`.
-If the task is misaligned, refuse and explain why (write only the verdict + a
-`Decision: REFUSE: <reason>` line, then stop).
+REPORT.md is Codex-owned and replaced each cycle. FIRST archive the current
+`_handoff/REPORT.md` (the Phase 0 report) to the TOP of
+`_handoff/REPORT-ARCHIVE.md` under `## Archived <UTC date> - Phase 1` (append-only,
+never overwrite the archive). THEN write a new `REPORT.md` beginning with a verdict
+that:
+1. Restates the goal and confirms Gate 0 -> 1 is GREEN.
+2. Records each PDF's SHA-256 + byte size at phase start and confirms they match the
+   PLAN Section 7 baseline (`...155F`, `...051E`). This is the integrity anchor.
+3. Re-probes the toolchain (PLAN 1.0/1.2) and records actual tool names + versions;
+   names the per-PDF extraction mode you will use (`text` / `ocr` / `hybrid`) and
+   the least-lossy path, with the thresholds you will apply.
+4. Confirms you will treat all output as evidence: no logic rewrite, no porting,
+   OCR correction only via the 1.7 sentinel/flag protocol.
+5. States the output location is `_recovery/` (local-only this cycle, per D2).
+If misaligned or a required tool is missing, write `Decision: REFUSE: <reason>` (or
+`BLOCKED`) and stop. Otherwise `Decision: PROCEED`.
 
-## B. Expected Changes (Phase 0 is the ONLY phase allowed to create files outside `_recovery/`/`_handoff/`)
-On branch `recovery/phase-0-governance`:
-- `/.gitignore` and `/.gitattributes` at repo root, with the EXACT contents given
-  in PLAN.md Section 6 Phase 0 (ignore the two named PDFs and `/_recovery/`; do NOT
-  use a blanket `*.pdf`; no LFS filter).
-- `docs/adr/0000-adr-process.md` and `docs/adr/0001-targetstate-charter.md`, both
-  containing the literal line `Status: Draft`.
-- `docs/governance.md` recording the repo rules and the PDF-disposition default.
-- `README.md`: reframe per PLAN Phase 0 step 7 (owner decision D5). Headline the
-  GitOps-friendly DSC-replacement / YAML-not-MOF mission; present STIG as a
-  downstream use case, not a current claim. Short and factual; no "compliant"
-  claims. This is the ONLY non-handoff/non-governance edit permitted in Phase 0.
-Do NOT create `src/`, `tests/`, `_recovery/`, or any engine/source/`.ps1` module.
+## B. Expected Changes (write ONLY under `_recovery/` and to `_handoff/REPORT*.md`)
+Build the EXACT tree in PLAN 1.3 using the deterministic naming in 1.4. Populate:
+- `_recovery/manifest.json` (PLAN 1.8): tool versions+flags, per-PDF SHA-256
+  (pre+post) + byte size + page count, per-PDF mode, status histogram, thresholds.
+- `_recovery/<stem>/pages.index.tsv` (PLAN 1.5 columns) - one row per page, fully
+  populated; one row per page, no page missing.
+- `_recovery/<stem>/raw/` (and `ocr/`, `images/` where OCR/hybrid).
+- `_recovery/<stem>/corrected/page-XXXX.txt` for every page NOT `clean`, with OCR
+  hazards tagged per 1.7 (`OCR:L1I`, `OCR:BACKTICK`, `OCR:QUOTE`, ...).
+- `_recovery/_inventory/function-inventory.tsv` (PLAN 1.6) and `call-graph.tsv`
+  (intra-project edges only).
+- `_recovery/_inventory/UNCERTAIN.md` (may be empty but MUST exist).
+- `_recovery/README.md` explaining the tree + how to regenerate.
+The extraction summary (page counts per PDF, status histogram, function count,
+top OCR flags, hashes) goes in `REPORT.md` so the owner can review the cycle from
+the PR without the local-only evidence.
 
 ## C. Guardrails
-- THIS IS A PUBLIC REPOSITORY: every pushed commit is permanent and world-readable.
-- Work on `recovery/phase-0-governance`, NEVER commit to `main`. Verify
-  `git branch --show-current` is not `main` before any commit.
-- Preserve commit signing (`commit.gpgsign` is on with an SSH key). Do not bypass
-  it. Verify `git log --show-signature -1` shows a good signature.
-- Never run `git add -A`, `git add .`, or `git add *`. Stage only explicit paths.
-- The two source PDFs and `_recovery/` must remain untracked. If `git status` shows
-  either staged, STOP and report in `REPORT.md`.
-- All ADRs must contain `Status: Draft`. Do not mark any ADR Accepted.
-- Do NOT open, OCR, parse, or extract `06042026.pdf` / `06042026_001.pdf`. You may
-  record their SHA-256 and byte size only (`Get-FileHash`, `(Get-Item).Length`) -
-  hashing reads bytes, not content.
-- Do NOT touch live Windows registry or system settings. Do NOT install any tooling.
-- Do NOT add claims that TargetState is STIG-compliant; the README reconciliation
-  must remove, not strengthen, the existing forward STIG assertion.
-- Do NOT create a broad framework or any resource contract before its ADR exists.
-- Keep all files you author 7-bit ASCII. In Windows PowerShell 5.1 do NOT use
-  `>`/`Out-File` defaults (UTF-16 + BOM); use `Set-Content -Encoding utf8` or
-  `[IO.File]::WriteAllText($p,$t,[Text.UTF8Encoding]::new($false))` for no-BOM UTF-8.
+- This IS the phase that authorizes opening the PDFs - but ONLY via the approved
+  extraction/OCR tools to produce `_recovery/` evidence. Do not read them into chat.
+- Preserve the PDFs byte-for-byte: hash before and after; use read-only extraction;
+  NEVER write to or re-save the source PDF path (rasterize to a temp/`images/`
+  path). If either hash changes, HARD STOP and flag the owner.
+- Offline only: no network calls, no cloud OCR, no upload of PDF bytes/images/text.
+- No tooling installs (Locked Rules). If a needed tool is absent, STOP, mark
+  BLOCKED, name it; do not install or substitute silently.
+- Evidence, not code: do NOT rewrite logic, port, or "fix" code. OCR corrections
+  happen only in `corrected/` with sentinels; `raw/` is never hand-edited.
+- Encoding: keep hand-authored handoff/`_recovery/README.md` ASCII; write generated
+  extraction text as UTF-8 without BOM and do NOT strip/transliterate non-ASCII from
+  evidence (that is provenance loss). In PowerShell 5.1 do not use `>`/`Out-File`
+  defaults; use `[IO.File]::WriteAllText(...,[Text.UTF8Encoding]::new($false))`.
+- Branch `recovery/phase-1-extraction`, never `main`; preserve commit signing.
+- Never `git add -A`/`.`/wildcards. The entire `_recovery/` tree stays UNTRACKED
+  this cycle (D2 default); confirm `git status --short` shows nothing under
+  `_recovery/` staged. Do not edit source, ADRs, governance, or `README.md`.
+- Do NOT edit `PLAN.md`, `TASK.md`, or `CLAUDE-RESTART-PROMPT.md` content - but DO
+  commit them as-is for durability (Claude updated them this cycle for the Phase 1
+  advance); raise any objection in `REPORT.md`.
+- If D2 is later flipped to commit metadata, run the PLAN 1.9 sensitive-content scan
+  first and do not commit on any hit.
 
 ## D. Verification (run each; paste output verbatim into REPORT.md)
-- `git branch --show-current`  (must NOT be `main`)
-- `git log --show-signature -1`  (good signature)
-- `git status --short --branch`
-- `git check-ignore -v 06042026.pdf 06042026_001.pdf _recovery`  (each prints a rule, exit 0)
-- `git ls-files -- 06042026.pdf 06042026_001.pdf _recovery/`  (must be EMPTY)
-- `git ls-files`  (no `.pdf`, nothing under `_recovery/`)
-- ADRs are Draft (prints nothing):
-  `Get-ChildItem docs\adr\*.md | Where-Object { (Get-Content $_ -Raw) -notmatch "(?m)^Status:\s*Draft\s*$" } | ForEach-Object { Write-Error "ADR not Draft: $($_.Name)" }`
-- `Test-Path docs\adr\0000-adr-process.md,docs\adr\0001-targetstate-charter.md,docs\governance.md,.gitignore,.gitattributes`
-- No engine/source files:
-  `Get-ChildItem -Recurse -Include *.psm1,*.ps1,*.psd1 -Path . -ErrorAction SilentlyContinue`  (returns nothing)
-- Record both PDF baselines: `Get-FileHash 06042026.pdf,06042026_001.pdf -Algorithm SHA256`
-  and `(Get-Item 06042026.pdf).Length`, `(Get-Item 06042026_001.pdf).Length`.
+- The PLAN 1.11 read-only command set (a)-(g): PDF hashes vs manifest; page coverage
+  (index rows == raw page files, per PDF); status histogram (no blank status);
+  outstanding OCR flags; function names found; inventory page-reference integrity;
+  `git status --short --branch`.
+- PDF integrity: re-hash both PDFs and assert byte-identical to the phase-start
+  baseline. Any mismatch = FAIL/BLOCKED.
+- Hygiene: `git check-ignore -v _recovery/` prints a rule; `git ls-files` shows
+  nothing under `_recovery/` and no `.pdf`.
+- `git branch --show-current` (must be `recovery/phase-1-extraction`) and
+  `git log --show-signature -1` (good signature).
 
-## E. Definition of Done (ALL must hold; else REPORT `Phase 0 status: BLOCKED | NEEDS-OWNER`)
-- On branch `recovery/phase-0-governance` (not `main`); last commit signed.
-- `.gitignore` and `.gitattributes` exist with the PLAN-specified contents; both
-  named PDFs and `_recovery/` are ignored and untracked (Section D outputs prove it).
-- `docs/adr/0000-adr-process.md`, `docs/adr/0001-targetstate-charter.md` (both
-  `Status: Draft`), and `docs/governance.md` exist.
-- `README.md` reframed per D5 (GitOps/YAML-not-MOF headline; STIG as use case).
-- No `src/`/`tests/`/`_recovery/` directory and no `.ps1`/`.psm1`/`.psd1` created.
-- Both PDFs untouched: SHA-256 byte-identical to the values recorded at task start.
-- `_handoff/REPORT.md` contains the A-gate verdict, the A0 owner-question answers/
-  defaults, the full Section D output, and a final line
-  `Phase 0 status: COMPLETE | BLOCKED | NEEDS-OWNER`. Gate 0 -> 1 is GREEN only when
-  Phase 0 status is COMPLETE and the owner has merged the branch or approved
-  proceeding from it.
-- Codex did NOT edit `PLAN.md`, `TASK.md`, or `CLAUDE-RESTART-PROMPT.md`; any
-  objections are recorded in `REPORT.md`.
+## E. Definition of Done (ALL hold; else REPORT `Phase 1 status: BLOCKED | NEEDS-OWNER`)
+Meet every PLAN 1.10 criterion:
+- Source integrity: both PDFs hash-identical to the phase-start baseline.
+- Coverage: per PDF, `pages.index.tsv` has exactly one row per page
+  (extracted_pages == source_pages); zero blank `extraction_status`; no page MISSING
+  (a page may be empty but not absent).
+- Every non-`clean` page has a `corrected/page-XXXX.txt`; no `<?...?>` sentinel on a
+  `clean` page.
+- `function-inventory.tsv` populated (or REPORT states zero functions with evidence);
+  every inventory `source_pages` references an existing page.
+- No source/engine/port code; `_recovery/` holds only evidence; nothing under
+  `_recovery/` is staged/committed.
+- `REPORT.md` has the A verdict, the full Section D output, the extraction summary,
+  and a final line `Phase 1 status: COMPLETE | BLOCKED | NEEDS-OWNER`.
 
 ## F. End State (how this cycle hands back)
-- Commit the Phase 0 changes on `recovery/phase-0-governance` with a signed
-  message (e.g. `chore(governance): phase 0 baseline`). Never commit to `main`;
-  never bypass signing.
-- Push the branch and open a PR to `main` titled `Phase 0: repo governance
-  baseline`. The PR body summarizes what changed and pastes the Section D
-  verification output.
-- Finish `REPORT.md` per Section E, then STOP. Do NOT merge - the owner
-  admin-merges after Claude's audit.
-- If the result is `BLOCKED`/`NEEDS-OWNER`, still push the branch and open the PR
-  (or state in `REPORT.md` why there is nothing to push) so there is something to
-  review, and name the blocker.
+- Commit on `recovery/phase-1-extraction` with a signed message (e.g.
+  `recovery(phase-1): pdf extraction evidence + report`). Because `_recovery/` is
+  local-only this cycle, the committed change is `_handoff/REPORT.md`,
+  `_handoff/REPORT-ARCHIVE.md`, and the Claude-updated `PLAN.md`/`TASK.md`/
+  `CLAUDE-RESTART-PROMPT.md`. Never commit to `main`; never bypass signing; never
+  stage `_recovery/` or the PDFs.
+- Push the branch and open a PR to `main` titled `Phase 1: PDF extraction evidence`.
+  The PR body pastes the Section D verification output and the extraction summary,
+  and LISTS (does not commit) the local-only `_recovery/` artifacts produced.
+- Finish `REPORT.md` per Section E, then STOP. Do NOT merge - the owner admin-merges
+  after Claude's audit. If `BLOCKED`/`NEEDS-OWNER`, still push the branch + open the
+  PR with the report and name the blocker.

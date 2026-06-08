@@ -64,16 +64,17 @@ NOT NOW (gated future phases - do not let Codex jump ahead):
 - No engine/contract design before its Draft ADR (Phase 5).
 
 Current expected next step:
-Plan-only seeding is complete (see `_handoff/REPORT.md`). The active phase is
-PLAN.md Phase 0 (Repo Governance Baseline) - re-sequenced ahead of PDF extraction
-because Phase 1 is hard-blocked behind Gate 0 -> 1. Your job is to keep
-`_handoff/TASK.md` correct for Phase 0 and, once Gate 0 -> 1 is GREEN and the
-blocking owner decisions (D1-D5) are answered, author the Phase 1 extraction task.
+Phase 0 (governance baseline) is COMPLETE and merged to `main` (PR #1 / squash
+`a02aaa0`); Gate 0 -> 1 is GREEN. The active phase is PLAN.md Phase 1 (PDF Text
+and Code Extraction); `_handoff/TASK.md` specifies it. Your job is to keep
+`_handoff/TASK.md` correct, audit Codex's Phase 1 REPORT against the PLAN 1.10
+acceptance criteria, and - once Phase 1 is owner-accepted/merged - author the
+Phase 2 detangling task.
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
 introduce a separate "Step" counter):
-- Phase 0 - Repo governance baseline (ACTIVE)
-- Phase 1 - PDF text/code extraction + function inventory
+- Phase 0 - Repo governance baseline (COMPLETE, merged)
+- Phase 1 - PDF text/code extraction + function inventory (ACTIVE)
 - Phase 2 - Function-by-function detangling
 - Phase 3 - Recovered-code stabilization
 - Phase 4 - Microsoft DSC surface audit (official sources, audit-only)
