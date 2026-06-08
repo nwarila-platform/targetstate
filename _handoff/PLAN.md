@@ -447,9 +447,8 @@ _recovery/                             <- generated, git-ignored (1.9)
   06042026/                            <- one dir per source PDF, named by PDF stem
     pages.index.tsv                    <- per-page index (1.5 schema)
     raw/                               <- unedited extractor output
-      page-0001.txt
+      page-0001.txt                    <- ONE canonical raw file per page (text-layer OR OCR output)
       ...
-      page-0001.ocr.txt                <- only for OCR/hybrid pages
     images/                            <- rasterized PNGs for OCR
       page-0001.png
     ocr/                               <- per-page Tesseract sidecars (TSV, per-word confidence)
@@ -961,7 +960,8 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Phase 1 - PDF Text and Code Extraction. Last updated: 2026-06-08.
+Active phase: Governance interlude - Deny-by-default tracking policy (ADR 0002,
+owner-initiated), then Phase 2 - Function-by-Function Detangling. Last updated: 2026-06-08.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -994,7 +994,8 @@ Phase status (names match Section 6):
 | Phase | Name | Status | Evidence | Date |
 |-------|------|--------|----------|------|
 | 0 | Repo Governance Baseline | COMPLETE - merged PR #1 (squash `a02aaa0`); Gate 0->1 GREEN | 2026-06-08 |
-| 1 | PDF Text and Code Extraction | ACTIVE - assigned in current TASK.md | - | - |
+| 1 | PDF Text and Code Extraction | COMPLETE - merged PR #2 (squash `d87f1f6`); 33 pages OCR'd, 18 functions inventoried, evidence local-only | 2026-06-08 |
+| - | Governance: Deny-by-default tracking (ADR 0002) | ACTIVE - assigned in current TASK.md (owner-initiated interlude) | - | 2026-06-08 |
 | 2 | Function-by-Function Detangling | NOT STARTED | - | - |
 | 3 | Recovered Code Stabilization | NOT STARTED | - | - |
 | 4 | Microsoft DSC Surface Audit | NOT STARTED | - | - |
@@ -1088,6 +1089,22 @@ Long-horizon (do NOT block Phase 0/1):
   wording in Gate 0 -> 1 and Phase 0 acceptance #5. Gate 0 -> 1 declared GREEN.
   Owner-authorized admin squash-merge to `main` (PR #1 -> commit `a02aaa0`); no CI
   workflows exist, nothing to watch. Advanced ledger to Phase 1 ACTIVE.
+- 2026-06-08: Phase 1 (PDF extraction) executed by Codex on
+  `recovery/phase-1-extraction` and AUDITED by Claude: both PDFs are zero-text-layer
+  scans, OCR'd via pdfplumber 300 DPI + Tesseract (33 pages = 17 + 16; full page
+  coverage, all honestly `needs_correction`); PDFs byte-identical pre/post; 18
+  Registry-provider functions inventoried (`Get-TargetResource`, `Get-RegistryKeyHive`,
+  `Mount-RegistryHive`, ...) with 22 call edges; OCR hazards tagged; `_recovery/`
+  kept local-only (nothing committed); no engine/source. Codex flagged a real PLAN
+  1.3 imprecision (`raw/*.ocr.txt` vs the 1.11 `raw/*.txt` checks) - fixed to one
+  canonical `raw/page-XXXX.txt` per page. Owner-authorized admin squash-merge to
+  `main` (PR #2 -> `d87f1f6`). Downstream notes: OCR'd backtick continuations render
+  as `degree`/`tilde` and were not all tagged `OCR:BACKTICK` (Phase 3 correction).
+- 2026-06-08: Owner initiated a DENY-BY-DEFAULT tracking policy (added `**` to
+  `.gitignore`) and asked for it to be recorded as an ADR. Inserted a governance
+  interlude before Phase 2: Draft ADR 0002 + a correctly-allowlisted `.gitignore`
+  (the bare `**` ignores new files but does not allowlist tracked paths). PDFs and
+  `_recovery/` must remain ignored under the new policy.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads

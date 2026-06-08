@@ -1,16 +1,28 @@
-# Source recovery PDFs - local-only by default (Open Owner Decision: PDF disposition,
-# Section 9). Do not un-ignore without owner sign-off in the Change Log. To commit a
-# curated copy later, force-add explicitly: git add -f <name>.
+# ============================================================================
+# Deny-by-default tracking policy (ADR 0002, Draft).
+# Ignore everything at the repo root; explicitly allowlist tracked paths below.
+# Rationale: this PUBLIC repo handles scanned PII and large binaries (the source
+# PDFs and the _recovery/ OCR evidence). Deny-by-default means an accidental
+# `git add` cannot leak anything that was not deliberately allowlisted.
+# To track a NEW top-level directory later (e.g. src/, tests/), add a matching
+# `!/<dir>/` line below. NEVER add a `!` allowlist entry for the PDFs or _recovery/.
+# ============================================================================
+/*
+
+# --- Allowlist: tracked top-level entries (directories need a trailing slash) ---
+!/.github/
+!/.gitattributes
+!/.gitignore
+!/README.md
+!/_handoff/
+!/docs/
+
+# --- Hard-deny (defense-in-depth; also excluded by /*, must never be allowlisted) ---
 /06042026.pdf
 /06042026_001.pdf
-
-# Generated recovery/extraction evidence (Phase 1/2). Local-only by default.
 /_recovery/
 
-# DSC audit working area (Phase 4) - commit policy decided at Phase 4.
-# (left tracked by default for audit evidence; see Phase 4.6)
-
-# Tooling / OS noise
+# --- Noise: ignored even inside allowlisted directories ---
 *.log
 *.tmp
 TestResults/
