@@ -64,18 +64,17 @@ NOT NOW (gated future phases - do not let Codex jump ahead):
 - No engine/contract design before its Draft ADR (Phase 5).
 
 Current expected next step:
-Phases 0-3 and the deny-by-default governance interlude (ADR 0002, Draft) are COMPLETE
-and merged to `main` (PRs #1-#6; latest `69325cd`). Phase 3 recovery is closed at 10/18
-functions stabilized: the two PDFs are fully mined and the source is incomplete (it
-calls ~6 helpers - `Get-NormalizedRegistryKeyString`, `ArrayToString`, etc. - that are
-never defined). The owner accepted this baseline and PIVOTED to Phase 4. The active
-phase is PLAN.md Phase 4 (Microsoft DSC Surface Audit), specified in `_handoff/TASK.md`
-- AUDIT-ONLY, from primary sources (Microsoft Learn + GitHub), NEEDS network (BLOCK if
-offline; never assert DSC facts from memory). Audit evidence lives under
-`docs/dsc-audit/` (allowlisted). Your job: keep `_handoff/TASK.md` correct, audit Codex's
-REPORT against PLAN 4.7 (every surface has one cited record + one verdict; cross-ref
-covers all GAPS), and - once merged - author Phase 4b (the port/adapt/skip checklist).
-PDFs + `_recovery/` stay ignored.
+Phases 0-4 and the deny-by-default governance interlude (ADR 0002, Draft) are COMPLETE
+and merged to `main` (PRs #1-#7; latest `bafe8c2`). Phase 3 recovery is closed at 10/18
+functions stabilized (the PDFs are fully mined; ~6 referenced helpers are absent). Phase
+4 produced a primary-source DSC surface audit under `docs/dsc-audit/` (24 records,
+citations Claude-verified by independent WebFetch). The active phase is PLAN.md Phase 4b
+(synthesis), specified in `_handoff/TASK.md` - turn the audit verdicts + the 10 stabilized
+functions + the GAPS into `docs/dsc-audit/CHECKLIST.md` (one action per surface) and
+`BACKLOG.md` (steps mapped to Phase 5/6). Phase 4b designs nothing and writes no ADR/
+source. Your job: keep `_handoff/TASK.md` correct, audit Codex's REPORT (every surface
+has a concrete action; backlog items trace to audit/GAP ids), and - once merged - author
+Phase 5 (the Draft contract ADRs). PDFs + `_recovery/` stay ignored.
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
 introduce a separate "Step" counter; owner-initiated governance tasks may be
@@ -85,8 +84,8 @@ interleaved and are labeled "Governance:", not a Phase):
 - Governance - Deny-by-default tracking policy / ADR 0002 (COMPLETE, merged; Draft)
 - Phase 2 - Function-by-function detangling (COMPLETE, merged)
 - Phase 3 - Recovered-code stabilization (COMPLETE as recovery baseline; 10/18 stabilized, 8 deferred to design)
-- Phase 4 - Microsoft DSC surface audit (ACTIVE; audit-only, primary sources, needs network)
-- Phase 4b - Port/adapt/skip checklist (separate downstream step)
+- Phase 4 - Microsoft DSC surface audit (COMPLETE, merged; 24 records, citations verified)
+- Phase 4b - Port/adapt/skip checklist + backlog (ACTIVE; synthesis only)
 - Phase 5 - TargetState contract design (Draft ADRs)
 - Phase 6 - Registry proof implementation
 - Phase 7 - Engine and STIG roadmap
