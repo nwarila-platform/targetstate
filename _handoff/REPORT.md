@@ -1,234 +1,151 @@
 Phase/Task status: COMPLETE
 
-## Adversarial review verdict
+## Adversarial verdict
 
-Goal: execute Phase 2 only: reconcile the Phase 1 function inventory across
-`06042026.pdf` (A) and `06042026_001.pdf` (B), decide the mature source of truth
-per normalized `function_key`, and write decision artifacts under local-only
-`_recovery/_inventory/`. This cycle did not port, rewrite, correct OCR, execute
-recovered logic, create source files, or touch live Windows state.
+Goal: Phase 3 stabilization for PURE parsing/normalization functions only. I worked on `recovery/phase-3-stabilization`, not `main`.
 
-Branch check: PROCEED on `recovery/phase-2-detangling`, not `main`.
+Input gate: `_recovery/_inventory/reconciliation-matrix.tsv`, corrected OCR pages, rendered page images, and both PDFs were present. Rendered page images were treated as ground truth for OCR corrections.
 
-Input gate: PROCEED. Phase 1 inputs exist:
-`_recovery/_inventory/function-inventory.tsv`,
-`_recovery/_inventory/call-graph.tsv`,
-`_recovery/06042026/corrected/`, `_recovery/06042026_001/corrected/`,
-`_recovery/06042026/images/`, and `_recovery/06042026_001/images/`.
-The inventory reports 20 occurrences, 10 per PDF. Corrected text counts are
-17 pages for A and 16 pages for B. Rendered image counts are 17 pages for A and
-16 pages for B.
+PDF hash baseline remained unchanged:
 
-PDF hash gate: PROCEED. The current SHA-256 hashes match the Phase 1 manifest:
-`06042026.pdf` =
-`B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F`;
-`06042026_001.pdf` =
-`D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E`.
+```text
+06042026.pdf     B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F
+06042026_001.pdf D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E
+```
 
-Plan challenge: TASK.md references a `PLAN 2.9 command set`, but PLAN.md Phase 2
-currently defines only 2.1 through 2.8. I did not treat this as a blocking
-misalignment because TASK.md lists the required verification checks and PLAN 2.7
-defines acceptance criteria. Verification below uses the explicit TASK D checks.
+Stabilized pure functions:
 
-Normalization and tie-break source: `function_key` was formed by lowercasing,
-stripping whitespace, and collapsing the OCR-confusable classes `l/1/I` and
-`O/0` for the key only. Displayed names were not corrected. Tie-breaking used
-Phase 1 corrected text and already-rendered page images only.
+```text
+Convert-ByteArrayToHexString - keep_B, B page 0010; in-memory byte-to-hex formatting.
+ConvertFrom-Array - keep_A, A pages 0015-0017; in-memory array-to-string formatting.
+Get-NormalizedRegistryKey - keep_B, B pages 0004-0005; in-memory string normalization.
+Get-RegistryKeyHive - keep_B, B pages 0005-0006; in-memory hive text normalization.
+Get-RegistryKeyNameStr - keep_A, A pages 0006-0007; in-memory key-name validation.
+Get-RegistryKeyPathStr - keep_A, A pages 0004-0005; in-memory key-path normalization.
+Get-RegistryValueKindStr - keep_A, A pages 0008-0009; in-memory enum normalization.
+Get-RegistryValueNameStr - keep_A, A pages 0007-0008; in-memory value-name validation.
+ThrowError - keep_B, B pages 0001-0002; ErrorRecord construction/throw helper.
+```
 
-Decision: PROCEED and COMPLETE Phase 2. Chosen output locations:
-`_recovery/_inventory/reconciliation-matrix.tsv`,
-`_recovery/_inventory/decisions.tsv`,
-`_recovery/_inventory/UNCERTAIN.md`, and this report.
+Deferred functions:
+
+```text
+Get-RegistryKeyHiveObj - keep_A, A pages 0002-0004; calls provider/hive setup flow.
+Get-RegistryKeyPath - keep_B, B pages 0006-0007; pure-looking, but regex recovery is ambiguous and linked to the missing normalized-key helper family.
+Get-RegistryKeyName - keep_B, B pages 0007-0008; calls missing `Get-NormalizedRegistryKeyString`.
+Get-RegistryResourceObject - keep_B, B pages 0009-0010; resource-object orchestration.
+Get-RegistryValueData - keep_A, A pages 0013-0015; value-data/typed conversion branches are outside this safe pure pass.
+Get-TargetResource - keep_B, B pages 0013-0015; resource read/evidence orchestration.
+Get-TypedObject - keep_B, B pages 0010-0013; pure-looking but incomplete and references missing helpers/exception hashes.
+Mount-RegistryHive - keep_A, A pages 0009-0011; registry provider / PSDrive side effects.
+Start-ProviderSetup - keep_A, A pages 0001-0002; provider setup orchestration with ShouldProcess semantics.
+```
+
+Decision: proceed was valid for the stabilized set above. I refused to promote the deferred set because doing so would require registry side effects, orchestration semantics, missing helpers, or invented behavior.
 
 ## What changed
 
-- Archived the previous `REPORT.md` verbatim to the top of
-  `_handoff/REPORT-ARCHIVE.md` under
-  `## Archived 2026-06-08T19:28:31Z - Phase 2`.
-- Wrote the Phase 2 adversarial verdict before producing decisions.
-- Created local-only `_recovery/_inventory/reconciliation-matrix.tsv` with
-  18 normalized `function_key` rows.
-- Created local-only `_recovery/_inventory/decisions.tsv` with 18 current
-  decision rows.
-- Updated local-only `_recovery/_inventory/UNCERTAIN.md` with Phase 2 defer and
-  OCR-name-mismatch review notes.
-- Preserved the Claude-updated `PLAN.md`, `TASK.md`, and
-  `CLAUDE-RESTART-PROMPT.md` content as-is for the PR.
+- Archived the Phase 2 report into `_handoff/REPORT-ARCHIVE.md` before source edits.
+- Added flat `src/<FunctionName>.ps1` files for 9 stabilized pure functions.
+- Added in-memory-only Pester tests under `tests/` with no registry provider mutation.
+- Added `docs/recovery/GAPS.md` with deferred functions and reasons.
+- Added `.gitignore` allowlist entries for `!/src/` and `!/tests/`.
+- Updated this report with the final Phase 3 verdict and verification output.
 
-Decision summary:
+## Intentionally not changed
 
-```text
-keep_A  9
-keep_B  9
-merge   0
-discard 0
-defer   0
-```
-
-Cross-PDF duplicate functions found:
-
-```text
-Start-ProviderSetup -> keep_A (R4 maturity_score)
-Get-TargetResource  -> keep_B (R4 maturity_score)
-```
-
-OCR-name-mismatch suspects reviewed but not collapsed:
-
-```text
-Get-RegistryKeyHiveObj vs Get-RegistryKeyHive
-Get-RegistryKeyPathStr vs Get-RegistryKeyPath
-Get-RegistryKeyNameStr vs Get-RegistryKeyName
-```
-
-Rendered page images confirmed these suffix/name differences are visible source
-text, not OCR-confusable variants of the same function key.
-
-Deferred functions pending Phase 3 OCR correction:
-
-```text
-None
-```
-
-## What was intentionally not changed
-
-- No recovered logic was rewritten, ported, stabilized, or executed.
-- No OCR text was corrected.
-- No source PDFs were opened, parsed, modified, staged, or committed.
-- No `_recovery/` artifact was staged or committed; all Phase 2 decision
-  artifacts remain local-only under the ignored `_recovery/` tree.
-- No PowerShell source/module/test files, `src/`, or `tests/` were created.
-- No live Windows registry or system state was touched.
-- `PLAN.md`, `TASK.md`, and `CLAUDE-RESTART-PROMPT.md` content was not edited by
-  Codex.
+- No PDF bytes were edited.
+- No `_recovery/` artifacts were tracked.
+- No manifest/module packaging was introduced.
+- No registry/orchestration functions were stabilized.
+- No signing bypass was used.
+- Pre-existing handoff edits on this branch were preserved.
 
 ## Verification output
 
-`Compare-Object` of unique normalized inventory keys vs matrix keys:
+Branch:
 
 ```text
+recovery/phase-3-stabilization
 ```
 
-Invalid or missing matrix decisions, rules, or rationales:
+AST parse:
 
 ```text
+PARSE OK: Convert-ByteArrayToHexString.ps1
+PARSE OK: ConvertFrom-Array.ps1
+PARSE OK: Get-NormalizedRegistryKey.ps1
+PARSE OK: Get-RegistryKeyHive.ps1
+PARSE OK: Get-RegistryKeyNameStr.ps1
+PARSE OK: Get-RegistryKeyPathStr.ps1
+PARSE OK: Get-RegistryValueKindStr.ps1
+PARSE OK: Get-RegistryValueNameStr.ps1
+PARSE OK: ThrowError.ps1
 ```
 
-Low-confidence `merge`/`discard` rows:
+Pester:
 
 ```text
+Discovery found 16 tests in 222ms.
+Tests completed in 900ms
+Tests Passed: 16, Failed: 0, Skipped: 0, Inconclusive: 0, NotRun: 0
+Pester Version: 5.7.1
+PSVersion: 5.1.26100.8457
 ```
 
-Decision histogram:
+Live-registry mutation scan:
 
 ```text
-Name   Count
-----   -----
-keep_A     9
-keep_B     9
+NO LIVE REGISTRY MUTATION HITS
 ```
 
-Unlogged `defer` rows:
+Sensitive-content scan over new PowerShell files:
 
 ```text
+NO SENSITIVE CONTENT HITS IN src/tests PS1
 ```
 
-PDF hashes vs Phase 1 manifest:
+Allowlist check:
 
 ```text
-Path            : 06042026.pdf
-CurrentHash     : B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F
-ManifestHash    : B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F
-MatchesManifest : True
-
-Path            : 06042026_001.pdf
-CurrentHash     : D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E
-ManifestHash    : D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E
-MatchesManifest : True
+.gitignore:19:!/src/    src
+.gitignore:20:!/tests/  tests
+ALLOWLIST OUTPUT ABOVE: negative ! rules show src/tests are re-included
 ```
 
-Row counts:
+Tracked PDF / recovery check:
 
 ```text
-InventoryDistinctKeys : 18
-MatrixRows            : 18
-MatrixDistinctKeys    : 18
-CurrentDecisionRows   : 18
+NO TRACKED PDF OR _recovery FILES
 ```
 
-`git check-ignore -v _recovery/`
+PDF hashes:
 
 ```text
-.gitignore:23:/_recovery/	_recovery/
+C:\Users\HellBomb\Documents\GitHub\nwarila-platform\targetstate\06042026.pdf B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F
+C:\Users\HellBomb\Documents\GitHub\nwarila-platform\targetstate\06042026_001.pdf D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E
 ```
 
-`git ls-files -- 06042026.pdf 06042026_001.pdf _recovery/`
+Diff hygiene:
 
 ```text
+git diff --check: no whitespace errors
 ```
 
-`Get-ChildItem -Recurse -Include *.ps1,*.psm1,*.psd1 -Path . -ErrorAction SilentlyContinue | Select-Object FullName`
+## Deviations
 
-```text
-```
+- `Get-RegistryKeyPath`, `Get-RegistryKeyName`, and `Get-TypedObject` were moved from the initial pure-looking candidate list to `docs/recovery/GAPS.md` after image review showed missing-callee or incomplete-branch risks.
+- `Get-RegistryValueKindStr` uses a case-sensitive `Enum.Parse`/catch equivalent because this local Windows PowerShell 5.1 runtime exposes only generic `Enum.TryParse` overloads and cannot call the rendered static generic form directly. Behavior is preserved: valid exact enum names parse, invalid names fail, and `Unknown` remains rejected.
+- An initial sensitive scan caught a UNC-shaped false positive in a test fixture containing a doubled registry backslash. The fixture was rewritten so the file no longer contains that literal; the final sensitive scan is clean.
 
-`git branch --show-current`
+## Open objections
 
-```text
-recovery/phase-2-detangling
-```
-
-`git log --show-signature -1` before the Phase 2 commit:
-
-```text
-commit ed7c5359eefb5cb7121e6a63c2b35f09adb8fc55
-gpg: Signature made Mon Jun  8 19:19:58 2026 CUT
-gpg:                using RSA key B5690EEEBB952194
-gpg: Can't check signature: No public key
-Author: Smarter  Harder <33955773+NWarila@users.noreply.github.com>
-Date:   Mon Jun 8 19:19:58 2026 +0000
-
-    Governance: deny-by-default tracking policy (ADR 0002) (#3)
-```
-
-This output refers to the prior owner squash merge, not the Phase 2 commit. The
-final Phase 2 commit is created after this report is finalized, so its signature
-cannot be embedded here without an infinite self-reference. I will rerun
-`git log --show-signature -1` after the Phase 2 commit and include that output
-in the PR body and final response.
-
-`git status -sb` before staging:
-
-```text
-## recovery/phase-2-detangling
- M _handoff/CLAUDE-RESTART-PROMPT.md
- M _handoff/PLAN.md
- M _handoff/REPORT-ARCHIVE.md
- M _handoff/REPORT.md
- M _handoff/TASK.md
-```
-
-No PDFs or `_recovery/` paths appear in status because they are ignored and
-local-only by policy.
-
-## Deviations from `TASK.md` and why
-
-- TASK.md references `PLAN 2.9`, but PLAN.md has no Phase 2 subsection after 2.8.
-  I used the explicit TASK D command list and PLAN 2.7 acceptance criteria.
-- The final signed Phase 2 commit cannot be proven inside the committed report
-  without self-reference. The post-commit signature check will be included in the
-  PR body and final response.
-
-## Open objections that must be resolved before advancing
-
-- None blocking. Claude should fix or remove the TASK.md reference to `PLAN 2.9`
-  in future planner text because PLAN currently stops Phase 2 at 2.8.
+- The deferred functions need owner/Claude audit before any later promotion.
+- Registry-related tests still require an approved isolation strategy before Phase 4 work.
 
 ## Owner decisions needed
 
-- D2 remains on its default: `_recovery/` reconciliation artifacts stay
-  local-only and are summarized here. Owner review is needed before any future
-  commit of those local-only artifacts.
-- Owner admin-merge remains required after Claude audit; Codex must not merge
-  this PR.
+- Owner/Claude audit the PR.
+- Owner admin-merges after audit; Codex must not merge this branch.
 
-Phase 2 status: COMPLETE
+Phase 3 (pure) status: COMPLETE
