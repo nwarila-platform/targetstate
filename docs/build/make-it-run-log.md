@@ -165,3 +165,22 @@ Runnable copy: `src/Mount-RegistryHive.ps1`
 | `[System.Nullable]$Null` | `$Null` | ii | TASK Build 4 A0 permits this soft-return replacement. |
 | End cleanup list `RegistryKey`, `REGISTRY_NAME`, `Result`, `RegistryKeyStr`, `ShouldMountDrive` | `Result`, `RegistryKeyStr`, `ShouldMountRegistry`, `RegistryIsMounted` | owner-approved completion | TASK Build 4 A0 records the declared-variable cleanup list. |
 | missing function-closing brace | final function-closing brace | owner-approved completion | TASK Build 4 A0 records the missing function brace fix. |
+
+## Phase 6 Build 5 - Start-ProviderSetup
+
+Source: `recovered/canonical/Start-ProviderSetup.ps1`
+
+Runnable copy: `src/Start-ProviderSetup.ps1`
+
+| Canonical token | Running token | Class | Evidence |
+| --- | --- | --- | --- |
+| `[CmdletBinding(` with first argument `,  ConfirmImpact` | `[CmdletBinding(` with first argument `ConfirmImpact` | i | TASK Build 5 A0 names leading commas in `[CmdletBinding(` as approved make-it-run cleanup; first attribute argument cannot begin with a separator in runnable PowerShell. |
+| `[Parameter(` with first argument `, Mandatory` | `[Parameter(` with first argument `Mandatory` | i | TASK Build 5 A0 names leading commas in `[Parameter(` as approved make-it-run cleanup; first attribute argument cannot begin with a separator in runnable PowerShell. |
+| `[System.Array] ( ,  'KeyHive',  'KeyName' )` | `[System.Array] ( 'KeyHive',  'KeyName' )` | pre-approved recurring fix | TASK Build 5 A0 approves the leading-comma array fix for `ALL_REQUIRED_PROPERTIES`; it is the same nesting class fixed in hive aliases. |
+| `[PSCustomObject]::Empty` | `$Null` | ii | TASK Build 5 A0 approves the `[PSCustomObject]::Empty` -> `$Null` idiom mapping. |
+| cleanup lists containing nonexistent `RegistryKey` | cleanup lists containing `Result`, `KeyHive`, `KeyName`, `KeyPath`, `ValueName`, `ValueKind`, `ValueData` | pre-approved recurring fix | TASK Build 5 A0 approves aligning `Clear-Variable` and `Remove-Variable` lists to the variables actually declared. |
+| illegible OCR comment `# ee oe ww coe ...` | `# <#OCR-UNREADABLE#>` | pre-approved recurring fix | TASK Build 5 A0 requires replacing the unreadable OCR comment with a marker and not inventing the owner's words. |
+| `-ExceptionMessage:($LocalizedData.ParameterRequired -f  'Something')` | `-ExceptionMessage:($LocalizedData.ParameterRequired -f  $RequiredProperty)` | pre-approved recurring fix | TASK Build 5 A0 approves replacing the hardcoded placeholder with the actual missing property. |
+| `[PSCustomObject ]@{` | `[PSCustomObject]@{` | i | TASK Build 5 A0 names the space in the type literal as approved make-it-run cleanup. |
+| leading `;` before final `Write-Debug` | no leading `;` | i | TASK Build 5 A0 names the stray leading semicolon before the final `Write-Debug` as approved make-it-run cleanup. |
+| commented-out `Get-RegistryValueData` call and `$InputObject.ValueData` passthrough | unchanged | deferred-noted | TASK Build 5 A0 defers typed value-data coercion until `Get-TypedObject` is reworked for Test/Plan. |

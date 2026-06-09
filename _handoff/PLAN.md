@@ -970,7 +970,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Phase 6 - Registry build, R3 dispatch (owner-approved R3 + B observed-state shape). Build 1 (make-it-run CALIBRATION on Get-RegistryValueKindStr) is merged; owner approved the TryParse both-compat pattern + the `[Type]::Empty` idiom table. DURABLE CONSTRAINTS: target = BOTH PS 5.1 AND 7; make-it-run boundary = apply OCR + approved idiom/enum-parse patterns freely, FLAG any other API/logic/behavior change. Builds 1-3 MERGED (PRs #14/#16/#17, `6385975`): 9 leaf functions run, 25/25 tests green, 5 flagged bugs fixed. Build 4 (current) = complete + make-it-run `Mount-RegistryHive` (first registry-touching fn -> introduces Pester MOCKS, ADR 0006), with owner-approved completions (brace fix, cleanup list, restored structured ThrowError, standard ShouldProcess). `recovered/canonical/` = immutable faithful record. Last updated: 2026-06-09.
+Active phase: Phase 6 - Registry build, R3 dispatch (owner-approved R3 + B observed-state shape). Build 1 (make-it-run CALIBRATION on Get-RegistryValueKindStr) is merged; owner approved the TryParse both-compat pattern + the `[Type]::Empty` idiom table. DURABLE CONSTRAINTS: target = BOTH PS 5.1 AND 7; make-it-run boundary = apply OCR + approved idiom/enum-parse patterns AND the owner-PRE-APPROVED recurring bug-classes (leading-comma array nesting -> remove; cleanup/hygiene lists -> match declared vars; hardcoded placeholders -> the correct variable) freely + documented, FLAG only genuinely NEW API/logic/behavior decisions. Builds 1-4 MERGED (through `ba3316e`): 10 functions run, 29/29 tests green. Build 5 (current) = complete + make-it-run `Start-ProviderSetup` (the A-spine setup keystone; mock `Mount-RegistryHive`). DEFERRED: `Get-TypedObject` rework (only needed for Test/Plan) + the SupportsShouldProcess `-WhatIf` internal-suppression fix (Apply mode). `recovered/canonical/` = immutable faithful record. Last updated: 2026-06-09.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -1014,7 +1014,7 @@ Phase status (names match Section 6):
 | - | Execution-map audit | COMPLETE - exhaustive multi-agent audit of the recovered code -> `docs/design/execution-map.md` (inventory, missing functions, unified single-path map, MS-DSC comparison, ordered forward plan) | 2026-06-09 |
 | - | CORRECTIVE: Canonical Selection | COMPLETE - merged PR #12 (squash `729c80a`); 14 canonical + 6 archived (verbatim); owner CONFIRMED File A's contract as the spine; refactored `src/`/`tests/` removed | 2026-06-09 |
 | - | Test/Set Execution-Dispatch Design | COMPLETE - merged PR #13 (`1ca45a4`); ADR 0007 Draft. Owner APPROVED route R3 (internal dispatcher + thin Get/Test/Set shims) and observed-state shape = B's {Ensure,Key,ValueName,ValueKind,ValueData}. | 2026-06-09 |
-| 6 | Registry Proof Implementation | ACTIVE - R3 build on canonical code. Builds 1-3 MERGED (PRs #14/#16/#17, `6385975`): 9 leaf functions run, 25/25 tests green, 5 flagged bugs fixed. Build 4 (current TASK) = complete + make-it-run `Mount-RegistryHive` (Pester mocks; owner-approved completions). Then `Get-TypedObject`, finalize `Start-ProviderSetup`, then R3 spine (read leg -> dispatcher -> Test/Plan/Set). Constraints: BOTH 5.1+7, flag-API boundary. JSON (ADR 0004) + mocks (ADR 0006). | - | 2026-06-09 |
+| 6 | Registry Proof Implementation | ACTIVE - R3 build on canonical code. Builds 1-4 MERGED (through `ba3316e`): 10 functions run, 29/29 tests green. Build 5 (current TASK) = complete + make-it-run `Start-ProviderSetup` (A-spine keystone; mock Mount). Then JSON importer + Get read leg + R3 dispatcher (working Get), then `Get-TypedObject` + Test/Plan, then Set. Constraints: BOTH 5.1+7, flag-API boundary, pre-approved recurring-fix classes. JSON (ADR 0004) + mocks (ADR 0006). | - | 2026-06-09 |
 | 7 | Engine and STIG Roadmap | NOT STARTED | - | - |
 
 Rule: whenever a phase's status changes, update this table AND add a Section 10
@@ -1340,6 +1340,25 @@ Long-horizon (do NOT block current work):
   $RegistryHive) over the bare Throw; (4) owner chose the standard `ShouldProcess($RegistryHive.Name,
   'Mount registry hive')` form. NOTE: the module still needs the `$LocalizedData` message table assembled
   (a pending module-assembly item) for ThrowError messages to resolve; tests assert ErrorId/type, not text.
+- 2026-06-09: BUILD 4 executed + audited + MERGED (PR #18, `ba3316e`). `Mount-RegistryHive` completed
+  exactly per the owner-approved set (verified token-by-token); parses; mock-based tests (Test-Path /
+  New-PSDrive mocked, `New-PSDrive -Times 0` asserted on no-mount paths - nothing actually mounts); full
+  suite 29/29 green. Codex raised a sophisticated NEW flag: under `-WhatIf`, PowerShell propagates WhatIf
+  to the internal `New-Variable`/`Set-Variable`, suppressing the function's own state before the explicit
+  `ShouldProcess` guard. DECISION: deferred - `-WhatIf` only matters in Apply mode (gated/future), not on
+  the read path; will fix the pattern for both SupportsShouldProcess fns (`Mount-RegistryHive`,
+  `Start-ProviderSetup`) when Apply/Set is built. Documented in `docs/build/flagged-decisions.md`.
+- 2026-06-09: NEW DURABLE POLICY (owner pre-approval): the recurring WIP bug-classes are now "apply
+  freely + document" (no per-instance flag): (a) leading-comma array nesting `@(, ...)`/`[Array]( , ...)`
+  -> remove the comma; (b) `Clear`/`Remove-Variable` hygiene lists naming nonexistent vars -> align to the
+  declared vars; (c) hardcoded placeholders (e.g. `-f 'Something'`) -> the correct variable. Genuinely NEW
+  API/logic/behavior decisions still STOP and flag. Speeds the remaining completions.
+- 2026-06-09: SEQUENCING: `Get-TypedObject` (the owner-flagged "needs a rework" value-data coercer) is
+  DEFERRED - it is only needed for Test/Plan value comparison, not the read path. Build toward a working
+  Get first. Build 5 (current TASK) = `Start-ProviderSetup` (the A-spine setup keystone; its issues are
+  almost all the pre-approved recurring classes; ValueData stays raw passthrough since Get-TypedObject is
+  deferred; mock `Mount-RegistryHive`). After: JSON declaration importer + Get read leg + R3 internal
+  dispatcher (a working Get path) -> then `Get-TypedObject` + Test/Plan -> then Set.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads
