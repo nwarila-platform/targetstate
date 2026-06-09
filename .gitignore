@@ -18,6 +18,7 @@
 !/docs/
 !/src/
 !/tests/
+!/recovered/
 
 # --- Hard-deny (defense-in-depth; also excluded by /*, must never be allowlisted) ---
 /06042026.pdf

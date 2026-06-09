@@ -156,6 +156,16 @@ Likely future resource families:
 - Preserve commit signing. `commit.gpgsign` is enabled with an SSH signing key.
   Do not bypass signing (`--no-gpg-sign`, `-c commit.gpgsign=false`) to make
   progress. Verify a good signature with `git log --show-signature -1`.
+- RECOVERY FIDELITY (added 2026-06-08 after a refactoring mistake). When recovering
+  the owner's source from the PDFs, transcribe it VERBATIM in the owner's exact style:
+  preserve `Begin`/`Process`/`End` block structure, `New-Variable -Force -Option:'Private'`
+  declarations, colon-parameter syntax (`-Name:`/`-Value:`/`-Message:`), every comment
+  (typos and all), variable names, casing, ordering, spacing, and logic. Correct ONLY
+  literal OCR glyph errors, verified against the page IMAGES (the sole authority). NEVER
+  refactor, adapt, idiomize, restructure, "modernize", or "fix" recovered code - e.g. do
+  NOT swap `TryParse` for `Parse`, do NOT collapse blocks, do NOT remove "redundant" code.
+  Making recovered code parse/run on PS 5.1 is the OWNER's decision, never the recovery's.
+  Flag illegible glyphs explicitly; never invent or guess logic.
 - THIS IS A PUBLIC REPOSITORY. Every commit pushed is immediately and permanently
   world-readable and cannot be reliably removed from history. Treat every
   proposed commit as a public publication.
@@ -960,7 +970,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Phase 5 - TargetState Contract Design (Draft ADRs 0003-0006). Last updated: 2026-06-08.
+Active phase: CORRECTIVE - Faithful Source Reconstruction (verbatim rebuild of the owner's code from the PDFs; supersedes the refactored Phase 3 `src/`). Phase 6 PAUSED. Last updated: 2026-06-08.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -999,8 +1009,9 @@ Phase status (names match Section 6):
 | 3 | Recovered Code Stabilization | COMPLETE (as recovery baseline) - 10/18 functions stabilized + merged (PRs #5 `650b6bb`, #6 `69325cd`); 8 deferred in `docs/recovery/GAPS.md` (2 blocked on genuinely-absent helpers, 6 registry/orchestration). Owner accepted + pivoted to Phase 4 | 2026-06-08 |
 | 4 | Microsoft DSC Surface Audit | COMPLETE - merged PR #7 (squash `bafe8c2`); 24 surfaces audited from primary sources (citations Claude-verified), cross-ref covers 32 GAPS | 2026-06-08 |
 | 4b | Port/Adapt/Skip Checklist | COMPLETE - merged PR #8 (squash `c0cb730`); CHECKLIST (24 surfaces) + BACKLOG (20 items, traceable) | 2026-06-08 |
-| 5 | TargetState Contract Design | ACTIVE - assigned in current TASK.md (Draft ADRs 0003-0006; proposals for owner review) | - | 2026-06-08 |
-| 6 | Registry Proof Implementation | NOT STARTED | - | - |
+| 5 | TargetState Contract Design | COMPLETE - merged PR #9 (squash `3ac0c3a`); 4 Draft contract ADRs 0003-0006 | 2026-06-08 |
+| - | CORRECTIVE: Faithful Source Reconstruction | ACTIVE - assigned in current TASK.md. The Phase 3 "stabilization" REFACTORED the owner's code (wrong); redo as verbatim transcription from the PDF page images. | - | 2026-06-08 |
+| 6 | Registry Proof Implementation | PAUSED - read-only proof (PR #10) was built on the refactored functions; closed/set aside. Resumes after faithful recovery + owner-approved foundation. | - | 2026-06-08 |
 | 7 | Engine and STIG Roadmap | NOT STARTED | - | - |
 
 Rule: whenever a phase's status changes, update this table AND add a Section 10
@@ -1039,10 +1050,13 @@ Blocking (gate the move from Phase 0 to Phase 1; default applied if owner silent
   DSC resource). Every AUTHORITATIVE behavioral claim must still cite a Learn or
   Microsoft-GitHub source.
 
-Long-horizon (do NOT block Phase 0/1):
-- The declaration document format/extension/schema. Owner direction: YAML or a
-  similar human-readable format (NOT MOF); confirm the exact extension and schema
-  in the Phase 5 contract-design ADRs.
+- Declaration document format: RESOLVED 2026-06-08 - JSON for the first proof (PS 5.1
+  parses it natively via `ConvertFrom-Json`; YAML was only a suggestion). ADR 0004 to be
+  revised to JSON when Phase 6 resumes.
+- Registry test-isolation: RESOLVED 2026-06-08 - Pester MOCKS (no real registry) for the
+  first registry tests. ADR 0006 to record it when Phase 6 resumes.
+
+Long-horizon (do NOT block current work):
 - Module skeleton: RESOLVED 2026-06-08 - flat `src/<FunctionName>.ps1` scripts, no
   `.psd1`/`.psm1` manifest yet (deferred to a later phase). Stabilized `src/`/`tests/`
   ARE committed after a clean PII scan; `src/`/`tests/` allowlisted in `.gitignore`
@@ -1194,6 +1208,23 @@ Long-horizon (do NOT block Phase 0/1):
   PROPOSAL set, all `Status: Draft`, grounded in the audit verdicts + the 10 recovered
   functions + the mission. They lock nothing until owner-accepted (Locked Rule). The
   missing-helper designs (P5-DESIGN-006-008) and Phase 6 build follow.
+- 2026-06-08: Phase 5 merged (PR #9 -> `3ac0c3a`); 4 Draft contract ADRs. Owner reviewed
+  and decided: declaration format = JSON (PS 5.1 native; YAML was only a suggestion);
+  registry tests = Pester mocks. (Recorded in Section 9; ADRs 0004/0006 to be revised when
+  Phase 6 resumes.)
+- 2026-06-08: COURSE CORRECTION (owner-initiated). The owner reviewed the committed `src/`
+  and found the Phase 3 "stabilization" had REFACTORED their code, not faithfully recovered
+  it - it collapsed `Begin`/`Process`/`End` blocks, removed `New-Variable -Private`
+  declarations, dropped colon-parameter syntax, stripped comments, and swapped APIs (e.g.
+  `Get-RegistryValueKindStr` rewritten to `[Enum]::Parse`). Claude confirmed by diffing the
+  committed function against the owner's OCR/page image. This is a process error: Phase 3
+  was scoped as "stabilization," which licensed rewriting. Added a RECOVERY FIDELITY Locked
+  Rule (Section 4). NEXT: a faithful source-reconstruction cycle - verbatim transcription of
+  BOTH PDFs from the page images, OCR-glyph fixes ONLY, the owner's exact style preserved,
+  fidelity over runnability, into a committed `recovered/` tree (pure `.ps1` + separate
+  provenance sidecars). The refactored `src/`/`tests/` are left in place for diff comparison
+  and removed once the owner confirms fidelity. Phase 6 PAUSED; the read-only proof PR #10
+  was closed (built on the refactored base).
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads

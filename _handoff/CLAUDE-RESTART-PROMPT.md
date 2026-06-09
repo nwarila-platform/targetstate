@@ -64,19 +64,20 @@ NOT NOW (gated future phases - do not let Codex jump ahead):
 - No engine/contract design before its Draft ADR (Phase 5).
 
 Current expected next step:
-Phases 0-4b and the deny-by-default governance interlude (ADR 0002, Draft) are COMPLETE
-and merged to `main` (PRs #1-#8; latest `c0cb730`). Phase 3 recovery is closed at 10/18
-functions stabilized; Phase 4 produced a citation-verified DSC surface audit; Phase 4b
-produced `docs/dsc-audit/CHECKLIST.md` + `BACKLOG.md`. The active phase is PLAN.md Phase 5
-(the first DESIGN phase), specified in `_handoff/TASK.md` - Codex drafts the four contract
-ADRs (`docs/adr/0003` resource contract, `0004` declaration-document format (YAML, no MOF),
-`0005` evidence/reporting model, `0006` mutation/ShouldProcess safety) as a PROPOSAL set,
-all `Status: Draft`, grounded in the audit + recovered functions + mission. They write no
-source and lock nothing until owner-accepted. Your job: keep `_handoff/TASK.md` correct,
-audit Codex's REPORT (every ADR Draft + internally consistent + traceable to audit/backlog;
-no source; real design forks surfaced as owner open-questions), and - once merged - author
-the next step (the missing-helper designs + Phase 6 Registry build). PDFs + `_recovery/`
-stay ignored.
+Phases 0-5 and the deny-by-default governance interlude are COMPLETE and merged to `main`
+(PRs #1-#9; latest `3ac0c3a`). BUT a COURSE CORRECTION is in progress: the owner reviewed
+the committed `src/` and found the Phase 3 "stabilization" REFACTORED their code (collapsed
+Begin/Process/End, removed `New-Variable -Private` declarations, dropped colon-param syntax,
+stripped comments, swapped APIs) rather than recovering it faithfully. The active task
+(`_handoff/TASK.md`) is a CORRECTIVE Faithful Source Reconstruction: verbatim transcription
+of BOTH PDFs from the page images, OCR-glyph fixes ONLY, the owner's exact style preserved,
+fidelity over runnability, into a committed `recovered/` tree (pure `.ps1` + provenance
+sidecars). See the RECOVERY FIDELITY Locked Rule (Section 4). Phase 6 is PAUSED (its
+read-only proof PR #10 was closed - built on the refactored base). Owner decisions on hold
+for when Phase 6 resumes: declaration format = JSON; registry tests = Pester mocks. Your
+job: keep `_handoff/TASK.md` correct, and audit the reconstruction for FIDELITY (style
+preserved, only OCR-glyph fixes, nothing refactored or invented) - NOT for whether it runs.
+PDFs + `_recovery/` stay ignored.
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
 introduce a separate "Step" counter; owner-initiated governance tasks may be
@@ -85,9 +86,10 @@ interleaved and are labeled "Governance:", not a Phase):
 - Phase 1 - PDF text/code extraction + function inventory (COMPLETE, merged)
 - Governance - Deny-by-default tracking policy / ADR 0002 (COMPLETE, merged; Draft)
 - Phase 2 - Function-by-function detangling (COMPLETE, merged)
-- Phase 3 - Recovered-code stabilization (COMPLETE as recovery baseline; 10/18 stabilized, 8 deferred to design)
+- Phase 3 - Recovered-code stabilization (merged, but REFACTORED owner code - being redone faithfully)
+- CORRECTIVE - Faithful source reconstruction (ACTIVE; verbatim rebuild from PDF images)
 - Phase 4 - Microsoft DSC surface audit (COMPLETE, merged; 24 records, citations verified)
 - Phase 4b - Port/adapt/skip checklist + backlog (COMPLETE, merged)
-- Phase 5 - TargetState contract design (ACTIVE; Draft ADRs 0003-0006, proposals for owner review)
-- Phase 6 - Registry proof implementation
+- Phase 5 - TargetState contract design (COMPLETE, merged; 4 Draft ADRs; owner chose JSON + mocks)
+- Phase 6 - Registry proof implementation (PAUSED; resumes on a faithful, owner-approved foundation)
 - Phase 7 - Engine and STIG roadmap
