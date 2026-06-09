@@ -18,24 +18,29 @@ Function Get-RegistryValueKindStr {
   )
   Begin {
     Write-Debug -Message:'Entering Block:  Begin'
+
     # Initalize DYNAMIC Variables
     New-Variable -Force -Option:'Private'  -Name:'ValueKindIsNullorEmpty'  -Value:($False)
     New-Variable -Force -Option:'Private'  -Name: 'IsValidValueKind'        -Value:($False)
     New-Variable -Force -Option:'Private'  -Name: 'NormalizedValueKind'     -Value:([Microsoft.Win32.RegistryValueKind]::None)
     New-Variable -Force -Option:'Private'  -Name: 'ValueKindIsUnknown'      -Value:([Microsoft.Win32.RegistryValueKind]::None)
     New-Variable -Force -Option:'Private'  -Name: 'Result'                  -Value:([Microsoft.Win32.RegistryValueKind]::None)
+    
     Write-Debug -Message:'Exiting Block:  Begin'
   } Process {
     Write-Debug -Message:'Entering Block:  Process'
+    
     # Clear all variables immediately upon entering the  'Process'  loop to ensure no stale
     #    values are carried over between piped datasets.
     Clear-Variable -Force -ErrorAction: 'SilentlyContinue'  -Name:(@(
        'ValueKindIsNullorEmpty',  'IsValidValueKind',  'NormalizedValueKind',
        'ValueKindIsUnknown',  'Result'
     ))
+    
     Set-Variable -Name:'ValueKindIsNullorEmpty'  -Value:([System.Boolean] (
       [System.String]::IsNullOrWhiteSpace($ValueKind)
     ))
+    
     If ($ValueKindIsNullorEmpty -eq $True) {
 
       Set-Variable -Name: 'NormalizedValueKind'  -Value:(
@@ -54,6 +59,7 @@ Function Get-RegistryValueKindStr {
           )
         )
       )
+      
       # While  'Unknown'  is a valid RegistryValueKind,  it's not a relevant value for our function
       #   so we treat it as Invalid and raise an exception.
       Set-Variable -Name:'ValueKindIsUnknown'  -Value:(
@@ -61,6 +67,7 @@ Function Get-RegistryValueKindStr {
           $NormalizedValueKind -eq  'Unknown'
         )
       )
+     
       # If the Registry Key Value Type is invalid,  raise am error and exit the function.
       If (($IsValidValueKind -eq $False) -or ($ValueKindIsUnknown -eq $True)) {
         ThrowError `

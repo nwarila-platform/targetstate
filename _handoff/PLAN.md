@@ -970,7 +970,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Phase 6 - Registry build on the owner's canonical code, R3 dispatch (owner APPROVED R3 internal-dispatcher + thin Get/Test/Set shims; observed-state shape = B's {Ensure,Key,ValueName,ValueKind,ValueData}; make-it-run = Codex applies minimal style-preserving fixes, owner reviews each). Building one function at a time in `src/`; `recovered/canonical/` is the faithful record. Build 1 = make-it-run CALIBRATION on Get-RegistryValueKindStr + the `[Type]::Empty` idiom proposal. Last updated: 2026-06-09.
+Active phase: Phase 6 - Registry build, R3 dispatch (owner-approved R3 + B observed-state shape). Build 1 (make-it-run CALIBRATION on Get-RegistryValueKindStr) is merged; owner approved the TryParse both-compat pattern + the `[Type]::Empty` idiom table. DURABLE CONSTRAINTS: target = BOTH PS 5.1 AND 7; make-it-run boundary = apply OCR + approved idiom/enum-parse patterns freely, FLAG any other API/logic/behavior change. Build 2 (current) = make-it-run the remaining 8 pure leaf functions in `src/`. `recovered/canonical/` = immutable faithful record. Last updated: 2026-06-09.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -1014,7 +1014,7 @@ Phase status (names match Section 6):
 | - | Execution-map audit | COMPLETE - exhaustive multi-agent audit of the recovered code -> `docs/design/execution-map.md` (inventory, missing functions, unified single-path map, MS-DSC comparison, ordered forward plan) | 2026-06-09 |
 | - | CORRECTIVE: Canonical Selection | COMPLETE - merged PR #12 (squash `729c80a`); 14 canonical + 6 archived (verbatim); owner CONFIRMED File A's contract as the spine; refactored `src/`/`tests/` removed | 2026-06-09 |
 | - | Test/Set Execution-Dispatch Design | COMPLETE - merged PR #13 (`1ca45a4`); ADR 0007 Draft. Owner APPROVED route R3 (internal dispatcher + thin Get/Test/Set shims) and observed-state shape = B's {Ensure,Key,ValueName,ValueKind,ValueData}. | 2026-06-09 |
-| 6 | Registry Proof Implementation | ACTIVE - build on the owner's canonical code, R3 dispatch, one function at a time. FIRST gating decision: the owner's reserved "make it run" call (canonical does not parse as-is). JSON declaration (ADR 0004) + Pester mocks (ADR 0006). | - | 2026-06-09 |
+| 6 | Registry Proof Implementation | ACTIVE - R3 build on canonical code. Build 1 (make-it-run calibration on Get-RegistryValueKindStr) MERGED (PR #14, `e709777`); owner approved TryParse both-compat pattern + `[Type]::Empty` idiom table; constraints: target BOTH 5.1+7, flag-API boundary. Build 2 (current TASK) = make-it-run 8 leaf functions. Then completions + R3 spine. JSON (ADR 0004) + mocks (ADR 0006) for the later read/dispatch legs. | - | 2026-06-09 |
 | 7 | Engine and STIG Roadmap | NOT STARTED | - | - |
 
 Rule: whenever a phase's status changes, update this table AND add a Section 10
@@ -1286,6 +1286,30 @@ Long-horizon (do NOT block current work):
   the owner is protective of their exact style (prior refactor incident). NOTE the stale closed
   PR #10 branch `recovery/phase-6-registry-readonly` is the abandoned read-only proof on the
   REFACTORED code - not to be reused; safe to delete.
+- 2026-06-09 (RESOLVED): make-it-run = Codex applies minimal style-preserving fixes, owner reviews each.
+  Build 1 = CALIBRATION on `Get-RegistryValueKindStr` (PR #14, `e709777`), audited + merged. Verdict:
+  no refactor (style/structure/comments/soft-return preserved); `[Type]::Empty` idiom mapping proposed;
+  OCR line-unwraps correct; all changes disclosed (`docs/build/make-it-run-log.md`); canonical byte-
+  unchanged; parses + Pester pass. CALIBRATION CAUGHT: Codex applied 2 API/logic changes as "parse fix"
+  - rewrote the owner's `[Enum]::TryParse([T],$s,[ref])` to `[T]::TryParse($s,[ref])` + added a pre-init.
+  ROOT CAUSE: the owner's 3-arg `[Enum]::TryParse(Type,string,out)` is a .NET Core / PS7-only overload,
+  absent in .NET Framework / PS 5.1 - evidence the code targets a newer runtime than the assumed 5.1.
+- 2026-06-09: TWO DURABLE CONSTRAINTS from the calibration (owner decisions):
+  (1) TARGET = BOTH PowerShell 5.1 AND 7 compatible (lowest-common-denominator APIs; flag any 5.1-only
+      or 7-only construct). Cross-cutting; applies to every function from here on.
+  (2) MAKE-IT-RUN BOUNDARY = Codex APPLIES FREELY the OCR-artifact corrections + the APPROVED
+      `[Type]::Empty` idiom table (`docs/build/owner-idiom-decisions.md`, now status APPROVED) + the
+      approved enum-parse pattern (`[T]::TryParse($s,[ref])` with the by-ref pre-typed); Codex STOPS AND
+      FLAGS any OTHER API/logic/behavior change for explicit owner approval before applying.
+  Owner APPROVED ("do it") the TryParse both-compat solution + the idiom table; both are now reusable
+  approved patterns. Owner also added vertical blank-line spacing to `Get-RegistryValueKindStr` during
+  review (preserved on `main`); that spacing style is adopted for the build.
+- 2026-06-09: Next = build 2 (current TASK): make-it-run the 8 remaining PURE leaf functions (ThrowError,
+  Get-RegistryKeyHiveObj, Get-RegistryKeyPathStr, Get-RegistryKeyNameStr, Get-RegistryValueNameStr,
+  Get-NormalizedRegistryKey, ConvertFrom-Array, Convert-ByteArrayToHexString) on 5.1+7, applying approved
+  patterns freely + flagging anything novel. After: complete `Mount-RegistryHive` + `Get-TypedObject`,
+  finalize `Start-ProviderSetup` to the contract, then build the R3 read leg -> dispatcher -> Test/Plan/Set,
+  one function at a time.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads

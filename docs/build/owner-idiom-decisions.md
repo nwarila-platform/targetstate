@@ -1,7 +1,10 @@
-# Owner Idiom Decisions - Proposed
+# Owner Idiom Decisions
 
-Status: PROPOSED for owner review. Do not apply these mappings beyond
-`src/Get-RegistryValueKindStr.ps1` until the owner approves or revises them.
+Status: APPROVED by owner 2026-06-09. These mappings may be applied freely across
+all functions during make-it-run (they are part of the "apply freely" bucket, alongside
+OCR-artifact corrections). Each chosen default is valid on BOTH Windows PowerShell 5.1
+and PowerShell 7. Re-confirm with the owner only if a new `[Type]::Empty` variant appears
+that is not in the table below.
 
 The faithful recovered code uses `New-Variable ... -Value:([Type]::Empty)` as an
 initializer idiom. Only `[System.String]::Empty` is a real .NET member in the
