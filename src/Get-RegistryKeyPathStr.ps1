@@ -35,7 +35,7 @@ Function Get-RegistryKeyPathStr {
     # Key names cannot any non-printable characters.
 
   Set-Variable -Name:'KeyPathHasNonPrintChars'  -Value:([System.Boolean](
-    $KeyName -match  '\P{Cc}\p{Cn}\p{Cs}'
+    $KeyPath -match  '[\p{Cc}\p{Cn}\p{Cs}]'
   ))
   If ($KeyPathHasNonPrintChars -eq $True) {
     ThrowError `

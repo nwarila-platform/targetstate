@@ -77,13 +77,16 @@ has PS7/.NET-Core idioms like the 3-arg `[Enum]::TryParse` that must be made bot
 MAKE-IT-RUN BOUNDARY = Codex applies OCR-artifact corrections + the APPROVED `[Type]::Empty` idiom
 table + the approved enum-parse pattern FREELY, but STOPS AND FLAGS any other API/logic/behavior
 change for explicit owner approval. The canonical code is faithful but does NOT parse; `recovered/canonical/`
-is the immutable faithful RECORD, the runnable module is built in `src/`. The active task
-(`_handoff/TASK.md`) is BUILD 2: make-it-run the 8 remaining PURE leaf functions (ThrowError, the
-`Get-Registry*Str` validators, `Get-RegistryKeyHiveObj`, `Get-NormalizedRegistryKey`, `ConvertFrom-Array`,
-`Convert-ByteArrayToHexString`) on 5.1+7, applying approved patterns freely + flagging anything novel,
-with per-function tests + diffs. Your job: keep `_handoff/TASK.md` correct; audit for fidelity
-(style/logic/comments preserved, both-runtime, every change minimal + classified, flags not silently
-applied, canonical unchanged, no ADR Accepted). After: complete `Mount-RegistryHive` + `Get-TypedObject`,
+is the immutable faithful RECORD, the runnable module is built in `src/`. Build 1 (calibration) and
+Build 2 (make-it-run 8 leaves) are MERGED (PRs #14, #16); Build 2 flagged 5 real latent bugs in the
+owner's code which the owner APPROVED fixing. The active task (`_handoff/TASK.md`) is BUILD 3: apply
+ONLY those 5 owner-approved flagged fixes in `src/` (hive-alias leading comma + HKEY_CLASSES_ROOT;
+`$KeyPath` not `$KeyName`; non-printable regex char-class; `-match`/`TrimEnd('\')` in the key
+normalizer) and un-skip the matching tests. This is the FIRST deliberate behavior change to the owner's
+logic - strictly the approved fixes; any new bug is flagged not fixed; `recovered/canonical/` keeps the
+original bugs as the faithful record. Your job: keep `_handoff/TASK.md` correct; audit that ONLY the
+approved fixes were applied (minimal, style-preserving, both-runtime), the skipped tests now pass,
+canonical unchanged, no ADR Accepted. After: complete `Mount-RegistryHive` + `Get-TypedObject`,
 finalize `Start-ProviderSetup`, then build the R3 read leg -> dispatcher -> Test -> Plan -> Set -> thin
 shims, one function at a time. PDFs + `_recovery/` stay ignored.
 
@@ -102,5 +105,5 @@ interleaved and are labeled "Governance:", not a Phase):
 - Phase 4 - Microsoft DSC surface audit (COMPLETE, merged; 24 records, citations verified)
 - Phase 4b - Port/adapt/skip checklist + backlog (COMPLETE, merged)
 - Phase 5 - TargetState contract design (COMPLETE, merged; 4 Draft ADRs; owner chose JSON + mocks)
-- Phase 6 - Registry build on canonical code, R3 dispatch (ACTIVE; constraints: BOTH 5.1+7, flag-API boundary. Build 1 calibration MERGED PR #14; build 2 (current) = make-it-run the 8 leaf functions; then completions + Start-ProviderSetup, then R3 spine)
+- Phase 6 - Registry build on canonical code, R3 dispatch (ACTIVE; constraints: BOTH 5.1+7, flag-API boundary. Build 1 calibration + Build 2 make-it-run-8-leaves MERGED (PRs #14, #16); Build 3 (current) = apply 5 owner-approved flagged bug-fixes; then completions + Start-ProviderSetup, then R3 spine)
 - Phase 7 - Engine and STIG roadmap

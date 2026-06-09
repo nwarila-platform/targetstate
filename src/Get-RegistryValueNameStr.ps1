@@ -31,7 +31,7 @@ Function Get-RegistryValueNameStr {
     ))
     # Key names cannot any non-printable characters.
     Set-Variable -Name:'IsNonPrintable'  -Value:([System.Boolean](
-      $ValueName -match  '\P{Cc}\p{Cn}\p{Cs}'
+      $ValueName -match  '[\p{Cc}\p{Cn}\p{Cs}]'
     ))
     If ($IsNonPrintable -eq $True) {
       # mn wwe ce wen oa cp nmr tem cin on cam cam wo um: mm came am Me ah sO OSs i ee oe  ee ee

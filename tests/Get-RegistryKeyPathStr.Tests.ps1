@@ -12,7 +12,7 @@ Describe 'Get-RegistryKeyPathStr' {
     Get-RegistryKeyPathStr -KeyPath '\Software\\Vendor\' | Should -Be 'Software\Vendor'
   }
 
-  It 'throws for non-printable characters' -Skip {
+  It 'throws for non-printable characters' {
     { Get-RegistryKeyPathStr -KeyPath "Software`0Vendor" } |
       Should -Throw -ExpectedMessage 'Invalid registry key name specified.'
   }

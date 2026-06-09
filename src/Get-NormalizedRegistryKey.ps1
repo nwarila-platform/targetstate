@@ -42,7 +42,7 @@ $True )]
         ))
         # Test of string uses double backslashes in the key path.
         Set-Variable -Name: 'HasDoubleSLashes'  -Value:([System.Boolean](
-            $RegistryKeyStr -contains ('\\')
+            $RegistryKeyStr -match ('\\{2,}')
         ))
         # If the string has any instances of double backslashes  '\',  replace all instances of two or more
         #     backslashes with a single backslash. This gives us the ability to reliably extract specific
@@ -69,7 +69,7 @@ $True )]
             # about
             #     changing the registry key string format in the source file(s) to match the desired format.
             Set-Variable -Name: 'RegistryKeyStr'  -Value:([System.String](
-                 $RegistryKeyStr.TrimEnd('/')
+                 $RegistryKeyStr.TrimEnd('\')
              ))
         }
         # Explicitly set the Result Object before returning it so it can be easily and predictably analized

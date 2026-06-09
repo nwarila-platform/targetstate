@@ -16,7 +16,7 @@ Describe 'Get-RegistryValueNameStr' {
     Get-RegistryValueNameStr -ValueName 'Setting' | Should -Be 'Setting'
   }
 
-  It 'throws for non-printable characters' -Skip {
+  It 'throws for non-printable characters' {
     { Get-RegistryValueNameStr -ValueName "Bad`0Name" } |
       Should -Throw -ExpectedMessage 'Invalid registry key name specified.'
   }

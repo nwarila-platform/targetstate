@@ -8,12 +8,12 @@ Describe 'Get-NormalizedRegistryKey' {
       Should -Be 'HKEY_LOCAL_MACHINE\Software'
   }
 
-  It 'collapses doubled backslashes' -Skip {
+  It 'collapses doubled backslashes' {
     Get-NormalizedRegistryKey -RegistryKey 'HKEY_LOCAL_MACHINE\\Software' |
       Should -Be 'HKEY_LOCAL_MACHINE\Software'
   }
 
-  It 'removes a trailing backslash' -Skip {
+  It 'removes a trailing backslash' {
     Get-NormalizedRegistryKey -RegistryKey 'HKEY_LOCAL_MACHINE\Software\' |
       Should -Be 'HKEY_LOCAL_MACHINE\Software'
   }

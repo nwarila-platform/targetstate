@@ -14,8 +14,9 @@ the default error path while later aliases such as `HKEY_LOCAL_MACHINE` work.
 Proposed both-compatible fix: remove the leading comma in each comparison array,
 for example `@('HKLM', 'HKEY_LOCAL_MACHINE', 'LocalMachine', '-2147483646')`.
 
-Status: not applied. The runnable copy passes full-name and invalid-hive tests;
-the abbreviated-alias test is skipped pending owner approval.
+Status: RESOLVED - owner-approved, applied 2026-06-09. The runnable copy now
+matches abbreviated aliases, and the HKCR full-name OCR artifact is corrected in
+`src/`; `recovered/canonical/` remains unchanged.
 
 ## Registry Name/Path/Value Non-Printable Validation
 
@@ -34,8 +35,9 @@ Printed/canonical behavior:
 Proposed both-compatible fix: test the actual input variable and use a character
 class such as `[\p{Cc}\p{Cn}\p{Cs}]`.
 
-Status: not applied. Normal printable values and the backslash key-name throw path
-are tested; non-printable throw tests are skipped pending owner approval.
+Status: RESOLVED - owner-approved, applied 2026-06-09. The runnable copies now
+test the actual path/name/value input and use a Unicode-category character class
+for non-printable validation; `recovered/canonical/` remains unchanged.
 
 ## Get-NormalizedRegistryKey - Double and Trailing Backslash Normalization
 
@@ -49,5 +51,6 @@ Printed/canonical behavior:
 Proposed both-compatible fix: use `-match ('\\{2,}')` for doubled backslashes and
 `TrimEnd('\')` for the trailing-backslash branch.
 
-Status: not applied. The no-normalization-needed path is tested; doubled and
-trailing backslash tests are skipped pending owner approval.
+Status: RESOLVED - owner-approved, applied 2026-06-09. The runnable copy now uses
+regex matching for doubled backslashes and trims trailing registry backslashes;
+`recovered/canonical/` remains unchanged.

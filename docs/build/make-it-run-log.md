@@ -128,3 +128,19 @@ Runnable copy: `src/Convert-ByteArrayToHexString.ps1`
 | Canonical token | Running token | Class | Evidence |
 | --- | --- | --- | --- |
 | `g$Result += [String]::Format(...)` | `$Result += [String]::Format(...)` | i | Page image `_recovery/06042026_001/images/page-0010.png` shows `$Result +=`; `g` is an OCR glyph artifact. |
+
+## Phase 6 Build 3 - Applied Owner-Approved Flagged Fixes
+
+Source record: `recovered/canonical/` remains unchanged.
+
+Runnable copies: scoped `src/` functions only.
+
+| Function | Before | After | Class | Evidence |
+| --- | --- | --- | --- | --- |
+| `Get-RegistryKeyHiveObj` | six switch comparison arrays shaped `@(,  'HKCR', ...)` | six arrays shaped `@('HKCR', ...)` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; owner approved applying the flagged fix on 2026-06-09. |
+| `Get-RegistryKeyHiveObj` | `'HKEY_CLASSES ROOT'` | `'HKEY_CLASSES_ROOT'` | owner-approved OCR artifact fix | `docs/build/flagged-decisions.md`; TASK Build 3 A0 names the HKCR missing underscore correction. |
+| `Get-RegistryKeyPathStr` | `$KeyName -match  '\P{Cc}\p{Cn}\p{Cs}'` | `$KeyPath -match  '[\p{Cc}\p{Cn}\p{Cs}]'` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix tests the actual parameter and uses a character class. |
+| `Get-RegistryKeyNameStr` | `$KeyName -match  '\P{Cc}\p{Cn}\p{Cs}'` | `$KeyName -match  '[\p{Cc}\p{Cn}\p{Cs}]'` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix uses a character class. |
+| `Get-RegistryValueNameStr` | `$ValueName -match  '\P{Cc}\p{Cn}\p{Cs}'` | `$ValueName -match  '[\p{Cc}\p{Cn}\p{Cs}]'` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix uses a character class. |
+| `Get-NormalizedRegistryKey` | `$RegistryKeyStr -contains ('\\')` | `$RegistryKeyStr -match ('\\{2,}')` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix uses regex matching for doubled backslashes. |
+| `Get-NormalizedRegistryKey` | `$RegistryKeyStr.TrimEnd('/')` | `$RegistryKeyStr.TrimEnd('\')` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix trims trailing registry backslashes. |

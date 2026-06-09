@@ -1,42 +1,42 @@
-Phase 6 build 2 status: NEEDS-OWNER
+Phase 6 build 3 status: COMPLETE
 
 ## Adversarial review verdict
 
-Goal: execute Phase 6 build 2 on branch `recovery/phase6-build-2`: make exactly the eight scoped pure leaf functions parse and run on Windows PowerShell 5.1, keep the runnable copies both-runtime compatible for PowerShell 5.1 + 7, preserve the owner's recovered structure/style/comments, add focused Pester tests, append classified make-it-run documentation, flag any non-approved API/logic/behavior change without applying it, open a PR to `main`, and stop for owner review.
+Goal: execute Phase 6 build 3 on branch `recovery/phase6-build-3`: apply exactly the five owner-approved behavior fixes from `docs/build/flagged-decisions.md` to the runnable `src/` copies, un-skip the matching tests, mark the decisions resolved, append make-it-run log entries, verify parse/Pester/hygiene, open a PR to `main`, and stop for owner review.
 
-Decision: PROCEED, but final status is NEEDS-OWNER. The parse/run work is complete for changes inside the approved boundary (OCR artifacts, approved `[Type]::Empty` mappings, and no new non-approved API swaps). Several behavior fixes that would make the helpers fully match their comments are real logic changes, not OCR fixes, so they are documented in `docs/build/flagged-decisions.md` and intentionally left unapplied.
+Decision: PROCEED and COMPLETE for the implementation cycle. The task is narrow, owner-approved, testable offline, and does not require PDF extraction, live registry/system mutation, new tooling, ADR status changes, or changes to `recovered/canonical/`. I changed only the named tokens and tests tied to those tokens.
 
-Branch check: `recovery/phase6-build-2`, not `main`.
+Branch check: `recovery/phase6-build-3`, not `main`.
 
-Scoped function status:
+Chosen output locations: `_handoff/REPORT.md`, `_handoff/REPORT-ARCHIVE.md`, `src/Get-RegistryKeyHiveObj.ps1`, `src/Get-RegistryKeyPathStr.ps1`, `src/Get-RegistryKeyNameStr.ps1`, `src/Get-RegistryValueNameStr.ps1`, `src/Get-NormalizedRegistryKey.ps1`, the matching `tests/*.Tests.ps1`, `docs/build/flagged-decisions.md`, and `docs/build/make-it-run-log.md`.
 
-| Function | Status | Notes |
+Approved before/after tokens:
+
+| Function | Before | After |
 | --- | --- | --- |
-| `ThrowError` | runs | Parser + Pester pass. |
-| `Get-RegistryKeyHiveObj` | runs pending flag | Full hive names and invalid hive errors pass; abbreviated aliases such as `HKLM` are skipped pending owner decision on `@(, ...)`. |
-| `Get-RegistryKeyPathStr` | runs pending flag | Normal path normalization passes; non-printable validation is skipped pending owner decision on `$KeyName`/regex behavior. |
-| `Get-RegistryKeyNameStr` | runs pending flag | Normal output + backslash throw pass; non-printable validation is skipped pending owner decision on regex behavior. |
-| `Get-RegistryValueNameStr` | runs pending flag | Empty + printable value names pass; non-printable validation is skipped pending owner decision on regex behavior. |
-| `Get-NormalizedRegistryKey` | runs pending flag | No-normalization path passes; double/trailing slash normalization is skipped pending owner decision on `-contains`/`TrimEnd('/')`. |
-| `ConvertFrom-Array` | runs | Parser + Pester pass. |
-| `Convert-ByteArrayToHexString` | runs | Parser + Pester pass. |
+| `Get-RegistryKeyHiveObj` | `@(,  'HKCR', ...)` and five sibling leading-comma arrays | `@('HKCR', ...)` and sibling arrays without unary comma |
+| `Get-RegistryKeyHiveObj` | `'HKEY_CLASSES ROOT'` | `'HKEY_CLASSES_ROOT'` |
+| `Get-RegistryKeyPathStr` | `$KeyName -match '\P{Cc}\p{Cn}\p{Cs}'` | `$KeyPath -match '[\p{Cc}\p{Cn}\p{Cs}]'` |
+| `Get-RegistryKeyNameStr` | `$KeyName -match '\P{Cc}\p{Cn}\p{Cs}'` | `$KeyName -match '[\p{Cc}\p{Cn}\p{Cs}]'` |
+| `Get-RegistryValueNameStr` | `$ValueName -match '\P{Cc}\p{Cn}\p{Cs}'` | `$ValueName -match '[\p{Cc}\p{Cn}\p{Cs}]'` |
+| `Get-NormalizedRegistryKey` | `$RegistryKeyStr -contains ('\\')` | `$RegistryKeyStr -match ('\\{2,}')` |
+| `Get-NormalizedRegistryKey` | `$RegistryKeyStr.TrimEnd('/')` | `$RegistryKeyStr.TrimEnd('\')` |
 
 ## What changed
 
-- Archived the prior `_handoff/REPORT.md` to the top of `_handoff/REPORT-ARCHIVE.md`.
-- Added runnable copies for the eight scoped functions under `src/`.
-- Added Pester tests for the eight scoped functions under `tests/`.
-- Appended Phase 6 build 2 sections to `docs/build/make-it-run-log.md`.
-- Added `docs/build/flagged-decisions.md` for non-applied owner decisions.
-- Preserved the pre-existing local planner/owner updates to `_handoff/PLAN.md`, `_handoff/TASK.md`, `_handoff/CLAUDE-RESTART-PROMPT.md`, `docs/build/owner-idiom-decisions.md`, and `src/Get-RegistryValueKindStr.ps1` as-is.
+- Applied the five owner-approved fixes in the runnable `src/` copies only.
+- Un-skipped the previously skipped tests for abbreviated hives, non-printable validation, doubled backslashes, and trailing backslash normalization.
+- Added the requested HKCR full-name assertion.
+- Marked the flagged decisions RESOLVED and appended Build 3 entries to the make-it-run log.
+- Archived the prior `REPORT.md` to the top of `REPORT-ARCHIVE.md`.
+- Preserved pre-existing Claude-owned edits to `PLAN.md`, `TASK.md`, and `CLAUDE-RESTART-PROMPT.md` as-is.
 
 ## What was intentionally not changed
 
-- `recovered/**` was not modified.
-- No excluded functions were changed: `Start-ProviderSetup`, `Get-TargetResource`, `Mount-RegistryHive`, `Get-TypedObject`, `Get-RegistryResourceObject`, and no additional changes were made to `Get-RegistryValueKindStr` by Codex.
-- No flagged API/logic/behavior changes were applied.
-- No live registry/system state, PDFs, `_recovery/`, ADR statuses, dispatcher/Test/Set implementation, module manifest, or `.mof` files were changed.
-- `PLAN.md`, `TASK.md`, and `CLAUDE-RESTART-PROMPT.md` content was not edited by Codex; their pre-existing local changes were carried forward.
+- `recovered/canonical/**` was not modified; it keeps the original faithful bugs for the record.
+- No other source functions were changed, including `Get-RegistryValueKindStr`, `ThrowError`, `ConvertFrom-Array`, `Convert-ByteArrayToHexString`, `Mount-RegistryHive`, `Get-TypedObject`, `Start-ProviderSetup`, and `Get-TargetResource`.
+- No PDFs, `_recovery/`, live registry/system state, ADR statuses, module manifest, dispatcher/Test/Set implementation, or `.mof` files were changed.
+- I did not edit planner-owned handoff content; their pre-existing local updates were carried forward.
 
 ## Verification output
 
@@ -44,44 +44,64 @@ Parse:
 
 ```text
 PowerShellVersion=5.1.26100.8457
-ThrowError: ParseErrors=0
 Get-RegistryKeyHiveObj: ParseErrors=0
 Get-RegistryKeyPathStr: ParseErrors=0
 Get-RegistryKeyNameStr: ParseErrors=0
 Get-RegistryValueNameStr: ParseErrors=0
 Get-NormalizedRegistryKey: ParseErrors=0
-ConvertFrom-Array: ParseErrors=0
-Convert-ByteArrayToHexString: ParseErrors=0
 ```
 
-Pester (Windows PowerShell 5.1 / Pester 5.x):
+Scoped Pester for the five changed functions:
 
 ```text
 PesterVersion=5.7.1
-Total=24 Passed=18 Failed=0 Skipped=6 Inconclusive=0 NotRun=0
-Passed: converts bytes to lowercase two-character hex values
-Passed: converts a single byte value
-Passed: returns a single element without a delimiter
-Passed: joins multiple elements with comma-space delimiters
+Total=15 Passed=15 Failed=0 Skipped=0 Inconclusive=0 NotRun=0
+Passed: collapses doubled backslashes
+Passed: removes a trailing backslash
 Passed: returns a registry key without normalization needs unchanged
-Skipped: collapses doubled backslashes
-Skipped: removes a trailing backslash
 Passed: returns the hive descriptor for a full hive name
+Passed: returns the hive descriptor for an abbreviated hive alias
+Passed: returns the hive descriptor for the HKCR full hive name
 Passed: throws for an invalid hive
-Skipped: returns the hive descriptor for an abbreviated hive alias
 Passed: returns a printable key name unchanged
+Passed: throws for non-printable characters
 Passed: throws when the key name contains a backslash
-Skipped: throws for non-printable characters
 Passed: normalizes doubled, leading, and trailing backslashes
-Skipped: throws for non-printable characters
-Passed: returns None for an empty value kind
+Passed: throws for non-printable characters
+Passed: returns a printable value name unchanged
+Passed: returns an empty default value name unchanged
+Passed: throws for non-printable characters
+```
+
+Full Pester suite:
+
+```text
+PesterVersion=5.7.1
+Total=25 Passed=25 Failed=0 Skipped=0 Inconclusive=0 NotRun=0
+Passed: converts a single byte value
+Passed: converts bytes to lowercase two-character hex values
+Passed: joins multiple elements with comma-space delimiters
+Passed: returns a single element without a delimiter
+Passed: collapses doubled backslashes
+Passed: removes a trailing backslash
+Passed: returns a registry key without normalization needs unchanged
+Passed: returns the hive descriptor for a full hive name
+Passed: returns the hive descriptor for an abbreviated hive alias
+Passed: returns the hive descriptor for the HKCR full hive name
+Passed: throws for an invalid hive
+Passed: returns a printable key name unchanged
+Passed: throws for non-printable characters
+Passed: throws when the key name contains a backslash
+Passed: normalizes doubled, leading, and trailing backslashes
+Passed: throws for non-printable characters
 Passed: returns None for a whitespace value kind
+Passed: returns None for an empty value kind
 Passed: returns the parsed registry value kind for a valid value kind string
 Passed: throws for an invalid value kind string
 Passed: throws for Unknown even though the enum parser accepts it
-Passed: returns an empty default value name unchanged
 Passed: returns a printable value name unchanged
-Skipped: throws for non-printable characters
+Passed: returns an empty default value name unchanged
+Passed: throws for non-printable characters
 Passed: throws a terminating error record with the supplied message and id
 ```
 
@@ -91,438 +111,408 @@ PowerShell 7 availability:
 pwsh: NOT FOUND
 ```
 
-PowerShell 7 compatibility analysis: `pwsh` is not installed in this environment. The runnable copies use APIs available in both Windows PowerShell 5.1/.NET Framework and PowerShell 7/.NET: `New-Object`, `System.Text.StringBuilder`, `System.Math`, `System.String` methods, .NET regex Unicode categories `Cc`/`Cn`/`Cs`, `System.Management.Automation.ErrorRecord`, `System.Management.Automation.ErrorCategory`, and `Microsoft.Win32.RegistryValueKind`. No 5.1-only or 7-only API change was introduced; non-approved behavior/API concerns are in `docs/build/flagged-decisions.md`.
+PowerShell 7 compatibility analysis: `pwsh` is not installed in this environment. The applied changes use only PowerShell/.NET constructs available in both Windows PowerShell 5.1 and PowerShell 7: array literals, `-match`, .NET regex Unicode category character classes, and `String.TrimEnd` with a single backslash character.
 
-Fidelity diffs:
+Remaining skipped-test search:
 
-### ThrowError
-```diff
-warning: in the working copy of 'src\ThrowError.ps1', LF will be replaced by CRLF the next time Git touches it
-diff --git "a/recovered\\canonical\\ThrowError.ps1" "b/src\\ThrowError.ps1"
-index 7f07beb..e785bc0 100644
---- "a/recovered\\canonical\\ThrowError.ps1"
-+++ "b/src\\ThrowError.ps1"
-@@ -1,12 +1,12 @@
- Function ThrowError {
-   [CmdletBinding(
--    ,  DefaultParameterSetName =  'Default'
-+       DefaultParameterSetName =  'Default'
-     # , SupportsShouldProcess = $True
--    ;  PositionalBinding = $True
-+    ,  PositionalBinding = $True
-     , ConfirmImpact =  'Low'
-   )] Param(
-     [Parameter(
--      ; Mandatory          = $True
-+        Mandatory          = $True
-       ,  ParameterSetName  =  'Default'
-       ,  Position           = 0
-       , ValueFromPipeline = $true
-@@ -15,7 +15,7 @@ Function ThrowError {
-     [System.String]
-     $ExceptionName,
-     [Parameter(
--      , Mandatory          = $True
-+        Mandatory          = $True
-       ,  ParameterSetName  =  'Default'
-       ,  Position           =1
- 
-@@ -25,7 +25,7 @@ Function ThrowError {
-     [System.String]
-     $ExceptionMessage,
-     [Parameter (
--      , Mandatory         = $True
-+        Mandatory         = $True
-       ,  ParameterSetName  =  'Default'
-       ,  Position           = 2
-       , ValueFromPipeline = $true
-@@ -33,7 +33,7 @@ Function ThrowError {
-     [System.Object]
-     $ExceptionObject,
-     [Parameter(
--      , Mandatory         = $True
-+        Mandatory         = $True
-       ,  ParameterSetName  =  'Default'
-       ,  Position           = 3
-       , ValueFromPipeline = $true
-@@ -42,7 +42,7 @@ Function ThrowError {
-     [System.String]
-     $ErrorId,
-     [Parameter(
--      , Mandatory          = $True
-+        Mandatory          = $True
-       ,  ParameterSetName  =  'Default'
-       ,  Position           = 4
-       , ValueFromPipeline = $true
+```text
+No -Skip markers found under tests.
 ```
+
+Per-function source diffs:
 
 ### Get-RegistryKeyHiveObj
 ```diff
-warning: in the working copy of 'src\Get-RegistryKeyHiveObj.ps1', LF will be replaced by CRLF the next time Git touches it
-diff --git "a/recovered\\canonical\\Get-RegistryKeyHiveObj.ps1" "b/src\\Get-RegistryKeyHiveObj.ps1"
-index d6506fb..7f161b9 100644
---- "a/recovered\\canonical\\Get-RegistryKeyHiveObj.ps1"
-+++ "b/src\\Get-RegistryKeyHiveObj.ps1"
-@@ -20,7 +20,7 @@ Begin {
-   Write-Debug -Message:'Entering Block:  Begin'
-   # Initalize DYNAMIC Variables
-   New-Variable -Force -Option:'Private'  -Name:'Result'        -Value:([System.String]::Empty)
--  New-Variable -Force -Option:'Private'  -Name:'RegistryHive'  -Value:([Hashtable]::Empty)
-+  New-Variable -Force -Option:'Private'  -Name:'RegistryHive'  -Value:(@{})
-   Write-Debug -Message:'Exiting Block:  Begin'
- } Process {
-   Write-Debug -Message:'Entering Block:  Process'
-@@ -66,7 +66,7 @@ Begin {
+diff --git a/src/Get-RegistryKeyHiveObj.ps1 b/src/Get-RegistryKeyHiveObj.ps1
+index 7f161b9..b2f55c2 100644
+--- a/src/Get-RegistryKeyHiveObj.ps1
++++ b/src/Get-RegistryKeyHiveObj.ps1
+@@ -30,42 +30,42 @@ Begin {
+     'Result',  'RegistryHive'
+   ))
+   Switch ($KeyHive) {
+-    { $PSItem -in @(,  'HKCR',  'HKEY_CLASSES ROOT',  'ClassesRoot',  '-2147483648') } {
++    { $PSItem -in @('HKCR',  'HKEY_CLASSES_ROOT',  'ClassesRoot',  '-2147483648') } {
+       Set-Variable -Name: 'RegistryHive'  -Value:([Hashtable]@{
+         Name          =  'HKEY_CLASSES_ROOT'
+         ShortName    =  'ClassesRoot'
+         Abbreviation =  'HKCR'
        })
      }
-     { $PSItem -in @(,  'HKCC',  'HKEY_CURRENT_CONFIG',  'CurrentConfig',  '-2147483643') } {
--      Set-Variable -Name:'RegistryHive'  -Value:([Hashtable]a{
-+      Set-Variable -Name:'RegistryHive'  -Value:([Hashtable]@{
+-    { $PSItem -in @(,  'HKCU',  'HKEY_CURRENT_USER',  'CurrentUser',  '-2147483647') } {
++    { $PSItem -in @('HKCU',  'HKEY_CURRENT_USER',  'CurrentUser',  '-2147483647') } {
+       Set-Variable -Name:'RegistryHive'  -Value:([Hashtable]@{
+         Name          =  'HKEY_CURRENT_USER'
+         ShortName    =  'CurrentUser'
+         Abbreviation =  'HKCU'
+       })
+     }
+-    { $PSItem -in @(,  'HKLM',  'HKEY_LOCAL_MACHINE',  'LocalMachine',  '-2147483646') } {
++    { $PSItem -in @('HKLM',  'HKEY_LOCAL_MACHINE',  'LocalMachine',  '-2147483646') } {
+       Set-Variable -Name:'RegistryHive'  -Value:([Hashtable]@{
+         Name          =  'HKEY_LOCAL_MACHINE'
+         ShortName    =  'LocalMachine'
+         Abbreviation =  'HKLM'
+       })
+     }
+-    { $PSItem -in @(,  'HKU',  'HKEY_USERS',  'Users',  '-2147483645')  } {
++    { $PSItem -in @('HKU',  'HKEY_USERS',  'Users',  '-2147483645')  } {
+       Set-Variable -Name: 'RegistryHive'  -Value:([Hashtable]@{
+         Name          =  'HKEY_USERS'
+         ShortName    =  'Users'
+         Abbreviation =  'HKU'
+       })
+     }
+-    { $PSItem -in @(,  'HKPD',  'HKEY_PERFORMANCE_DATA',  'PerformanceData',  '-2147483644') } {
++    { $PSItem -in @('HKPD',  'HKEY_PERFORMANCE_DATA',  'PerformanceData',  '-2147483644') } {
+       Set-Variable -Name: 'RegistryHive'  -Value:([Hashtable]@{
+         Name          =  'HKEY_PERFORMANCE_DATA'
+         ShortName    =  'PerformanceData'
+         Abbreviation =  'HKPD'
+       })
+     }
+-    { $PSItem -in @(,  'HKCC',  'HKEY_CURRENT_CONFIG',  'CurrentConfig',  '-2147483643') } {
++    { $PSItem -in @('HKCC',  'HKEY_CURRENT_CONFIG',  'CurrentConfig',  '-2147483643') } {
+       Set-Variable -Name:'RegistryHive'  -Value:([Hashtable]@{
          Name          =  'HKEY_CURRENT_CONFIG'
          ShortName    =  'CurrentConfig'
-         Abbreviation =  'HKCC'
-@@ -75,11 +75,10 @@ Begin {
-     default {
-       ThrowError `
-         -ErrorId: 'InvalidRegistryHiveSpecified' `
--        -ErrorCategory: 'InvalidArgument ' `
--
--          -ExceptionName: 'System.ArgumentException' `
--          -ExceptionObject:$KeyHive `
--          -ExceptionMessage: $LocalizedData. InvalidRegistryHiveSpecified
-+        -ErrorCategory: 'InvalidArgument' `
-+        -ExceptionName: 'System.ArgumentException' `
-+        -ExceptionObject:$KeyHive `
-+        -ExceptionMessage: $LocalizedData.InvalidRegistryHiveSpecified
-       }
-     }
-     # It's always desirable to explicitly set the Result object with its desired class as close
 ```
 
 ### Get-RegistryKeyPathStr
 ```diff
-warning: in the working copy of 'src\Get-RegistryKeyPathStr.ps1', LF will be replaced by CRLF the next time Git touches it
-diff --git "a/recovered\\canonical\\Get-RegistryKeyPathStr.ps1" "b/src\\Get-RegistryKeyPathStr.ps1"
-index 7ee01b4..be00b4c 100644
---- "a/recovered\\canonical\\Get-RegistryKeyPathStr.ps1"
-+++ "b/src\\Get-RegistryKeyPathStr.ps1"
-@@ -19,10 +19,10 @@ Function Get-RegistryKeyPathStr {
-       Write-Debug -Message:'Entering Block:  Begin'
-       # Initalize DYNAMIC Variables
-       New-Variable -Force -Option:'Private'  -Name:'Result'                   -Value:([System.String]::Empty)
--      New-Variable -Force -Option:'Private'  -Name:'KeyPathHasNonPrintChars'  -Value:([System.Boolean]::Empty)
--      New-Variable -Force -Option:'Private'  -Name:'KeyPathHasDoubleSlashes'  -Value:([System.Boolean]::Empty)
--      New-Variable -Force -Option:'Private'  -Name:'KeyPathHasLeadingSlash'   -Value:([System.Boolean]::Empty)
--      New-Variable -Force -Option:'Private'  -Name:'KeyPathHasTrailingSlash'  -Value:([System.Boolean]::Empty)
-+      New-Variable -Force -Option:'Private'  -Name:'KeyPathHasNonPrintChars'  -Value:($False)
-+      New-Variable -Force -Option:'Private'  -Name:'KeyPathHasDoubleSlashes'  -Value:($False)
-+      New-Variable -Force -Option:'Private'  -Name:'KeyPathHasLeadingSlash'   -Value:($False)
-+      New-Variable -Force -Option:'Private'  -Name:'KeyPathHasTrailingSlash'  -Value:($False)
-       Write-Debug -Message:'Exiting Block:  Begin'
-   } Process {
-       Write-Debug -Message:'Entering Block:  Process'
-@@ -31,11 +31,11 @@ Function Get-RegistryKeyPathStr {
-     Clear-Variable -Force -ErrorAction:'SilentlyContinue'  -Name:(@(
-       'Result',  'KeyPathHasNonPrintChars',  'KeyPathHasDoubleSlashes',
-       'KeyPathHasLeadingSlash',  'KeyPathHasTrailingSlash'
--     )
-+     ))
+diff --git a/src/Get-RegistryKeyPathStr.ps1 b/src/Get-RegistryKeyPathStr.ps1
+index be00b4c..d2b6f4d 100644
+--- a/src/Get-RegistryKeyPathStr.ps1
++++ b/src/Get-RegistryKeyPathStr.ps1
+@@ -35,7 +35,7 @@ Function Get-RegistryKeyPathStr {
      # Key names cannot any non-printable characters.
- 
+
    Set-Variable -Name:'KeyPathHasNonPrintChars'  -Value:([System.Boolean](
--    $KeyName -match  '\P{Cc}\p{Cn}\p{cs}'
-+    $KeyName -match  '\P{Cc}\p{Cn}\p{Cs}'
+-    $KeyName -match  '\P{Cc}\p{Cn}\p{Cs}'
++    $KeyPath -match  '[\p{Cc}\p{Cn}\p{Cs}]'
    ))
    If ($KeyPathHasNonPrintChars -eq $True) {
      ThrowError `
-@@ -57,7 +57,7 @@ Function Get-RegistryKeyPathStr {
-     ))
-   }
-   Set-Variable -Name:'KeyPathHasLeadingSlash'  -Value:([System.Boolean] (
--    $NormalizedKeypath[@] -eq  '\'
-+    $NormalizedKeypath[0] -eq  '\'
-   ))
-   If ($KeyPathHasLeadingSlash -eq $True) {
-     Set-Variable -Name:'NormalizedKeypath'  -Value:([System.String](
 ```
 
 ### Get-RegistryKeyNameStr
 ```diff
-warning: in the working copy of 'src\Get-RegistryKeyNameStr.ps1', LF will be replaced by CRLF the next time Git touches it
-diff --git "a/recovered\\canonical\\Get-RegistryKeyNameStr.ps1" "b/src\\Get-RegistryKeyNameStr.ps1"
-index 36f6e09..ce8cb6e 100644
---- "a/recovered\\canonical\\Get-RegistryKeyNameStr.ps1"
-+++ "b/src\\Get-RegistryKeyNameStr.ps1"
-@@ -19,8 +19,8 @@ Function Get-RegistryKeyNameStr {
-     Write-Debug -Message:'Entering Block:  Begin'
-     # Initalize DYNAMIC Variables
-     New-Variable -Force -Option:'Private'  -Name:'Result'                   -Value:( [System.String]::Empty)
--    New-Variable -Force -Option:'Private'  -Name: 'KeyNameHasBackslash'      -Value:([System.Boolean]::Empty)
--    New-Variable -Force -Option:'Private'  -Name:'KeyNameHasNonPrintChars'  -Value:([System.Boolean]::Empty)
-+    New-Variable -Force -Option:'Private'  -Name: 'KeyNameHasBackslash'      -Value:($False)
-+    New-Variable -Force -Option:'Private'  -Name:'KeyNameHasNonPrintChars'  -Value:($False)
-     Write-Debug -Message:'Exiting Block:  Begin'
-   } Process {
-     Write-Debug -Message:'Entering Block:  Process'
-@@ -37,7 +37,7 @@ Function Get-RegistryKeyNameStr {
-       ThrowError `
-         -ErrorId: 'InvalidRegistryKeyName' `
-         -ErrorCategory: 'InvalidArgument' `
--        -ExceptionName: 'System.ArgumentException'' `
-+        -ExceptionName: 'System.ArgumentException' `
-         -ExceptionObject: $KeyName `
-         -ExceptionMessage: $LocalizedData.InvalidRegistryKeyNameSpecified
+diff --git a/src/Get-RegistryKeyNameStr.ps1 b/src/Get-RegistryKeyNameStr.ps1
+index ce8cb6e..7cd58bd 100644
+--- a/src/Get-RegistryKeyNameStr.ps1
++++ b/src/Get-RegistryKeyNameStr.ps1
+@@ -43,7 +43,7 @@ Function Get-RegistryKeyNameStr {
      }
-@@ -50,8 +50,9 @@ Function Get-RegistryKeyNameStr {
-         -ErrorId: 'InvalidRegistryKeyName' `
-         -ErrorCategory: 'InvalidArgument' `
-         -ExceptionName: 'System.ArgumentException' `
--        -ExceptionObject: $kKeyName `
--    :   -ExceptionMessage: $LocalizedData.InvalidRegistryKeyNameSpecified
-+        -ExceptionObject: $KeyName `
-+        -ExceptionMessage: $LocalizedData.InvalidRegistryKeyNameSpecified
-+    }
-     # It's always desirable to explicitly set the Result object with its desired class as close
-     #   to the soft return to ensure the output is predictable and easily traceable.
-     Set-Variable -Name:'Result'  -Value:( [System.String] (
+     # Key names cannot any non-printable characters.
+     Set-Variable -Name:'KeyNameHasNonPrintChars'  -Value:([System.Boolean] (
+-      $KeyName -match  '\P{Cc}\p{Cn}\p{Cs}'
++      $KeyName -match  '[\p{Cc}\p{Cn}\p{Cs}]'
+     ))
+     If ($KeyNameHasNonPrintChars -eq $True) {
+       ThrowError `
 ```
 
 ### Get-RegistryValueNameStr
 ```diff
-warning: in the working copy of 'src\Get-RegistryValueNameStr.ps1', LF will be replaced by CRLF the next time Git touches it
-diff --git "a/recovered\\canonical\\Get-RegistryValueNameStr.ps1" "b/src\\Get-RegistryValueNameStr.ps1"
-index 334d4a3..1350bf5 100644
---- "a/recovered\\canonical\\Get-RegistryValueNameStr.ps1"
-+++ "b/src\\Get-RegistryValueNameStr.ps1"
-@@ -8,7 +8,7 @@ Function Get-RegistryValueNameStr {
-     [Parameter(
-       , Mandatory          = $True
-       ,  ParameterSetName  =  'Default'
--      ,,  Position           = 0
-+      ,  Position           = 0
-       , ValueFromPipeline = $True
-     )]
-     [AllowEmptyString()]
-@@ -20,7 +20,7 @@ Function Get-RegistryValueNameStr {
-     Write-Debug -Message:'Entering Block:  Begin'
-     # Initalize DYNAMIC Variables
-     New-Variable -Force -Option:'Private'  -Name:'Result'          -Value: ([System.String]::Empty)
--    New-Variable -Force -Option:'Private'  -Name:'IsNonPrintable'  -Value:([System.Boolean]::Empty)
-+    New-Variable -Force -Option:'Private'  -Name:'IsNonPrintable'  -Value:($False)
-     Write-Debug -Message:'Exiting Block:  Begin'
-   } Process {
-     Write-Debug -Message:'Entering Block:  Process'
+diff --git a/src/Get-RegistryValueNameStr.ps1 b/src/Get-RegistryValueNameStr.ps1
+index 1350bf5..6214fd7 100644
+--- a/src/Get-RegistryValueNameStr.ps1
++++ b/src/Get-RegistryValueNameStr.ps1
 @@ -31,7 +31,7 @@ Function Get-RegistryValueNameStr {
      ))
      # Key names cannot any non-printable characters.
      Set-Variable -Name:'IsNonPrintable'  -Value:([System.Boolean](
--      $ValueName -match  '\P{Cc}\p{Cn}\p{cs}'
-+      $ValueName -match  '\P{Cc}\p{Cn}\p{Cs}'
+-      $ValueName -match  '\P{Cc}\p{Cn}\p{Cs}'
++      $ValueName -match  '[\p{Cc}\p{Cn}\p{Cs}]'
      ))
      If ($IsNonPrintable -eq $True) {
        # mn wwe ce wen oa cp nmr tem cin on cam cam wo um: mm came am Me ah sO OSs i ee oe  ee ee
-@@ -39,7 +39,7 @@ Function Get-RegistryValueNameStr {
-         -ErrorId: 'InvalidRegistryKeyName ' `
-         -ErrorCategory: 'InvalidArgument' `
-         -ExceptionName: 'System.ArgumentException' `
--        -ExceptionObject :$ValueName `
-+        -ExceptionObject:$ValueName `
-         -ExceptionMessage: $LocalizedData.InvalidRegistryKeyNameSpecified
-     }
-     # It's always desirable to explicitly set the Result object with its desired class as close
 ```
 
 ### Get-NormalizedRegistryKey
 ```diff
-warning: in the working copy of 'src\Get-NormalizedRegistryKey.ps1', LF will be replaced by CRLF the next time Git touches it
-diff --git "a/recovered\\canonical\\Get-NormalizedRegistryKey.ps1" "b/src\\Get-NormalizedRegistryKey.ps1"
-index 7bedf8e..383c2d5 100644
---- "a/recovered\\canonical\\Get-NormalizedRegistryKey.ps1"
-+++ "b/src\\Get-NormalizedRegistryKey.ps1"
-@@ -11,7 +11,7 @@ subsequent
-         , ConfirmImpact          =  'None'
-         ,  PositionalBinding     = $True
-     )]
--    Param(                                                                                      ; `
-+    Param(
-         [Parameter( ParameterSetName =  'Default',  Position = 1, Mandatory = $True, ValueFromPipeline =
- $True )]
-         [ValidateNotNullOrEmpty()]
-@@ -31,12 +31,12 @@ $True )]
-         # Clear all variables immediately upon entering the  'Process'  loop to ensure no stale values are
-         #     carried over between piped datasets.
-         Clear-Variable -Force -ErrorAction: 'SilentlyContinue'  -Name:(@(
--             'RegistryKeyStr',  'HasDoubleSlashes',  'HasTrailingSlash',  ''Result'
-+             'RegistryKeyStr',  'HasDoubleSlashes',  'HasTrailingSlash',  'Result'
+diff --git a/src/Get-NormalizedRegistryKey.ps1 b/src/Get-NormalizedRegistryKey.ps1
+index 383c2d5..dd1185a 100644
+--- a/src/Get-NormalizedRegistryKey.ps1
++++ b/src/Get-NormalizedRegistryKey.ps1
+@@ -42,7 +42,7 @@ $True )]
          ))
-         # Copy the value of RegistryKey to a new object that we can manipulate as we want without obscutating
--the
-+        # the
-         #     origional value of RegistryKey. This is to support debugging efforts and code execution
--tracing.
-+        # tracing.
-         Set-Variable -Name: 'RegistryKeyStr'  -Value:([System.String](
-             $RegistryKey
+         # Test of string uses double backslashes in the key path.
+         Set-Variable -Name: 'HasDoubleSLashes'  -Value:([System.Boolean](
+-            $RegistryKeyStr -contains ('\\')
++            $RegistryKeyStr -match ('\\{2,}')
          ))
-@@ -49,7 +49,7 @@ tracing.
-         #     parts of the regsitry key path by splitting on backslashes.
-         If ($HasDoubleSlashes) {
-             # This check is done seperately so as this module matures, we can offer to raise a suggestion
--about
-+            # about
-             #     changing the registry key string format in the source file(s) to match the desired format.
-             Set-Variable -Name:'RegistryKeyStr'  -Value:([System.String](
-                 $RegistryKeyStr -replace ('\\+','\')
-@@ -61,12 +61,12 @@ about
-         ))
-         # If the string ends with a trailing slash, we want to remove it as we want to ensure the registry
-         #     key string is as predictable as possible. This gives us the ability to reliably extract
--specific
-+        # specific
-         #     parts of the regsitry key path by splitting on backslashes.
- 
-         If ($HasTrailingSlash) {
-             # This check is done seperately so as this module matures, we can offer to raise a suggestion
--about
-+            # about
+         # If the string has any instances of double backslashes  '\',  replace all instances of two or more
+         #     backslashes with a single backslash. This gives us the ability to reliably extract specific
+@@ -69,7 +69,7 @@ $True )]
+             # about
              #     changing the registry key string format in the source file(s) to match the desired format.
              Set-Variable -Name: 'RegistryKeyStr'  -Value:([System.String](
-                  $RegistryKeyStr.TrimEnd('/')
-@@ -88,7 +88,7 @@ about
-         #     required as they will automatically be disposed of when leaving a function,  but I consider
-         #     this best practice as it forces me to be mindful of all used variables.
-         Remove-variable -Force -ErrorAction: 'SilentlyContinue'  -Name: (@(
--             'RegistryKey', 'RegistryKeyStr','Result',  ''HasDoubleSlashes',  'HasTrailingSlash'
-+             'RegistryKey', 'RegistryKeyStr','Result',  'HasDoubleSlashes',  'HasTrailingSlash'
-         ))
-         Write-Debug -Message: 'Exiting Block:  End'
-     }
+-                 $RegistryKeyStr.TrimEnd('/')
++                 $RegistryKeyStr.TrimEnd('\')
+              ))
+         }
+         # Explicitly set the Result Object before returning it so it can be easily and predictably analized
 ```
 
-### ConvertFrom-Array
+Scoped test diff:
+
 ```diff
-warning: in the working copy of 'src\ConvertFrom-Array.ps1', LF will be replaced by CRLF the next time Git touches it
-diff --git "a/recovered\\canonical\\ConvertFrom-Array.ps1" "b/src\\ConvertFrom-Array.ps1"
-index 644b53f..bfa003c 100644
---- "a/recovered\\canonical\\ConvertFrom-Array.ps1"
-+++ "b/src\\ConvertFrom-Array.ps1"
-@@ -21,7 +21,7 @@ Begin {
-   Write-Debug -Message:'Entering Block:  Begin'
-   # Initalize DYNAMIC Variables
-   New-Variable -Force -Option:'Private'  -Name: 'Result'         -Value:( [System.String]::Empty)
--  New-Variable -Force -Option:'Private'  -Name: 'ArrayLength'    -Value:([System.Int32]::Empty)
-+  New-Variable -Force -Option:'Private'  -Name: 'ArrayLength'    -Value:(0)
-   # StringBuilder must not have the option  'Private',  because the loop method we use
-   #   creates a new scope,  and thus it would not be accessible if this was private.
-   New-Variable -Force                    -Name: 'StringBuilder'  -Value:([System.Text.StringBuilder]$Null)
-@@ -56,10 +56,11 @@ Begin {
-   0..([System.Math]::Max($value.count-1,0))  |  & {
-     Process {
-       # System.Text.StringBuilder Append(string value)
--      ae = $StringBuilder.Append(  [System.String]('{0},  '  -f $Value[$PSItem])  )
--    } End
-+      $NULL = $StringBuilder.Append(  [System.String]('{0}, '  -f $Value[$PSItem])  )
-+    } End {
-       # System.Text.StringBuilder Remove(int startIndex,  int length)
--    ; $NULL = $StringBuilder.Remove(  ($StringBuilder.Length-2), 2  )
-+      $NULL = $StringBuilder.Remove(  ($StringBuilder.Length-2), 2  )
-+    }
+diff --git a/tests/Get-NormalizedRegistryKey.Tests.ps1 b/tests/Get-NormalizedRegistryKey.Tests.ps1
+index 4858fad..931105f 100644
+--- a/tests/Get-NormalizedRegistryKey.Tests.ps1
++++ b/tests/Get-NormalizedRegistryKey.Tests.ps1
+@@ -8,12 +8,12 @@ Describe 'Get-NormalizedRegistryKey' {
+       Should -Be 'HKEY_LOCAL_MACHINE\Software'
    }
-   # It's always desirable to explicitly set the Result object with its desired class as close
-   #   to the soft return to ensure the output is predictable and easily traceable.
+
+-  It 'collapses doubled backslashes' -Skip {
++  It 'collapses doubled backslashes' {
+     Get-NormalizedRegistryKey -RegistryKey 'HKEY_LOCAL_MACHINE\\Software' |
+       Should -Be 'HKEY_LOCAL_MACHINE\Software'
+   }
+
+-  It 'removes a trailing backslash' -Skip {
++  It 'removes a trailing backslash' {
+     Get-NormalizedRegistryKey -RegistryKey 'HKEY_LOCAL_MACHINE\Software\' |
+       Should -Be 'HKEY_LOCAL_MACHINE\Software'
+   }
+diff --git a/tests/Get-RegistryKeyHiveObj.Tests.ps1 b/tests/Get-RegistryKeyHiveObj.Tests.ps1
+index 3171f74..7a7d7c7 100644
+--- a/tests/Get-RegistryKeyHiveObj.Tests.ps1
++++ b/tests/Get-RegistryKeyHiveObj.Tests.ps1
+@@ -16,12 +16,20 @@ Describe 'Get-RegistryKeyHiveObj' {
+     $result.Abbreviation | Should -Be 'HKLM'
+   }
+
++  It 'returns the hive descriptor for the HKCR full hive name' {
++    $result = Get-RegistryKeyHiveObj -KeyHive 'HKEY_CLASSES_ROOT'
++
++    $result.Name | Should -Be 'HKEY_CLASSES_ROOT'
++    $result.ShortName | Should -Be 'ClassesRoot'
++    $result.Abbreviation | Should -Be 'HKCR'
++  }
++
+   It 'throws for an invalid hive' {
+     { Get-RegistryKeyHiveObj -KeyHive 'NOPE' } |
+       Should -Throw -ExpectedMessage 'Invalid registry hive specified.'
+   }
+
+-  It 'returns the hive descriptor for an abbreviated hive alias' -Skip {
++  It 'returns the hive descriptor for an abbreviated hive alias' {
+     $result = Get-RegistryKeyHiveObj -KeyHive 'HKLM'
+
+     $result.Name | Should -Be 'HKEY_LOCAL_MACHINE'
+diff --git a/tests/Get-RegistryKeyNameStr.Tests.ps1 b/tests/Get-RegistryKeyNameStr.Tests.ps1
+index f74b6f1..1f47686 100644
+--- a/tests/Get-RegistryKeyNameStr.Tests.ps1
++++ b/tests/Get-RegistryKeyNameStr.Tests.ps1
+@@ -17,7 +17,7 @@ Describe 'Get-RegistryKeyNameStr' {
+       Should -Throw -ExpectedMessage 'Invalid registry key name specified.'
+   }
+
+-  It 'throws for non-printable characters' -Skip {
++  It 'throws for non-printable characters' {
+     { Get-RegistryKeyNameStr -KeyName "Bad`0Name" } |
+       Should -Throw -ExpectedMessage 'Invalid registry key name specified.'
+   }
+diff --git a/tests/Get-RegistryKeyPathStr.Tests.ps1 b/tests/Get-RegistryKeyPathStr.Tests.ps1
+index 79e3db9..3851231 100644
+--- a/tests/Get-RegistryKeyPathStr.Tests.ps1
++++ b/tests/Get-RegistryKeyPathStr.Tests.ps1
+@@ -12,7 +12,7 @@ Describe 'Get-RegistryKeyPathStr' {
+     Get-RegistryKeyPathStr -KeyPath '\Software\\Vendor\' | Should -Be 'Software\Vendor'
+   }
+
+-  It 'throws for non-printable characters' -Skip {
++  It 'throws for non-printable characters' {
+     { Get-RegistryKeyPathStr -KeyPath "Software`0Vendor" } |
+       Should -Throw -ExpectedMessage 'Invalid registry key name specified.'
+   }
+diff --git a/tests/Get-RegistryValueNameStr.Tests.ps1 b/tests/Get-RegistryValueNameStr.Tests.ps1
+index 33d85b3..b86965c 100644
+--- a/tests/Get-RegistryValueNameStr.Tests.ps1
++++ b/tests/Get-RegistryValueNameStr.Tests.ps1
+@@ -16,7 +16,7 @@ Describe 'Get-RegistryValueNameStr' {
+     Get-RegistryValueNameStr -ValueName 'Setting' | Should -Be 'Setting'
+   }
+
+-  It 'throws for non-printable characters' -Skip {
++  It 'throws for non-printable characters' {
+     { Get-RegistryValueNameStr -ValueName "Bad`0Name" } |
+       Should -Throw -ExpectedMessage 'Invalid registry key name specified.'
+   }
 ```
 
-### Convert-ByteArrayToHexString
+Build-doc diff:
+
 ```diff
-warning: in the working copy of 'src\Convert-ByteArrayToHexString.ps1', LF will be replaced by CRLF the next time Git touches it
-diff --git "a/recovered\\canonical\\Convert-ByteArrayToHexString.ps1" "b/src\\Convert-ByteArrayToHexString.ps1"
-index 4fbd997..5956d38 100644
---- "a/recovered\\canonical\\Convert-ByteArrayToHexString.ps1"
-+++ "b/src\\Convert-ByteArrayToHexString.ps1"
-@@ -23,7 +23,7 @@ $True )]
-         # !TODO
-         $ByteArray  |
-             ForEach-Object -Process:{
--                g$Result += [String]::Format("{0:x2}", $_)
-+                $Result += [String]::Format("{0:x2}", $_)
-             }
-         # Do a  'soft'  return by sending the Result object to the caller and explicitly declare the returning
-         #     the result with a explicit typing to ensure all returned data types are predictable.
+diff --git a/docs/build/flagged-decisions.md b/docs/build/flagged-decisions.md
+index a160a71..d675799 100644
+--- a/docs/build/flagged-decisions.md
++++ b/docs/build/flagged-decisions.md
+@@ -14,8 +14,9 @@ the default error path while later aliases such as `HKEY_LOCAL_MACHINE` work.
+ Proposed both-compatible fix: remove the leading comma in each comparison array,
+ for example `@('HKLM', 'HKEY_LOCAL_MACHINE', 'LocalMachine', '-2147483646')`.
+
+-Status: not applied. The runnable copy passes full-name and invalid-hive tests;
+-the abbreviated-alias test is skipped pending owner approval.
++Status: RESOLVED - owner-approved, applied 2026-06-09. The runnable copy now
++matches abbreviated aliases, and the HKCR full-name OCR artifact is corrected in
++`src/`; `recovered/canonical/` remains unchanged.
+
+ ## Registry Name/Path/Value Non-Printable Validation
+
+@@ -34,8 +35,9 @@ Printed/canonical behavior:
+ Proposed both-compatible fix: test the actual input variable and use a character
+ class such as `[\p{Cc}\p{Cn}\p{Cs}]`.
+
+-Status: not applied. Normal printable values and the backslash key-name throw path
+-are tested; non-printable throw tests are skipped pending owner approval.
++Status: RESOLVED - owner-approved, applied 2026-06-09. The runnable copies now
++test the actual path/name/value input and use a Unicode-category character class
++for non-printable validation; `recovered/canonical/` remains unchanged.
+
+ ## Get-NormalizedRegistryKey - Double and Trailing Backslash Normalization
+
+@@ -49,5 +51,6 @@ Printed/canonical behavior:
+ Proposed both-compatible fix: use `-match ('\\{2,}')` for doubled backslashes and
+ `TrimEnd('\')` for the trailing-backslash branch.
+
+-Status: not applied. The no-normalization-needed path is tested; doubled and
+-trailing backslash tests are skipped pending owner approval.
++Status: RESOLVED - owner-approved, applied 2026-06-09. The runnable copy now uses
++regex matching for doubled backslashes and trims trailing registry backslashes;
++`recovered/canonical/` remains unchanged.
+diff --git a/docs/build/make-it-run-log.md b/docs/build/make-it-run-log.md
+index e7d8ac0..f404bfa 100644
+--- a/docs/build/make-it-run-log.md
++++ b/docs/build/make-it-run-log.md
+@@ -128,3 +128,19 @@ Runnable copy: `src/Convert-ByteArrayToHexString.ps1`
+ | Canonical token | Running token | Class | Evidence |
+ | --- | --- | --- | --- |
+ | `g$Result += [String]::Format(...)` | `$Result += [String]::Format(...)` | i | Page image `_recovery/06042026_001/images/page-0010.png` shows `$Result +=`; `g` is an OCR glyph artifact. |
++
++## Phase 6 Build 3 - Applied Owner-Approved Flagged Fixes
++
++Source record: `recovered/canonical/` remains unchanged.
++
++Runnable copies: scoped `src/` functions only.
++
++| Function | Before | After | Class | Evidence |
++| --- | --- | --- | --- | --- |
++| `Get-RegistryKeyHiveObj` | six switch comparison arrays shaped `@(,  'HKCR', ...)` | six arrays shaped `@('HKCR', ...)` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; owner approved applying the flagged fix on 2026-06-09. |
++| `Get-RegistryKeyHiveObj` | `'HKEY_CLASSES ROOT'` | `'HKEY_CLASSES_ROOT'` | owner-approved OCR artifact fix | `docs/build/flagged-decisions.md`; TASK Build 3 A0 names the HKCR missing underscore correction. |
++| `Get-RegistryKeyPathStr` | `$KeyName -match  '\P{Cc}\p{Cn}\p{Cs}'` | `$KeyPath -match  '[\p{Cc}\p{Cn}\p{Cs}]'` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix tests the actual parameter and uses a character class. |
++| `Get-RegistryKeyNameStr` | `$KeyName -match  '\P{Cc}\p{Cn}\p{Cs}'` | `$KeyName -match  '[\p{Cc}\p{Cn}\p{Cs}]'` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix uses a character class. |
++| `Get-RegistryValueNameStr` | `$ValueName -match  '\P{Cc}\p{Cn}\p{Cs}'` | `$ValueName -match  '[\p{Cc}\p{Cn}\p{Cs}]'` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix uses a character class. |
++| `Get-NormalizedRegistryKey` | `$RegistryKeyStr -contains ('\\')` | `$RegistryKeyStr -match ('\\{2,}')` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix uses regex matching for doubled backslashes. |
++| `Get-NormalizedRegistryKey` | `$RegistryKeyStr.TrimEnd('/')` | `$RegistryKeyStr.TrimEnd('\')` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix trims trailing registry backslashes. |
 ```
 
-
-Hygiene:
+Recovered canonical status:
 
 ```text
-recovered status:
+recovered/canonical status clean.
+```
+
 ADR Draft check:
-branch:
-recovery/phase6-build-2
-git status --short --branch:
-## recovery/phase6-build-2
- M _handoff/CLAUDE-RESTART-PROMPT.md
- M _handoff/PLAN.md
- M _handoff/REPORT-ARCHIVE.md
- M _handoff/REPORT.md
- M _handoff/TASK.md
- M docs/build/make-it-run-log.md
- M docs/build/owner-idiom-decisions.md
- M src/Get-RegistryValueKindStr.ps1
-?? docs/build/flagged-decisions.md
-?? src/Convert-ByteArrayToHexString.ps1
-?? src/ConvertFrom-Array.ps1
-?? src/Get-NormalizedRegistryKey.ps1
-?? src/Get-RegistryKeyHiveObj.ps1
-?? src/Get-RegistryKeyNameStr.ps1
-?? src/Get-RegistryKeyPathStr.ps1
-?? src/Get-RegistryValueNameStr.ps1
-?? src/ThrowError.ps1
-?? tests/Convert-ByteArrayToHexString.Tests.ps1
-?? tests/ConvertFrom-Array.Tests.ps1
-?? tests/Get-NormalizedRegistryKey.Tests.ps1
-?? tests/Get-RegistryKeyHiveObj.Tests.ps1
-?? tests/Get-RegistryKeyNameStr.Tests.ps1
-?? tests/Get-RegistryKeyPathStr.Tests.ps1
-?? tests/Get-RegistryValueNameStr.Tests.ps1
-?? tests/ThrowError.Tests.ps1
+
+```text
+ADR Draft check clean.
 ```
 
 Sensitive scan:
 
 ```text
+git : warning: in the working copy of '_handoff/REPORT.md', LF will be replaced by CRLF the next time Git touches it
+At line:95 char:12
++   $added = git -c core.autocrlf=false diff --unified=0 | Where-Object ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+warning: in the working copy of '_handoff/TASK.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/build/flagged-decisions.md', LF will be replaced by CRLF the next time Git
+touches it
+warning: in the working copy of 'docs/build/make-it-run-log.md', LF will be replaced by CRLF the next time Git touches
+it
+warning: in the working copy of 'src/Get-NormalizedRegistryKey.ps1', LF will be replaced by CRLF the next time Git
+touches it
+warning: in the working copy of 'src/Get-RegistryKeyHiveObj.ps1', LF will be replaced by CRLF the next time Git
+touches it
+warning: in the working copy of 'src/Get-RegistryKeyNameStr.ps1', LF will be replaced by CRLF the next time Git
+touches it
+warning: in the working copy of 'src/Get-RegistryKeyPathStr.ps1', LF will be replaced by CRLF the next time Git
+touches it
+warning: in the working copy of 'src/Get-RegistryValueNameStr.ps1', LF will be replaced by CRLF the next time Git
+touches it
+warning: in the working copy of 'tests/Get-NormalizedRegistryKey.Tests.ps1', LF will be replaced by CRLF the next time
+Git touches it
+warning: in the working copy of 'tests/Get-RegistryKeyHiveObj.Tests.ps1', LF will be replaced by CRLF the next time
+Git touches it
+warning: in the working copy of 'tests/Get-RegistryKeyNameStr.Tests.ps1', LF will be replaced by CRLF the next time
+Git touches it
+warning: in the working copy of 'tests/Get-RegistryKeyPathStr.Tests.ps1', LF will be replaced by CRLF the next time
+Git touches it
+warning: in the working copy of 'tests/Get-RegistryValueNameStr.Tests.ps1', LF will be replaced by CRLF the next time
+Git touches it
 Sensitive scan clean for added diff lines.
 ```
 
-Scoped `git diff --check` for Phase 6 build 2 files:
+Branch:
 
 ```text
-warning: in the working copy of '_handoff/REPORT.md', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'docs/build/make-it-run-log.md', LF will be replaced by CRLF the next time Git touches it
+recovery/phase6-build-3
+```
+
+Current status before commit:
+
+```text
+## recovery/phase6-build-3
+ M _handoff/CLAUDE-RESTART-PROMPT.md
+ M _handoff/PLAN.md
+ M _handoff/REPORT-ARCHIVE.md
+ M _handoff/REPORT.md
+ M _handoff/TASK.md
+ M docs/build/flagged-decisions.md
+ M docs/build/make-it-run-log.md
+ M src/Get-NormalizedRegistryKey.ps1
+ M src/Get-RegistryKeyHiveObj.ps1
+ M src/Get-RegistryKeyNameStr.ps1
+ M src/Get-RegistryKeyPathStr.ps1
+ M src/Get-RegistryValueNameStr.ps1
+ M tests/Get-NormalizedRegistryKey.Tests.ps1
+ M tests/Get-RegistryKeyHiveObj.Tests.ps1
+ M tests/Get-RegistryKeyNameStr.Tests.ps1
+ M tests/Get-RegistryKeyPathStr.Tests.ps1
+ M tests/Get-RegistryValueNameStr.Tests.ps1
+```
+
+Commit-signing preflight:
+
+```text
+commit.gpgsign=true
+gpg.format=ssh
 ```
 
 Final signed-commit verification:
 
 ```text
-Pending final `git log --show-signature -1` after the commit exists. Recording the final commit signature inside the same committed report is self-referential; it will be run after commit and included in the PR body and handback.
+Pending final `git log --show-signature -1` after the final commit exists. Recording the final commit signature inside the same committed report is self-referential; I will run it after commit and include the output in the PR body and final handback.
 ```
 
 ## Deviations from `TASK.md` and why
 
-- Six Pester tests are intentionally skipped because their fixes would require non-approved behavior changes. Those changes are flagged in `docs/build/flagged-decisions.md` and not applied.
-- `pwsh` is not installed, so PowerShell 7 verification is API analysis rather than execution.
-- Full `git diff --check` also reports trailing whitespace in the pre-existing owner spacing update to excluded `src/Get-RegistryValueKindStr.ps1`; Codex left that file untouched. The scoped diff-check for Phase 6 build 2 files exits 0.
-- Final `git log --show-signature -1` cannot be embedded in the same commit it verifies without an endless amend loop; it will be captured after commit in the PR body/final handback.
+- `pwsh` is not installed, so PowerShell 7 verification is compatibility analysis rather than execution.
+- Final `git log --show-signature -1` cannot be embedded in the same final commit it verifies without an endless amend cycle; it will be captured after commit in the PR body and handback.
 
 ## Open objections that must be resolved before advancing
 
-- Owner must decide whether to apply the flagged behavior fixes for abbreviated hive aliases, non-printable validation, and full-key backslash normalization.
-- The skipped Pester cases should remain skipped until those owner decisions are made.
+- None. The approved fixes are applied and the previously skipped paths now pass.
 
 ## Owner decisions needed
 
-- Approve or reject the proposed `Get-RegistryKeyHiveObj` fix: remove leading unary commas from the switch comparison arrays.
-- Approve or reject the proposed non-printable validation fix: inspect the actual input variable and use `[\p{Cc}\p{Cn}\p{Cs}]`-style Unicode-category character-class logic as written in `docs/build/flagged-decisions.md`.
-- Approve or reject the proposed `Get-NormalizedRegistryKey` fixes: `-match ('\\{2,}')` for double backslashes and `TrimEnd('\')` for trailing registry backslashes.
-- Review PR diffs before merge; Codex must not merge.
+- Review PR diffs before merge. Codex must not merge.
 
-Phase 6 build 2 status: NEEDS-OWNER
+Phase 6 build 3 status: COMPLETE
