@@ -77,16 +77,19 @@ has PS7/.NET-Core idioms like the 3-arg `[Enum]::TryParse` that must be made bot
 MAKE-IT-RUN BOUNDARY = Codex applies OCR-artifact corrections + the APPROVED `[Type]::Empty` idiom
 table + the approved enum-parse pattern FREELY, but STOPS AND FLAGS any other API/logic/behavior
 change for explicit owner approval. The canonical code is faithful but does NOT parse; `recovered/canonical/`
-is the immutable faithful RECORD, the runnable module is built in `src/`. Build 1 (calibration) and
-Build 2 (make-it-run 8 leaves) are MERGED (PRs #14, #16); Build 2 flagged 5 real latent bugs in the
-owner's code which the owner APPROVED fixing. The active task (`_handoff/TASK.md`) is BUILD 3: apply
-ONLY those 5 owner-approved flagged fixes in `src/` (hive-alias leading comma + HKEY_CLASSES_ROOT;
-`$KeyPath` not `$KeyName`; non-printable regex char-class; `-match`/`TrimEnd('\')` in the key
-normalizer) and un-skip the matching tests. This is the FIRST deliberate behavior change to the owner's
-logic - strictly the approved fixes; any new bug is flagged not fixed; `recovered/canonical/` keeps the
-original bugs as the faithful record. Your job: keep `_handoff/TASK.md` correct; audit that ONLY the
-approved fixes were applied (minimal, style-preserving, both-runtime), the skipped tests now pass,
-canonical unchanged, no ADR Accepted. After: complete `Mount-RegistryHive` + `Get-TypedObject`,
+is the immutable faithful RECORD, the runnable module is built in `src/`. Builds 1-3 are MERGED (PRs
+#14/#16/#17, `6385975`): 9 leaf functions run, 25/25 tests green, and the 5 latent bugs Build 2 flagged
+are fixed. The active task (`_handoff/TASK.md`) is BUILD 4: complete + make-it-run `Mount-RegistryHive` -
+the first registry-touching function, which introduces the Pester MOCK pattern (ADR 0006: no live
+registry). It is incomplete WIP that does not parse; the owner pre-approved the completions (close the
+`If (not mounted)` brace after the throw + add the missing Function brace; fix the `End` cleanup list to
+the declared vars; RESTORE a structured ThrowError - mount-failure ErrorId / System.IO.IOException /
+$RegistryHive; standard `ShouldProcess($RegistryHive.Name, 'Mount registry hive')`). Apply those + the
+approved make-it-run patterns, mock all registry access in tests, flag anything new. NOTE the module
+still needs the `$LocalizedData` table assembled (pending) for ThrowError messages. Your job: keep
+`_handoff/TASK.md` correct; audit that only the approved + make-it-run changes were applied (style-
+preserving, both-runtime), tests mock all registry access (no live mount), canonical unchanged,
+no ADR Accepted. After: complete `Get-TypedObject` (owner-flagged "needs a rework"),
 finalize `Start-ProviderSetup`, then build the R3 read leg -> dispatcher -> Test -> Plan -> Set -> thin
 shims, one function at a time. PDFs + `_recovery/` stay ignored.
 
@@ -105,5 +108,5 @@ interleaved and are labeled "Governance:", not a Phase):
 - Phase 4 - Microsoft DSC surface audit (COMPLETE, merged; 24 records, citations verified)
 - Phase 4b - Port/adapt/skip checklist + backlog (COMPLETE, merged)
 - Phase 5 - TargetState contract design (COMPLETE, merged; 4 Draft ADRs; owner chose JSON + mocks)
-- Phase 6 - Registry build on canonical code, R3 dispatch (ACTIVE; constraints: BOTH 5.1+7, flag-API boundary. Build 1 calibration + Build 2 make-it-run-8-leaves MERGED (PRs #14, #16); Build 3 (current) = apply 5 owner-approved flagged bug-fixes; then completions + Start-ProviderSetup, then R3 spine)
+- Phase 6 - Registry build on canonical code, R3 dispatch (ACTIVE; constraints: BOTH 5.1+7, flag-API boundary. Builds 1-3 MERGED (PRs #14/#16/#17) - 9 leaf functions run, 25/25 green; Build 4 (current) = complete Mount-RegistryHive w/ mocks; then Get-TypedObject, Start-ProviderSetup, then R3 spine)
 - Phase 7 - Engine and STIG roadmap

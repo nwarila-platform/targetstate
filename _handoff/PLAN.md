@@ -970,7 +970,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Phase 6 - Registry build, R3 dispatch (owner-approved R3 + B observed-state shape). Build 1 (make-it-run CALIBRATION on Get-RegistryValueKindStr) is merged; owner approved the TryParse both-compat pattern + the `[Type]::Empty` idiom table. DURABLE CONSTRAINTS: target = BOTH PS 5.1 AND 7; make-it-run boundary = apply OCR + approved idiom/enum-parse patterns freely, FLAG any other API/logic/behavior change. Build 2 (make-it-run 8 leaf functions) MERGED (PR #16, `508e17c`); it flagged 5 real latent bugs in the owner's code, which the owner APPROVED fixing. Build 3 (current) = apply those 5 owner-approved flagged fixes in `src/`, un-skip the tests. `recovered/canonical/` = immutable faithful record (keeps the original bugs). Last updated: 2026-06-09.
+Active phase: Phase 6 - Registry build, R3 dispatch (owner-approved R3 + B observed-state shape). Build 1 (make-it-run CALIBRATION on Get-RegistryValueKindStr) is merged; owner approved the TryParse both-compat pattern + the `[Type]::Empty` idiom table. DURABLE CONSTRAINTS: target = BOTH PS 5.1 AND 7; make-it-run boundary = apply OCR + approved idiom/enum-parse patterns freely, FLAG any other API/logic/behavior change. Builds 1-3 MERGED (PRs #14/#16/#17, `6385975`): 9 leaf functions run, 25/25 tests green, 5 flagged bugs fixed. Build 4 (current) = complete + make-it-run `Mount-RegistryHive` (first registry-touching fn -> introduces Pester MOCKS, ADR 0006), with owner-approved completions (brace fix, cleanup list, restored structured ThrowError, standard ShouldProcess). `recovered/canonical/` = immutable faithful record. Last updated: 2026-06-09.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -1014,7 +1014,7 @@ Phase status (names match Section 6):
 | - | Execution-map audit | COMPLETE - exhaustive multi-agent audit of the recovered code -> `docs/design/execution-map.md` (inventory, missing functions, unified single-path map, MS-DSC comparison, ordered forward plan) | 2026-06-09 |
 | - | CORRECTIVE: Canonical Selection | COMPLETE - merged PR #12 (squash `729c80a`); 14 canonical + 6 archived (verbatim); owner CONFIRMED File A's contract as the spine; refactored `src/`/`tests/` removed | 2026-06-09 |
 | - | Test/Set Execution-Dispatch Design | COMPLETE - merged PR #13 (`1ca45a4`); ADR 0007 Draft. Owner APPROVED route R3 (internal dispatcher + thin Get/Test/Set shims) and observed-state shape = B's {Ensure,Key,ValueName,ValueKind,ValueData}. | 2026-06-09 |
-| 6 | Registry Proof Implementation | ACTIVE - R3 build on canonical code. Build 1 calibration MERGED (PR #14); Build 2 make-it-run 8 leaves MERGED (PR #16, `508e17c`) - flagged 5 real bugs, owner approved fixing. Build 3 (current TASK) = apply the 5 approved flagged fixes + un-skip tests. Constraints: BOTH 5.1+7, flag-API boundary. Then completions (`Mount-RegistryHive`, `Get-TypedObject`), finalize `Start-ProviderSetup`, then R3 spine. JSON (ADR 0004) + mocks (ADR 0006) for the read/dispatch legs. | - | 2026-06-09 |
+| 6 | Registry Proof Implementation | ACTIVE - R3 build on canonical code. Builds 1-3 MERGED (PRs #14/#16/#17, `6385975`): 9 leaf functions run, 25/25 tests green, 5 flagged bugs fixed. Build 4 (current TASK) = complete + make-it-run `Mount-RegistryHive` (Pester mocks; owner-approved completions). Then `Get-TypedObject`, finalize `Start-ProviderSetup`, then R3 spine (read leg -> dispatcher -> Test/Plan/Set). Constraints: BOTH 5.1+7, flag-API boundary. JSON (ADR 0004) + mocks (ADR 0006). | - | 2026-06-09 |
 | 7 | Engine and STIG Roadmap | NOT STARTED | - | - |
 
 Rule: whenever a phase's status changes, update this table AND add a Section 10
@@ -1326,6 +1326,20 @@ Long-horizon (do NOT block current work):
   TASK) applies ONLY those approved fixes in `src/` + un-skips the tests; `recovered/canonical/` keeps the
   original bugs as the faithful record. This is the first deliberate behavior change to the owner's logic -
   scoped strictly to the approved fixes; any NEW bug found is flagged, not fixed.
+- 2026-06-09: BUILD 3 executed + audited + MERGED (PR #17, `6385975`). Every diff was EXACTLY an approved
+  fix (token-verified, no scope creep): hive leading-comma + HKEY_CLASSES_ROOT; `$KeyPath` not `$KeyName`;
+  regex char-class `[\p{Cc}\p{Cn}\p{Cs}]` (Path/Name/Value); `-match '\\{2,}'` + `TrimEnd('\')`. The 6
+  previously-skipped tests un-skipped; suite now 25/25 green, 0 skip, 0 fail. Style preserved; canonical +
+  other 4 functions byte-unchanged. 9 leaf functions now fully working in `src/`.
+- 2026-06-09: BUILD 4 (current TASK) = complete + make-it-run `Mount-RegistryHive` - the first
+  registry-touching function (introduces the Pester MOCK pattern; ADR 0006: no live registry). It is
+  incomplete WIP that does not parse (brace imbalance). Claude read it + the owner pre-approved the
+  completions so Codex can finish it in one pass: (1) close the `If (not mounted)` brace after the throw
+  (fixes the trapped soft-return + the missing Function brace); (2) fix the `End` cleanup list to the
+  declared vars; (3) owner chose RESTORE a structured `ThrowError` (mount-failure ErrorId / IOException /
+  $RegistryHive) over the bare Throw; (4) owner chose the standard `ShouldProcess($RegistryHive.Name,
+  'Mount registry hive')` form. NOTE: the module still needs the `$LocalizedData` message table assembled
+  (a pending module-assembly item) for ThrowError messages to resolve; tests assert ErrorId/type, not text.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads
