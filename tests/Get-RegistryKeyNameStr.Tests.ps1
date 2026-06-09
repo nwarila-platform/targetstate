@@ -17,7 +17,7 @@ Describe 'Get-RegistryKeyNameStr' {
       Should -Throw -ExpectedMessage 'Invalid registry key name specified.'
   }
 
-  It 'throws for non-printable characters' -Skip {
+  It 'throws for non-printable characters' {
     { Get-RegistryKeyNameStr -KeyName "Bad`0Name" } |
       Should -Throw -ExpectedMessage 'Invalid registry key name specified.'
   }

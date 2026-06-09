@@ -30,42 +30,42 @@ Begin {
     'Result',  'RegistryHive'
   ))
   Switch ($KeyHive) {
-    { $PSItem -in @(,  'HKCR',  'HKEY_CLASSES ROOT',  'ClassesRoot',  '-2147483648') } {
+    { $PSItem -in @('HKCR',  'HKEY_CLASSES_ROOT',  'ClassesRoot',  '-2147483648') } {
       Set-Variable -Name: 'RegistryHive'  -Value:([Hashtable]@{
         Name          =  'HKEY_CLASSES_ROOT'
         ShortName    =  'ClassesRoot'
         Abbreviation =  'HKCR'
       })
     }
-    { $PSItem -in @(,  'HKCU',  'HKEY_CURRENT_USER',  'CurrentUser',  '-2147483647') } {
+    { $PSItem -in @('HKCU',  'HKEY_CURRENT_USER',  'CurrentUser',  '-2147483647') } {
       Set-Variable -Name:'RegistryHive'  -Value:([Hashtable]@{
         Name          =  'HKEY_CURRENT_USER'
         ShortName    =  'CurrentUser'
         Abbreviation =  'HKCU'
       })
     }
-    { $PSItem -in @(,  'HKLM',  'HKEY_LOCAL_MACHINE',  'LocalMachine',  '-2147483646') } {
+    { $PSItem -in @('HKLM',  'HKEY_LOCAL_MACHINE',  'LocalMachine',  '-2147483646') } {
       Set-Variable -Name:'RegistryHive'  -Value:([Hashtable]@{
         Name          =  'HKEY_LOCAL_MACHINE'
         ShortName    =  'LocalMachine'
         Abbreviation =  'HKLM'
       })
     }
-    { $PSItem -in @(,  'HKU',  'HKEY_USERS',  'Users',  '-2147483645')  } {
+    { $PSItem -in @('HKU',  'HKEY_USERS',  'Users',  '-2147483645')  } {
       Set-Variable -Name: 'RegistryHive'  -Value:([Hashtable]@{
         Name          =  'HKEY_USERS'
         ShortName    =  'Users'
         Abbreviation =  'HKU'
       })
     }
-    { $PSItem -in @(,  'HKPD',  'HKEY_PERFORMANCE_DATA',  'PerformanceData',  '-2147483644') } {
+    { $PSItem -in @('HKPD',  'HKEY_PERFORMANCE_DATA',  'PerformanceData',  '-2147483644') } {
       Set-Variable -Name: 'RegistryHive'  -Value:([Hashtable]@{
         Name          =  'HKEY_PERFORMANCE_DATA'
         ShortName    =  'PerformanceData'
         Abbreviation =  'HKPD'
       })
     }
-    { $PSItem -in @(,  'HKCC',  'HKEY_CURRENT_CONFIG',  'CurrentConfig',  '-2147483643') } {
+    { $PSItem -in @('HKCC',  'HKEY_CURRENT_CONFIG',  'CurrentConfig',  '-2147483643') } {
       Set-Variable -Name:'RegistryHive'  -Value:([Hashtable]@{
         Name          =  'HKEY_CURRENT_CONFIG'
         ShortName    =  'CurrentConfig'

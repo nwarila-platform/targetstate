@@ -16,12 +16,20 @@ Describe 'Get-RegistryKeyHiveObj' {
     $result.Abbreviation | Should -Be 'HKLM'
   }
 
+  It 'returns the hive descriptor for the HKCR full hive name' {
+    $result = Get-RegistryKeyHiveObj -KeyHive 'HKEY_CLASSES_ROOT'
+
+    $result.Name | Should -Be 'HKEY_CLASSES_ROOT'
+    $result.ShortName | Should -Be 'ClassesRoot'
+    $result.Abbreviation | Should -Be 'HKCR'
+  }
+
   It 'throws for an invalid hive' {
     { Get-RegistryKeyHiveObj -KeyHive 'NOPE' } |
       Should -Throw -ExpectedMessage 'Invalid registry hive specified.'
   }
 
-  It 'returns the hive descriptor for an abbreviated hive alias' -Skip {
+  It 'returns the hive descriptor for an abbreviated hive alias' {
     $result = Get-RegistryKeyHiveObj -KeyHive 'HKLM'
 
     $result.Name | Should -Be 'HKEY_LOCAL_MACHINE'

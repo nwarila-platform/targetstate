@@ -43,7 +43,7 @@ Function Get-RegistryKeyNameStr {
     }
     # Key names cannot any non-printable characters.
     Set-Variable -Name:'KeyNameHasNonPrintChars'  -Value:([System.Boolean] (
-      $KeyName -match  '\P{Cc}\p{Cn}\p{Cs}'
+      $KeyName -match  '[\p{Cc}\p{Cn}\p{Cs}]'
     ))
     If ($KeyNameHasNonPrintChars -eq $True) {
       ThrowError `

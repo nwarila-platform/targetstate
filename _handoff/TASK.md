@@ -1,97 +1,85 @@
-# TASK - Phase 6 build (2): make-it-run the remaining leaf functions (both 5.1+7; flag API changes)
-_Read `_handoff/PLAN.md` first (Mission, Section 4 Locked Rules, the make-it-run boundary + both-runtime constraint in the Change Log, Sections 0.2, 2). Read `docs/build/owner-idiom-decisions.md` (APPROVED idiom table) and `docs/build/make-it-run-log.md` + `src/Get-RegistryValueKindStr.ps1` (the build-1 pattern to follow)._
+# TASK - Phase 6 build (3): apply the owner-APPROVED flagged bug-fixes (5 functions)
+_Read `_handoff/PLAN.md` first (Mission, Section 4 Locked Rules, the both-runtime + flag-API constraints in the Change Log). Read `docs/build/flagged-decisions.md` (the approved fixes) and `docs/build/make-it-run-log.md`. This step CHANGES BEHAVIOR - but only the specific fixes the owner approved._
 
 ## Context
-Build 1 (calibration on `Get-RegistryValueKindStr`) is merged and the make-it-run approach is
-proven. Owner decisions now in force:
-- TARGET = BOTH PowerShell 5.1 AND 7 compatible (lowest-common-denominator APIs).
-- BOUNDARY = APPLY FREELY the OCR-artifact corrections and the APPROVED `[Type]::Empty` idiom table;
-  STOP AND FLAG any API / logic / behavior change for the owner BEFORE applying.
-- APPROVED PATTERNS (apply freely, no re-flag): the `[Type]::Empty` idiom table; and the enum-parse
-  pattern from build 1 - the owner's PS7-only 3-arg `[Enum]::TryParse([T], $s, [ref]$x)` becomes the
-  both-compatible `[T]::TryParse($s, [ref]$x)` with the by-ref target pre-typed to `[T]` first.
-- STYLE: adopt the owner's vertical blank-line spacing between logical blocks (as in
-  `src/Get-RegistryValueKindStr.ps1`).
-`recovered/canonical/` is the immutable faithful RECORD; the runnable module is built in `src/`.
+Build 2 made 8 leaf functions parse + run and FLAGGED 5 real latent bugs in the owner's recovered
+code (documented in `docs/build/flagged-decisions.md`), left unapplied with their tests skipped. The
+owner reviewed them and APPROVED applying Codex's proposed both-compatible fixes (2026-06-09). This
+step applies EXACTLY those approved fixes - the first deliberate behavior change to the owner's logic -
+in the owner's style, un-skips the corresponding tests, and proves the fixes work. `recovered/canonical/`
+keeps the original (buggy) code as the immutable faithful RECORD; fixes live in `src/`.
 
-## Goal
-Make the remaining COMPLETE leaf functions (no logic-completion needed) parse + run on BOTH 5.1 and
-7 in `src/`, applying OCR fixes + the approved idiom/enum-parse patterns freely, FLAGGING any other
-API/logic/behavior change for the owner. Per-function documentation; Pester tests; canonical untouched.
+## A0. The approved fixes - apply ONLY these (verbatim to the proposals in flagged-decisions.md)
+1. `src/Get-RegistryKeyHiveObj.ps1` - in each of the 6 hive `Switch` comparison arrays, remove the
+   leading unary comma: `@(,  'HKCR', ...)` -> `@('HKCR', ...)` (so abbreviated aliases like `HKLM`
+   match). ALSO fix the OCR artifact in the HKCR row: `'HKEY_CLASSES ROOT'` -> `'HKEY_CLASSES_ROOT'`
+   (missing underscore; verify against `_recovery/06042026/images/` if viewable). Leave every other
+   row's full names as-is (they are already correct).
+2. `src/Get-RegistryKeyPathStr.ps1` - the non-printable check tests `$KeyName`; change it to the
+   actual parameter `$KeyPath`. AND fix the regex (see #3).
+3. Non-printable regex in `src/Get-RegistryKeyPathStr.ps1`, `src/Get-RegistryKeyNameStr.ps1`,
+   `src/Get-RegistryValueNameStr.ps1`: replace the 3-token sequence `'\P{Cc}\p{Cn}\p{cs}'` (and the
+   stray lowercase `\p{cs}`) with the character class `'[\p{Cc}\p{Cn}\p{Cs}]'` so it means "contains
+   any control / unassigned / surrogate character" as the comment intends.
+4. `src/Get-NormalizedRegistryKey.ps1` - double-backslash detection: replace the collection test
+   `-contains ('\\')` with `-match ('\\{2,}')`. Trailing-backslash: replace `TrimEnd('/')` (forward
+   slash) with `TrimEnd('\')` so a trailing registry backslash is actually trimmed.
 
-## A0. Scope - exactly these 8 functions (the pure, complete leaves)
-1. `ThrowError` (B) - the single structured-error sink.
-2. `Get-RegistryKeyHiveObj` (A) - hive alias -> `{Name,ShortName,Abbreviation}` descriptor.
-3. `Get-RegistryKeyPathStr` (A) - path validator/normalizer.
-4. `Get-RegistryKeyNameStr` (A) - name validator.
-5. `Get-RegistryValueNameStr` (A) - value-name validator.
-6. `Get-NormalizedRegistryKey` (B) - full-key pre-normalizer.
-7. `ConvertFrom-Array` (A) - array -> single string.
-8. `Convert-ByteArrayToHexString` (B) - byte array -> hex string.
-EXCLUDED this step (need logic completion or contract work, done later, one at a time):
-`Start-ProviderSetup`, `Get-TargetResource`, `Mount-RegistryHive`, `Get-TypedObject`,
-`Get-RegistryResourceObject`. Do NOT touch them or `Get-RegistryValueKindStr`.
+Do NOT make any other behavior change. If you find a NEW bug while here, FLAG it in
+`docs/build/flagged-decisions.md` (do not fix it). Preserve the owner's style exactly (Begin/Process/End,
+`New-Variable -Private`, colon-syntax, comments incl. typos, soft-return, spacing) - change only the
+tokens named above.
 
 ## A. Adversarial Review Gate
 Archive `_handoff/REPORT.md` to the TOP of `_handoff/REPORT-ARCHIVE.md`
-(`## Archived <UTC date> - Phase 6 build 2`, append-only), then write a new `REPORT.md` whose
-verdict: restates the goal; confirms branch `recovery/phase6-build-2` (not `main`); confirms ONLY
-the 8 scoped functions are touched; lists, per function, the change classes applied and any FLAGGED
-items deferred to the owner.
+(`## Archived <UTC date> - Phase 6 build 3`, append-only), then write a new `REPORT.md` whose verdict:
+restates the goal; confirms branch `recovery/phase6-build-3` (not `main`); confirms ONLY the 5 named
+functions changed and ONLY with the approved fixes; lists each fix with before/after token.
 
-## B. Expected Changes (branch `recovery/phase6-build-2`)
-- `src/<Function>.ps1` for each of the 8 - the canonical function made to parse + run on 5.1 and 7,
-  with the owner's structure/logic/comments/style preserved and the owner's vertical-spacing style.
-- `tests/<Function>.Tests.ps1` for each - Pester 5.x. These 8 are PURE (no live registry), so unit
-  tests, no mocks: cover the normal output and the `ThrowError` paths. (Dot-source `src/ThrowError.ps1`
-  for throw-path tests once it is made-to-run; do it first.)
-- `docs/build/make-it-run-log.md` - APPEND a per-function section (canonical token -> running token,
-  class i/ii/iii, evidence). Keep build-1's section intact.
-- `docs/build/flagged-decisions.md` (NEW, if any flags) - any API/logic/behavior change NOT covered
-  by an approved pattern: describe it, why it is needed for 5.1+7, the proposed both-compatible fix,
-  and the affected function. Do NOT apply it; mark that function "runs pending owner approval of the
-  flagged change" (still commit the rest of its make-it-run progress).
-- Optional minimal loader `src/TargetState.psm1` that dot-sources `src/*.ps1` IF it helps test
-  loading; do NOT author a `.psd1` manifest yet.
+## B. Expected Changes (branch `recovery/phase6-build-3`)
+- `src/Get-RegistryKeyHiveObj.ps1`, `src/Get-RegistryKeyPathStr.ps1`, `src/Get-RegistryKeyNameStr.ps1`,
+  `src/Get-RegistryValueNameStr.ps1`, `src/Get-NormalizedRegistryKey.ps1` - the approved fixes applied.
+- The matching `tests/*.Tests.ps1` - UN-SKIP the previously skipped cases (abbreviated hive aliases;
+  non-printable path/name/value validation; double + trailing backslash normalization) and make them
+  PASS. Add an assertion for the HKCR full-name now matching.
+- `docs/build/flagged-decisions.md` - mark each item RESOLVED (owner-approved, applied 2026-06-09),
+  keeping the description for the record.
+- `docs/build/make-it-run-log.md` - append a "Build 3 - applied fixes" note per function (before/after).
 
 ## C. Guardrails
-- ONLY the 8 scoped functions. Do NOT complete stubs, build dispatcher/Test/Set, or alter the
-  excluded functions, `Get-RegistryValueKindStr`, or `recovered/**` (byte-unchanged faithful record).
-- BOTH-RUNTIME: use only APIs present in BOTH .NET Framework 4.x (PS 5.1) and .NET Core (PS 7).
-  Any 5.1-only or 7-only construct is a FLAG item unless it is the already-approved enum-parse pattern.
-- Apply freely: OCR-artifact corrections (image-verified against `_recovery/.../images/` where you can;
-  else mark text-only) and the APPROVED idiom table. FLAG everything else that changes behavior/API/logic.
-- Preserve EXACTLY (per build-1 rules): Begin/Process/End + Write-Debug bookends, `New-Variable -Private`,
-  colon-parameter syntax, every comment incl. typos, soft-return, `$True`/`$False`, hygiene blocks,
-  naming, ordering. No refactor/rename/idiomize/restructure.
-- Sensitive-content scan (PLAN 1.9) over newly committed files. ASCII. Offline; no installs.
-- Branch `recovery/phase6-build-2`, never `main`; preserve signing; stage explicit paths. PDFs +
-  `_recovery/` ignored. Do NOT edit `PLAN.md`/`TASK.md`/`CLAUDE-RESTART-PROMPT.md` content; commit as-is.
+- Apply ONLY the 5 approved fixes above. No other behavior/API/logic change; no touching other
+  functions (`Get-RegistryValueKindStr`, `ThrowError`, `ConvertFrom-Array`, `Convert-ByteArrayToHexString`,
+  excluded canonical functions). No new make-it-run of un-started functions.
+- BOTH-RUNTIME (5.1 + 7): `-match`, `TrimEnd`, char-class regex, and array literals are all valid in both.
+- `recovered/canonical/**` stays BYTE-UNCHANGED (the faithful record keeps the original bug).
+- Preserve the owner's exact style; change only the specific tokens. No refactor/rename/reformat.
+- Sensitive-content scan over changed files. ASCII. Offline. Branch `recovery/phase6-build-3`, never
+  `main`; preserve signing; stage explicit paths. Do NOT edit `PLAN.md`/`TASK.md`/`CLAUDE-RESTART-PROMPT.md`
+  content; commit as-is. ADRs stay Draft.
 
 ## D. Verification (run each; paste output verbatim into REPORT.md)
-- Parse: each `src/<Function>.ps1` -> `[Parser]::ParseFile(...)` reports 0 errors (list all 8).
-- Pester: every test file passes on PS 5.1 / Pester 5.x. If `pwsh` (PS 7) is available, run there too
-  and paste both; if not, state that 7-compatibility is established by API analysis (no 5.1-only or
-  7-only APIs remain unflagged) and name any API you confirmed exists in both.
-- Fidelity: for EACH function paste `git diff --no-index recovered/canonical/<F>.ps1 src/<F>.ps1`
-  so every change is visible and matches the classified log; nothing unexplained.
-- `recovered/**` unchanged (`git status` clean there); ALL ADRs still Draft; sensitive scan clean.
-- Flagged items (if any) are in `docs/build/flagged-decisions.md` and NOT applied.
+- Parse: the 5 changed `src/*.ps1` report 0 parse errors.
+- Pester: all tests for the 5 functions PASS with NO skips remaining for the fixed paths (paste the
+  summary: Passed/Failed/Skipped). The whole `tests/` suite still passes. If `pwsh` is available run on
+  7 too; else assert both-runtime by API analysis.
+- For EACH of the 5: paste `git diff` of the function showing the minimal token change(s) only.
+- `recovered/canonical/**` unchanged (`git status` clean there); ADRs Draft; sensitive scan clean.
 - `git branch --show-current` (not `main`); `git log --show-signature -1` good.
 
-## E. Definition of Done (ALL hold; else REPORT `Phase 6 build 2 status: BLOCKED | NEEDS-OWNER`)
-- Each of the 8 (minus any FLAGGED-and-deferred) parses (0 errors) and passes Pester; flagged ones are
-  documented and left for owner approval (clearly listed).
-- Every change is minimal, style-preserving, both-runtime, and classified; full per-function diffs in REPORT.
-- `recovered/**` byte-unchanged; ADRs Draft; sensitive scan clean.
-- `REPORT.md` has the verdict, per-function summary (+ flags), the Section D output, and a final line
-  `Phase 6 build 2 status: COMPLETE | BLOCKED | NEEDS-OWNER`.
+## E. Definition of Done (ALL hold; else REPORT `Phase 6 build 3 status: BLOCKED | NEEDS-OWNER`)
+- The 5 approved fixes are applied (and ONLY those), the previously skipped tests now pass, and the
+  full suite is green with 0 failures and 0 remaining skips for these paths.
+- Each change is minimal + style-preserving; per-function diffs in REPORT show only the approved tokens.
+- `recovered/canonical/**` byte-unchanged; `flagged-decisions.md` items marked RESOLVED; ADRs Draft.
+- `REPORT.md` has the verdict, per-fix before/after, Section D output, and a final line
+  `Phase 6 build 3 status: COMPLETE | BLOCKED | NEEDS-OWNER`.
 
 ## F. End State (how this cycle hands back)
-- Commit on `recovery/phase6-build-2` with a signed message (e.g.
-  `feat(registry): make-it-run 8 leaf functions (5.1+7) + tests`). Never commit to `main`; never bypass signing.
-- Push and open a PR to `main` titled `Phase 6 build 2: make-it-run leaf functions`; in the PR body
-  list each function's status (runs / runs-pending-flag) and summarize any flagged decisions for the owner.
-- Finish `REPORT.md` per Section E, then STOP. Do NOT merge - the owner reviews the batch diffs and
-  rules on any flagged API/logic decision before merge. Next after this: complete `Mount-RegistryHive`
-  + `Get-TypedObject`, finalize `Start-ProviderSetup`, then build the R3 read leg -> dispatcher -> Test/Plan/Set.
+- Commit on `recovery/phase6-build-3` with a signed message (e.g.
+  `fix(registry): apply owner-approved flagged fixes (hive aliases, validators, key normalization)`).
+  Never commit to `main`; never bypass signing.
+- Push and open a PR to `main` titled `Phase 6 build 3: apply approved flagged fixes`; in the PR body
+  list each fix (before -> after) so the owner can confirm.
+- Finish `REPORT.md` per Section E, then STOP. Do NOT merge. Next after this: complete the larger
+  functions one at a time - `Mount-RegistryHive`, then `Get-TypedObject`, then finalize
+  `Start-ProviderSetup` to the contract, then build the R3 read leg -> dispatcher -> Test/Plan/Set.
