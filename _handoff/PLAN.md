@@ -970,7 +970,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: CORRECTIVE - Faithful Source Reconstruction (verbatim rebuild of the owner's code from the PDFs; supersedes the refactored Phase 3 `src/`). Phase 6 PAUSED. Last updated: 2026-06-08.
+Active phase: CORRECTIVE - Canonical Selection by maturity (choose the most-mature version per function from the faithful recovery; archive the alternates) + commit the execution-map audit. Phase 6 build PAUSED until the canonical set + a dedicated Test/Set unification-design step are done. Last updated: 2026-06-09.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -1010,8 +1010,10 @@ Phase status (names match Section 6):
 | 4 | Microsoft DSC Surface Audit | COMPLETE - merged PR #7 (squash `bafe8c2`); 24 surfaces audited from primary sources (citations Claude-verified), cross-ref covers 32 GAPS | 2026-06-08 |
 | 4b | Port/Adapt/Skip Checklist | COMPLETE - merged PR #8 (squash `c0cb730`); CHECKLIST (24 surfaces) + BACKLOG (20 items, traceable) | 2026-06-08 |
 | 5 | TargetState Contract Design | COMPLETE - merged PR #9 (squash `3ac0c3a`); 4 Draft contract ADRs 0003-0006 | 2026-06-08 |
-| - | CORRECTIVE: Faithful Source Reconstruction | ACTIVE - assigned in current TASK.md. The Phase 3 "stabilization" REFACTORED the owner's code (wrong); redo as verbatim transcription from the PDF page images. | - | 2026-06-08 |
-| 6 | Registry Proof Implementation | PAUSED - read-only proof (PR #10) was built on the refactored functions; closed/set aside. Resumes after faithful recovery + owner-approved foundation. | - | 2026-06-08 |
+| - | CORRECTIVE: Faithful Source Reconstruction | COMPLETE - merged PR #11 (squash `b43115c`); all 18 functions recovered verbatim into `recovered/06042026.ps1` (A) + `06042026_001.ps1` (B); owner's style preserved (audit-validated faithful) | 2026-06-09 |
+| - | Execution-map audit | COMPLETE - exhaustive multi-agent audit of the recovered code -> `docs/design/execution-map.md` (inventory, missing functions, unified single-path map, MS-DSC comparison, ordered forward plan) | 2026-06-09 |
+| - | CORRECTIVE: Canonical Selection | ACTIVE - assigned in current TASK.md. Per-function maturity comparison: choose the most-mature version (A vs B) as canonical, archive the alternate; remove the rejected refactored `src/`/`tests/`. | - | 2026-06-09 |
+| 6 | Registry Proof Implementation | PAUSED - read-only proof (PR #10) closed (built on refactored functions). Resumes after canonical selection + a dedicated Test/Set unification-design step, on the owner's faithful code. | - | 2026-06-09 |
 | 7 | Engine and STIG Roadmap | NOT STARTED | - | - |
 
 Rule: whenever a phase's status changes, update this table AND add a Section 10
@@ -1225,6 +1227,30 @@ Long-horizon (do NOT block current work):
   provenance sidecars). The refactored `src/`/`tests/` are left in place for diff comparison
   and removed once the owner confirms fidelity. Phase 6 PAUSED; the read-only proof PR #10
   was closed (built on the refactored base).
+- 2026-06-09: Faithful Source Reconstruction executed by Codex and AUDITED by Claude: all 18
+  functions recovered verbatim (owner's Begin/Process/End + New-Variable -Private + colon-syntax
+  + comments + `TryParse` preserved; spot-checked vs the page images). Owner-authorized admin
+  squash-merge to `main` (PR #11 -> `b43115c`). The recovered code is now the source of truth.
+- 2026-06-09: EXECUTION-MAP AUDIT - Claude ran an exhaustive multi-agent audit (index -> per-
+  function deep-read -> execution-flow reconstruction -> synthesis + completeness critic) of the
+  recovered code; deliverable committed as `docs/design/execution-map.md`. Key findings: the
+  owner's unified single path (one entrypoint `Get-TargetResource` -> one setup call
+  `Start-ProviderSetup` -> prune by `$PSCmdlet.ParameterSetName`, mount-once, single `ThrowError`
+  sink) is real and clean; the two PDFs are TWO ENTANGLED development versions (A has a complete
+  JSON-driven path; B has more-developed normalizers + the design header-map but broken wiring);
+  the Phase 2 per-function reconciliation produced incompatible interface seams (A's
+  `Start-ProviderSetup` rich-object vs B's `Get-TargetResource` string expectation). Missing
+  functions are mostly rename-drift (`Get-NormalizedRegistryKeyString` = `Get-NormalizedRegistryKey`,
+  `ArrayToString` = `ConvertFrom-Array`, `Get-RegistryKeyType` = value-kind sibling); the genuinely
+  new builds are `Test-TargetResource` + `Set-TargetResource` (+ maybe a `Get-TargetResourceInternal`
+  dispatcher).
+- 2026-06-09: Owner decisions on the path forward: (a) resolve the entanglement by PER-FUNCTION
+  MATURITY COMPARISON - choose the most-mature version per function as canonical, ARCHIVE the
+  non-chosen alternate (do not delete); (b) the Test/Set unification design (one mode-driven body
+  vs shared-setup + thin shims) gets its OWN dedicated step/window to determine the objectively
+  best route. Next: the canonical-selection cycle (in current TASK); then the Test/Set design step;
+  then the per-function build. The rejected refactored `src/`/`tests/` are removed in the canonical
+  cycle (fidelity now confirmed by the audit).
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads

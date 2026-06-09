@@ -64,20 +64,21 @@ NOT NOW (gated future phases - do not let Codex jump ahead):
 - No engine/contract design before its Draft ADR (Phase 5).
 
 Current expected next step:
-Phases 0-5 and the deny-by-default governance interlude are COMPLETE and merged to `main`
-(PRs #1-#9; latest `3ac0c3a`). BUT a COURSE CORRECTION is in progress: the owner reviewed
-the committed `src/` and found the Phase 3 "stabilization" REFACTORED their code (collapsed
-Begin/Process/End, removed `New-Variable -Private` declarations, dropped colon-param syntax,
-stripped comments, swapped APIs) rather than recovering it faithfully. The active task
-(`_handoff/TASK.md`) is a CORRECTIVE Faithful Source Reconstruction: verbatim transcription
-of BOTH PDFs from the page images, OCR-glyph fixes ONLY, the owner's exact style preserved,
-fidelity over runnability, into a committed `recovered/` tree (pure `.ps1` + provenance
-sidecars). See the RECOVERY FIDELITY Locked Rule (Section 4). Phase 6 is PAUSED (its
-read-only proof PR #10 was closed - built on the refactored base). Owner decisions on hold
-for when Phase 6 resumes: declaration format = JSON; registry tests = Pester mocks. Your
-job: keep `_handoff/TASK.md` correct, and audit the reconstruction for FIDELITY (style
-preserved, only OCR-glyph fixes, nothing refactored or invented) - NOT for whether it runs.
-PDFs + `_recovery/` stay ignored.
+A COURSE CORRECTION reset the source-of-truth: the Phase 3 "stabilization" had REFACTORED the
+owner's code, so it was redone as a FAITHFUL verbatim reconstruction (all 18 functions ->
+`recovered/06042026.ps1` (A) + `06042026_001.ps1` (B), merged PR #11 / `b43115c`, audit-validated
+faithful). Claude then ran an exhaustive multi-agent EXECUTION-MAP AUDIT -> `docs/design/execution-map.md`
+(inventory, missing functions, the owner's unified single-path map, MS-DSC comparison, ordered
+forward plan). Key finding: the two PDFs are two ENTANGLED versions with incompatible interface
+seams. Owner decisions: (a) resolve by PER-FUNCTION MATURITY COMPARISON - canonical = the most
+mature version per function, archive the alternate; (b) the Test/Set unification design gets its
+OWN dedicated step. The active task (`_handoff/TASK.md`) is the CANONICAL SELECTION cycle: choose
+canonical per function (verbatim), archive alternates, commit the execution map, and remove the
+rejected refactored `src/`/`tests/`. RECOVERY FIDELITY Locked Rule (Section 4) applies - verbatim,
+no refactoring. Your job: keep `_handoff/TASK.md` correct; audit the selection for fidelity
+(verbatim extracts, one whole version per function, sound maturity rationale). After this: the
+dedicated Test/Set unification-design step, then the per-function build. Phase 6 build PAUSED
+(JSON + mocks decisions on hold for it). PDFs + `_recovery/` stay ignored.
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
 introduce a separate "Step" counter; owner-initiated governance tasks may be
@@ -86,8 +87,11 @@ interleaved and are labeled "Governance:", not a Phase):
 - Phase 1 - PDF text/code extraction + function inventory (COMPLETE, merged)
 - Governance - Deny-by-default tracking policy / ADR 0002 (COMPLETE, merged; Draft)
 - Phase 2 - Function-by-function detangling (COMPLETE, merged)
-- Phase 3 - Recovered-code stabilization (merged, but REFACTORED owner code - being redone faithfully)
-- CORRECTIVE - Faithful source reconstruction (ACTIVE; verbatim rebuild from PDF images)
+- Phase 3 - Recovered-code stabilization (superseded - was REFACTORED; replaced by faithful recovery)
+- CORRECTIVE - Faithful source reconstruction (COMPLETE, merged PR #11; verbatim, all 18 functions)
+- Execution-map audit (COMPLETE; docs/design/execution-map.md)
+- CORRECTIVE - Canonical selection by maturity (ACTIVE; choose mature version per function, archive alternates)
+- Test/Set unification design (NEXT; dedicated step)
 - Phase 4 - Microsoft DSC surface audit (COMPLETE, merged; 24 records, citations verified)
 - Phase 4b - Port/adapt/skip checklist + backlog (COMPLETE, merged)
 - Phase 5 - TargetState contract design (COMPLETE, merged; 4 Draft ADRs; owner chose JSON + mocks)
