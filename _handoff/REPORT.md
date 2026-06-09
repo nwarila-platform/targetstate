@@ -1,313 +1,185 @@
-Phase/Task status: NEEDS-OWNER
+Canonical selection status: COMPLETE
 
 ## Adversarial review verdict
 
-Goal: execute the corrective faithful source reconstruction on branch `recovery/faithful-source-rebuild` and publish a PR to `main` containing verbatim recovered owner source from both PDFs under `recovered/`, with all Codex notes in provenance sidecars and no `src/` or `tests/` changes.
+Goal: execute the corrective canonical-selection task on branch `recovery/canonical-selection`: split faithful recovered function bodies into `recovered/canonical/`, archive non-chosen alternates under `recovered/archive/`, commit the execution-map deliverable, remove rejected refactored `src/` and `tests/`, and open a PR to `main` for owner review. This is selection and archival only: no refactoring, no glyph fixes, no behavior completion, no live registry/system changes, and no PDF or `_recovery/` mutation.
 
-Decision: PROCEED with publication for owner review, but do not mark COMPLETE. The sensitive-content gate is clean and the 18-function coverage requirement is met. However, OCR-risk patterns remain outside the image-backed fixes made in this continuation, so fidelity still needs owner review before the project advances.
+Decision: PROCEED. The task is appropriate because the faithful recovered source is now the source of truth and the old refactored `src/`/`tests/` are explicitly rejected. The main risk is a wording conflict: TASK D says every execution-map function name should have a canonical file, while A0 says equivalent A/B roles must pick one whole version and archive the other. I followed A0 as the higher-signal owner-decided method: every recovered function body is accounted for as either canonical or archived, but non-chosen equivalents are not also placed in canonical.
 
-Branch check: PROCEED on `recovery/faithful-source-rebuild`, not `main`.
+Branch check: PROCEED on `recovery/canonical-selection`, not `main`.
 
-Image input check: PROCEED. `_recovery/06042026/images/*.png` has 17 page images and `_recovery/06042026_001/images/*.png` has 16 page images. The page images were treated as authority for the corrections made in this pass.
+Verbatim contract: PROCEED. `recovered/canonical/*.ps1` and `recovered/archive/*.ps1` are exact line-range extracts from `recovered/06042026.ps1` (A) or `recovered/06042026_001.ps1` (B). No character edits, no splicing, no rename inside function text, no completion.
 
-Fidelity contract restated: this is transcription, not stabilization. Preserve Begin/Process/End blocks, `New-Variable -Force -Option:'Private'` declarations, colon-parameter syntax, comments including typos, owner casing, soft-return patterns, order, spacing, and printed APIs. Do not refactor, normalize to preferred PowerShell, run-fix, collapse blocks, rename variables, remove comments/declarations, swap APIs, add tests, touch live Windows state, edit `src/`/`tests/`, or modify PDFs/_recovery inputs.
+Chosen output locations: `recovered/canonical/*.ps1`, `recovered/archive/*.ps1`, `docs/design/canonical-selection.md`, `docs/design/execution-map.md`, removal of tracked `src/` and `tests/`, `_handoff/REPORT.md`, and `_handoff/REPORT-ARCHIVE.md`.
 
-Chosen output location: `recovered/06042026.ps1`, `recovered/06042026_001.ps1`, `recovered/06042026.provenance.md`, `recovered/06042026_001.provenance.md`, `.gitignore`, `_handoff/REPORT.md`, and `_handoff/REPORT-ARCHIVE.md`.
+Selection table:
+
+| Function / role | Canonical choice | Archive choice | Maturity reason |
+| --- | --- | --- | --- |
+| `ThrowError` | B `ThrowError` | none | Single-source structured error sink used by both recovered halves. |
+| `Start-ProviderSetup` | A `Start-ProviderSetup` | B `Start-ProviderSetup` | A emits a populated setup object and is wired to A's JSON path; B has placeholder result fields and broken variable/parameter wiring. |
+| `Get-TargetResource` | A `Get-TargetResource` | B `Get-TargetResource` | A interoperates with A setup and JSON driver; B has the better public evidence shape but depends on the broken B setup/string seam, so it is archived for owner review. |
+| Hive normalizer | A `Get-RegistryKeyHiveObj` | B `Get-RegistryKeyHive` | A returns the rich hive descriptor required by `Mount-RegistryHive`; B's long-form string is useful but incompatible with that mount contract. |
+| Path helper | A `Get-RegistryKeyPathStr` | B `Get-RegistryKeyPath` | A validates the separated path used by the A setup object; B extracts from a full-key contract that is not the chosen setup path. |
+| Key-name helper | A `Get-RegistryKeyNameStr` | B `Get-RegistryKeyName` | A validates the separated name used by the A setup object; B extracts from the alternate full-key contract. |
+| `Get-RegistryValueNameStr` | A `Get-RegistryValueNameStr` | none | Single-source value-name validator; preserves empty default-value support. |
+| Value-kind helper | A `Get-RegistryValueKindStr` | none | Single-source recovered value-kind normalizer; B's `Get-RegistryKeyType` is referenced but not recovered. |
+| `Mount-RegistryHive` | A `Mount-RegistryHive` | none | Single-source mount helper and the only recovered implementation. |
+| Value-data coercer | B `Get-TypedObject` | A `Get-RegistryValueData` | B covers more declared type/hex cases despite being unfinished; A has more empty numeric/binary stubs. |
+| Array/string display helper | A `ConvertFrom-Array` | none | Single recovered array flattener; B's `ArrayToString` is a missing reference, not an archiveable body. |
+| Binary display helper | B `Convert-ByteArrayToHexString` | none | Single recovered binary-to-hex helper. |
+| Full-key pre-normalizer | B `Get-NormalizedRegistryKey` | none | Single-source helper; retained because no A body provides the same full-key pre-normalization role. |
+| Full-key composer | B `Get-RegistryResourceObject` | none | Single-source orphaned composer; retained for later owner decision on whether it is the header's `Get-RegistryKeyString` stage. |
 
 ## What changed
 
-- Archived the prior NEEDS-OWNER faithful-reconstruction report to the top of `_handoff/REPORT-ARCHIVE.md`.
-- Preserved the existing best-effort `recovered/` reconstruction draft and provenance sidecars.
-- Corrected the page-0006 `Get-RegistryKeyPath` regex in `recovered/06042026_001.ps1` from the rendered page image; this also removed the earlier sensitive-scan false positive.
-- Corrected image-backed OCR misses in the `ThrowError` spot-check: `$ExceptionMessage`, `$ErrorId`, one doubled comma, and contiguous `System.Management.Automation` type names.
-- Corrected image-backed OCR misses in the `Get-RegistryValueKindStr` spot-check: split `-Value:` glyphs, no-space `Value:(...)`, and `IsNullOrWhiteSpace` casing.
-- Added `!/recovered/` to `.gitignore` so the recovered source tree is deliberately trackable.
+- Archived the prior `REPORT.md` to the top of `_handoff/REPORT-ARCHIVE.md` under `## Archived 2026-06-09 - Canonical selection`.
+- Created 14 verbatim canonical function files under `recovered/canonical/`.
+- Created 6 verbatim archived alternate function files under `recovered/archive/`.
+- Added `docs/design/canonical-selection.md` with per-function maturity choices, line-range citations, archived paths, and owner-confirmable seams.
+- Added `docs/design/execution-map.md` to the staged commit and sanitized its source list from local absolute paths to repo-relative paths before the sensitive-content scan.
+- Removed the rejected refactored rewrite under tracked `src/` and `tests/`.
+- Staged the existing handoff planner files as-is, per TASK.md; Codex did not edit their content.
 
 ## What was intentionally not changed
 
-- No `src/` or `tests/` files were changed.
+- No function text inside `recovered/06042026.ps1`, `recovered/06042026_001.ps1`, `recovered/canonical/*.ps1`, or `recovered/archive/*.ps1` was refactored, completed, renamed internally, glyph-fixed, or spliced.
 - No PDFs or `_recovery/` files were modified.
-- No live registry or Windows system state was touched.
-- No parse/Pester checks were run; this task explicitly prioritizes fidelity over runnability.
-- `PLAN.md`, `TASK.md`, and `CLAUDE-RESTART-PROMPT.md` were not edited by Codex; pre-existing planner/handoff edits are preserved as-is for durability.
+- No live Windows registry or system state was touched.
+- `docs/recovery/GAPS.md` was left in place because it still records missing-name evidence not fully superseded by the execution map.
+- No Test/Set unification design or Registry implementation work was started.
 
 ## Verification output
 
-Coverage:
+Coverage / accounting:
 
 ```text
-06042026.ps1
-  Start-ProviderSetup
-  Get-RegistryKeyHiveObj
-  Get-RegistryKeyPathStr
-  Get-RegistryKeyNameStr
-  Get-RegistryValueNameStr
-  Get-RegistryValueKindStr
-  Mount-RegistryHive
-  Get-TargetResource
-  Get-RegistryValueData
-  ConvertFrom-Array
-06042026_001.ps1
-  ThrowError
-  Start-ProviderSetup
-  Get-NormalizedRegistryKey
-  Get-RegistryKeyHive
-  Get-RegistryKeyPath
-  Get-RegistryKeyName
-  Get-RegistryResourceObject
-  Convert-ByteArrayToHexString
-  Get-TypedObject
-  Get-TargetResource
-Inventoried functions: 18
-Found unique functions: 18
-Missing inventoried functions: NONE
-Additional function names: NONE
+expected_bodies=20
+canonical_files=14
+archive_files=6
+missing_paths=NONE
+B:280-357 Get-RegistryKeyHive -> recovered\archive\Get-RegistryKeyHive.from-B.ps1 (archive)
+B:358-419 Get-RegistryKeyPath -> recovered\archive\Get-RegistryKeyPath.from-B.ps1 (archive)
+B:185-279 Get-NormalizedRegistryKey -> recovered\canonical\Get-NormalizedRegistryKey.ps1 (canonical)
+B:44-101 ThrowError -> recovered\canonical\ThrowError.ps1 (canonical)
+B:102-183 Start-ProviderSetup -> recovered\archive\Start-ProviderSetup.from-B.ps1 (archive)
+B:593-779 Get-TypedObject -> recovered\canonical\Get-TypedObject.ps1 (canonical)
+B:780-918 Get-TargetResource -> recovered\archive\Get-TargetResource.from-B.ps1 (archive)
+B:553-592 Convert-ByteArrayToHexString -> recovered\canonical\Convert-ByteArrayToHexString.ps1 (canonical)
+B:420-483 Get-RegistryKeyName -> recovered\archive\Get-RegistryKeyName.from-B.ps1 (archive)
+B:485-552 Get-RegistryResourceObject -> recovered\canonical\Get-RegistryResourceObject.ps1 (canonical)
+A:326-402 Get-RegistryKeyNameStr -> recovered\canonical\Get-RegistryKeyNameStr.ps1 (canonical)
+A:403-469 Get-RegistryValueNameStr -> recovered\canonical\Get-RegistryValueNameStr.ps1 (canonical)
+A:228-325 Get-RegistryKeyPathStr -> recovered\canonical\Get-RegistryKeyPathStr.ps1 (canonical)
+A:1-121 Start-ProviderSetup -> recovered\canonical\Start-ProviderSetup.ps1 (canonical)
+A:122-227 Get-RegistryKeyHiveObj -> recovered\canonical\Get-RegistryKeyHiveObj.ps1 (canonical)
+A:803-939 Get-RegistryValueData -> recovered\archive\Get-RegistryValueData.from-A.ps1 (archive)
+A:940-1025 ConvertFrom-Array -> recovered\canonical\ConvertFrom-Array.ps1 (canonical)
+A:658-801 Get-TargetResource -> recovered\canonical\Get-TargetResource.ps1 (canonical)
+A:470-568 Get-RegistryValueKindStr -> recovered\canonical\Get-RegistryValueKindStr.ps1 (canonical)
+A:569-656 Mount-RegistryHive -> recovered\canonical\Mount-RegistryHive.ps1 (canonical)
 ```
 
-Fidelity spot-check 1, reconstructed `Get-RegistryValueKindStr` excerpt:
+Byte-for-byte fidelity checks for all extracts:
 
 ```text
- 488:   Begin {
- 489:     Write-Debug -Message:'Entering Block:  Begin'
- 490:     # Initalize DYNAMIC Variables
- 491:     New-Variable -Force -Option:'Private'  -Name:'ValueKindIsNullorEmpty'  -Value:([System.Boolean]::Empty)
- 492:     New-Variable -Force -Option:'Private'  -Name: 'IsValidValueKind'        -Value:([System.Boolean]::Empty)
- 493:     New-Variable -Force -Option:'Private'  -Name: 'NormalizedValueKind'     -
- 494: Value:([Microsoft.Win32.RegistryValueKind]::Empty)
- 495:     New-Variable -Force -Option:'Private'  -Name: 'ValueKindIsUnknown'      -
- 496: Value:([Microsoft.Win32.RegistryValueKind]::Empty)
- 497:     New-Variable -Force -Option:'Private'  -Name: 'Result'                  -
- 498: Value:([Microsoft.Win32.RegistryValueKind]::Empty)
- 499:     Write-Debug -Message:'Exiting Block:  Begin'
- 500:   } Process {
- 501:     Write-Debug -Message:'Entering Block:  Process'
- 502:     # Clear all variables immediately upon entering the  'Process'  loop to ensure no stale
- 503:     #    values are carried over between piped datasets.
- 504:     Clear-Variable -Force -ErrorAction: 'SilentlyContinue'  -Name:(@(
- 505:        'ValueKindIsNullorEmpty',  'IsValidValueKind',  'NormalizedValueKind',
- 506:        'ValueKindIsUnknown',  'Result'
- 507:     ))
- 508:     Set-Variable -Name:'ValueKindIsNullorEmpty'  -Value:([System.Boolean] (
- 509:       [System.String]::IsNullOrWhiteSpace($ValueKind)
- 510:     ))
- 511:     If ($ValueKindIsNullorEmpty -eq $True) {
- 512:
- 513:       Set-Variable -Name: 'NormalizedValueKind'  -Value:(
- 514:         [Microsoft.Win32.RegistryValueKind]::None
- 515:       )
- 516:     } Else {
- 517:       # Validate the Registry Hive value against a list of valid and support registry hives.
- 518:       Set-Variable -Name:'IsValidValueKind'  -Value: (
- 519:         [System.Boolean] (
- 520:           [Enum]::TryParse(
- 521:              [Microsoft.Win32.RegistryValueKind],
- 522:             $ValueKind,
- 523:             [Ref ]$NormalizedValueKind
- 524:           )
+OK recovered\canonical\ThrowError.ps1 == recovered\06042026_001.ps1:44-101 bytes=1631
+OK recovered\canonical\Start-ProviderSetup.ps1 == recovered\06042026.ps1:1-121 bytes=5431
+OK recovered\canonical\Get-TargetResource.ps1 == recovered\06042026.ps1:658-801 bytes=6989
+OK recovered\canonical\Get-RegistryKeyHiveObj.ps1 == recovered\06042026.ps1:122-227 bytes=4349
+OK recovered\canonical\Get-RegistryKeyPathStr.ps1 == recovered\06042026.ps1:228-325 bytes=4294
+OK recovered\canonical\Get-RegistryKeyNameStr.ps1 == recovered\06042026.ps1:326-402 bytes=3521
+OK recovered\canonical\Get-RegistryValueNameStr.ps1 == recovered\06042026.ps1:403-469 bytes=2964
+OK recovered\canonical\Get-RegistryValueKindStr.ps1 == recovered\06042026.ps1:470-568 bytes=4469
+OK recovered\canonical\Mount-RegistryHive.ps1 == recovered\06042026.ps1:569-656 bytes=3857
+OK recovered\canonical\Get-TypedObject.ps1 == recovered\06042026_001.ps1:593-779 bytes=9009
+OK recovered\canonical\ConvertFrom-Array.ps1 == recovered\06042026.ps1:940-1025 bytes=3971
+OK recovered\canonical\Convert-ByteArrayToHexString.ps1 == recovered\06042026_001.ps1:553-592 bytes=1918
+OK recovered\canonical\Get-NormalizedRegistryKey.ps1 == recovered\06042026_001.ps1:185-279 bytes=5253
+OK recovered\canonical\Get-RegistryResourceObject.ps1 == recovered\06042026_001.ps1:485-552 bytes=3779
+OK recovered\archive\Start-ProviderSetup.from-B.ps1 == recovered\06042026_001.ps1:102-183 bytes=4078
+OK recovered\archive\Get-TargetResource.from-B.ps1 == recovered\06042026_001.ps1:780-918 bytes=8211
+OK recovered\archive\Get-RegistryKeyHive.from-B.ps1 == recovered\06042026_001.ps1:280-357 bytes=4454
+OK recovered\archive\Get-RegistryKeyPath.from-B.ps1 == recovered\06042026_001.ps1:358-419 bytes=3561
+OK recovered\archive\Get-RegistryKeyName.from-B.ps1 == recovered\06042026_001.ps1:420-483 bytes=3604
+OK recovered\archive\Get-RegistryValueData.from-A.ps1 == recovered\06042026.ps1:803-939 bytes=4811
+fail_count=0
 ```
 
-Corresponding corrected OCR excerpts:
+Sample no-diff checks:
 
 ```text
-page-0008: 73: Begin {
-page-0008: 75: Write-Debug -Message:'Entering Block: Begin'
-page-0008: 77: # Initalize DYNAMIC Variables
-page-0008: 79: New-Variable -Force -Option: 'Private' -Name:'ValueKindIsNullorEmpty' -Value:([System.Boolean]::Empty)
-page-0008: 81: New-Variable -Force -Option:'Private' -Name: 'IsValidValueKind' -Value:([System.Boolean]::Empty)
-page-0008: 83: New-Variable -Force -Option:'Private' -Name: 'NormalizedValueKind' =
-page-0008: 85: Value: ( [Microsoft .Win32.RegistryValueKind]: : Empty)
-page-0008: 86: New-Variable -Force -Option:'Private' -Name: 'ValueKindIsUnknown' -
-page-0008: 87: Value: ( [Microsoft .Win32.RegistryValueKind]::Empty)
-page-0008: 88: New-Variable -Force -Option:'Private' -Name: 'Result' =
-page-0008: 89: Value: ( [Microsoft .Win32.RegistryValueKind]::Empty)
-page-0008: 91: } Process {
-page-0008: 93: Write-Debug -Message:'Entering Block: Process'
-page-0008: 95: # Clear all variables immediately upon entering the 'Process' loop to ensure no stale
-page-0008: 97: # values are carried over between piped datasets.
-page-0009: 11: [Enum]: :TryParse(
-page-0009: 12: [Microsoft.Win32.RegistryValueKind],
-page-0009: 13: $ValueKind,
-page-0009: 14: [Ref ]$NormalizedValueKind
+diff Start-ProviderSetup canonical vs A:1-121
+exit=0
+diff Get-TypedObject canonical vs B:593-779
+exit=0
 ```
 
-Fidelity spot-check 2, reconstructed `ThrowError` excerpt:
+`src/` and `tests/` removal:
 
 ```text
-  44: Function ThrowError {
-  45:   [CmdletBinding(
-  46:     ,  DefaultParameterSetName =  'Default'
-  47:     # , SupportsShouldProcess = $True
-  48:     ;  PositionalBinding = $True
-  49:     , ConfirmImpact =  'Low'
-  50:   )] Param(
-  51:     [Parameter(
-  52:       ; Mandatory          = $True
-  53:       ,  ParameterSetName  =  'Default'
-  54:       ,  Position           = 0
-  55:       , ValueFromPipeline = $true
-  56:     )]
-  57:     [ValidateNotNullOrEmpty()]
-  58:     [System.String]
-  59:     $ExceptionName,
-  60:     [Parameter(
-  61:       , Mandatory          = $True
-  62:       ,  ParameterSetName  =  'Default'
-  63:       ,  Position           =1
-  64:
-  65:       , ValueFromPipeline = $true
-  66:     )]
-  67:     [ValidateNotNullOrEmpty()]
-  68:     [System.String]
-  69:     $ExceptionMessage,
-  70:     [Parameter (
-  71:       , Mandatory         = $True
-  72:       ,  ParameterSetName  =  'Default'
-  73:       ,  Position           = 2
-  74:       , ValueFromPipeline = $true
-  75:     )]
-  76:     [System.Object]
-  77:     $ExceptionObject,
-  78:     [Parameter(
-  79:       , Mandatory         = $True
-  80:       ,  ParameterSetName  =  'Default'
-  81:       ,  Position           = 3
-  82:       , ValueFromPipeline = $true
-  83:     )]
-  84:     [ValidateNotNullOrEmpty( )]
-  85:     [System.String]
-  86:     $ErrorId,
-  87:     [Parameter(
-  88:       , Mandatory          = $True
-  89:       ,  ParameterSetName  =  'Default'
-  90:       ,  Position           = 4
-  91:       , ValueFromPipeline = $true
-  92:     )]
-  93:     [ValidateNotNull()]
-  94:     [System.Management.Automation.ErrorCategory]
-  95:     $ErrorCategory
-  96:   )
-  97:   $exception = New-Object $ExceptionName $ExceptionMessage;
-  98:   $errorRecord = New-Object System.Management.Automation.ErrorRecord $exception,  $ErrorId,  $ErrorCategory,
-  99: $ExceptionObject
- 100:   throw $errorRecord
+NO OUTPUT from: git ls-files src/ tests/
 ```
 
-Corresponding corrected OCR excerpts:
+Design docs tracked after staging:
 
 ```text
-page-0001: 48: [CmdletBinding(
-page-0001: 49: , DefaultParameterSetName = 'Default'
-page-0001: 50: # , SupportsShouldProcess = $True
-page-0001: 51: ; PositionalBinding = $True
-page-0001: 52: , ConfirmImpact = 'Low'
-page-0001: 53: )] Param(
-page-0001: 54: [Parameter(
-page-0001: 55: ; Mandatory = $True
-page-0001: 56: , ParameterSetName = 'Default'
-page-0001: 57: Position = @
-page-0001: 58: , ValueFromPipeline = $true
-page-0002:  6: [ValidateNotNullOrEmpty()]
-page-0002:  7: [System.String]
-page-0002:  8: SExceptionMessage,
-page-0002: 25: $Errorid,
-page-0002: 32: [ValidateNotNult()]
-page-0002: 33: [System.Management .Automation.ErrorCategory ]
-page-0002: 36: $exception = New-Object $ExceptionName $ExceptionMessage;
-page-0002: 37: $errorRecord = New-Object System.Management. Automation. ErrorRecord $exception, $ErrorId, $ErrorCategory,
-page-0002: 38: $ExceptionObject
-page-0002: 39: throw $errorRecord
-```
-
-Fidelity statement:
-
-```text
-No block was intentionally collapsed, no declaration was intentionally removed, no comment was intentionally stripped, no API was intentionally swapped, and no logic was intentionally changed. Corrections made in this continuation were limited to image-backed OCR glyph fixes and are listed in the provenance sidecars. Remaining OCR-risk patterns are treated as owner-review objections, not silently certified.
-```
-
-Unreadable tokens:
-
-```text
-No <#OCR-UNREADABLE#> tokens are present in recovered/*.ps1. The sidecars currently list no unreadable tokens. Remaining uncertainty is reported as owner-review risk instead of inventing missing glyphs.
+docs/design/canonical-selection.md
+docs/design/execution-map.md
 ```
 
 Sensitive-content scan:
 
 ```text
-NO OUTPUT from targeted scan for user-profile paths, UNC shares, SIDs, emails, IP/MAC-like identifiers, and credential-like terms.
+NO HITS from sensitive-content scan over new design/canonical/archive files and added diff lines.
+warning: in the working copy of '_handoff/REPORT-ARCHIVE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '_handoff/REPORT.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '_handoff/TASK.md', LF will be replaced by CRLF the next time Git touches it
 ```
 
-PDF SHA-256 unchanged:
+PDF hashes unchanged (leaf filenames only, to avoid publishing local absolute paths):
 
 ```text
-Algorithm : SHA256
-Hash      : B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F
-Path      : 06042026.pdf
-
-Algorithm : SHA256
-Hash      : D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E
-Path      : 06042026_001.pdf
+B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F 06042026.pdf
+D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E 06042026_001.pdf
 ```
 
-Ignore/trackability checks:
+`recovered/canonical` and `recovered/archive` are not ignored:
 
 ```text
-.gitignore:27:	recovered/
-recovered_exit=0
-.gitignore:24:/06042026.pdf	06042026.pdf
-.gitignore:25:/06042026_001.pdf	06042026_001.pdf
-.gitignore:26:/_recovery/	_recovery/
-protected_exit=0
+exit=1
 ```
+
+Branch:
 
 ```text
-add 'recovered/06042026.provenance.md'
-add 'recovered/06042026.ps1'
-add 'recovered/06042026_001.provenance.md'
-add 'recovered/06042026_001.ps1'
+recovery/canonical-selection
 ```
 
-Branch check:
+Post-commit signature check:
 
 ```text
-recovery/faithful-source-rebuild
+Pending final `git log --show-signature -1` after the commit exists; this cannot be made self-contained inside the same commit without amending and invalidating the recorded output. It will be run immediately after commit and reported in the handback.
 ```
-
-No `src/` or `tests/` diff:
-
-```text
-NO OUTPUT from: git diff -- src tests
-```
-
-Pre-commit status:
-
-```text
-## recovery/faithful-source-rebuild
- M .gitignore
- M _handoff/CLAUDE-RESTART-PROMPT.md
- M _handoff/PLAN.md
- M _handoff/REPORT-ARCHIVE.md
- M _handoff/REPORT.md
- M _handoff/TASK.md
-?? recovered/
-```
-
-Signature verification will be run immediately after the signed commit and reported in the final handback.
 
 ## Deviations from `TASK.md` and why
 
-- `REPORT.md` is marked `NEEDS-OWNER` rather than `COMPLETE` because OCR-risk patterns remain visible and owner fidelity review is required before advancing.
-- The PR will be opened for owner review even though status is `NEEDS-OWNER`; this follows the user's explicit instruction for this step to open a PR to `main` and stop for owner review.
-- `PLAN.md`, `TASK.md`, and `CLAUDE-RESTART-PROMPT.md` have pre-existing handoff changes; Codex did not edit their content, but will include them as-is per the task's durability instruction.
+- TASK D's literal coverage wording says every execution-map function name should have a canonical file. That conflicts with A0's owner-decided rule to pick one equivalent version and archive the other. I followed A0 and verified every recovered body is either canonical or archived.
+- I sanitized local absolute paths in `docs/design/execution-map.md` to repo-relative paths before commit. This is a public-repo safety correction, not a design/content rewrite.
+- The PDF hash verification is recorded with leaf filenames rather than the default absolute local paths to avoid adding a user-profile path to the public report.
+- The final commit signature check is reported after commit in the handback because it cannot be embedded in the same commit's `REPORT.md` without a circular amend.
 
 ## Open objections that must be resolved before advancing
 
-- Owner must confirm whether the `recovered/*.ps1` files are faithful enough to become the accepted source baseline.
-- OCR-risk scan still flags suspicious glyph patterns such as doubled apostrophes and comma artifacts outside the spot-checked corrections. These are not sensitive-content hits, but they are fidelity-review risks.
-- The `git check-ignore -v recovered/` output is awkward for the directory itself, but `git add --dry-run recovered` confirms all four recovered files are trackable.
+- Owner should confirm or reject the major A-path choice: A `Start-ProviderSetup` + A `Get-TargetResource` are the coherent JSON/rich-object path, while B has the more public TargetState-shaped `Ensure/Key/ValueName/ValueKind/ValueData` output.
+- Owner should confirm the hive-shape seam: A rich `{Name,ShortName,Abbreviation}` descriptor versus B canonical long-form string.
+- Owner should confirm the value-data choice: B `Get-TypedObject` is selected because it has broader type/hex branch coverage, but it is still unfinished and has missing exception-hash/array-guard gaps.
+- Owner should confirm whether the B full-key helpers retained as canonical single-source evidence should survive the next design step or be retired in favor of the A separated-field contract.
 
 ## Owner decisions needed
 
-- Review the PR and decide whether the recovered source is faithful, needs owner edits, or needs another slower page-image pass.
-- Decide whether to advance from corrective faithful reconstruction after this PR, or keep the corrective task active for more transcription cleanup.
+- Review the PR and confirm the canonical selections or request a different A/B choice.
+- Merge to `main` only by owner/admin action; Codex must not merge.
+- After merge/owner acceptance, advance to the dedicated Test/Set unification-design step before any Registry implementation resumes.
 
-Faithful recovery status: NEEDS-OWNER
+Canonical selection status: COMPLETE
