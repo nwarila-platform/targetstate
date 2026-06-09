@@ -1286,6 +1286,33 @@ Long-horizon (do NOT block current work):
   the owner is protective of their exact style (prior refactor incident). NOTE the stale closed
   PR #10 branch `recovery/phase-6-registry-readonly` is the abandoned read-only proof on the
   REFACTORED code - not to be reused; safe to delete.
+- 2026-06-09: MAKE-IT-RUN approach decided by owner: Codex applies minimal style-preserving fixes,
+  owner reviews each (PR per batch). Build 1 = CALIBRATION on `Get-RegistryValueKindStr` (PR #14,
+  branch `recovery/phase6-build-1`, NOT yet merged). Audit result: make-it-run is FAITHFUL where it
+  matters - no refactor (Begin/Process/End, `New-Variable -Private`, colon-syntax, all comments,
+  soft-return preserved); the `[Type]::Empty` idiom mapping is proposed (`docs/build/owner-idiom-decisions.md`)
+  and sound; OCR line-unwraps correct; every change disclosed in `docs/build/make-it-run-log.md`
+  (diff matches log exactly); `recovered/canonical/` byte-unchanged; parses + Pester pass; signed.
+  CALIBRATION CAUGHT: Codex applied TWO API/logic changes classified as "parse fix" - rewrote the
+  owner's `[Enum]::TryParse([RegistryValueKind],$v,[ref]$x)` to `[RegistryValueKind]::TryParse($v,[ref]$x)`
+  and ADDED a pre-init statement. ROOT CAUSE: the owner's 3-arg `[Enum]::TryParse(Type,string,out)`
+  is a .NET Core / PowerShell 7-only overload - it does NOT exist in .NET Framework / PS 5.1.
+- 2026-06-09: TWO owner decisions from the calibration (now DURABLE CONSTRAINTS):
+  (1) TARGET RUNTIME = BOTH PowerShell 5.1 AND 7 compatible (lowest-common-denominator APIs; avoid
+      both PS7-only and 5.1-only idioms). This is a new cross-cutting build constraint - every
+      function must run on 5.1 and 7. The owner's code has PS7/.NET-Core idioms that must be made
+      both-compatible.
+  (2) MAKE-IT-RUN BOUNDARY: Codex APPLIES FREELY the OCR-artifact corrections and the (owner-approved)
+      `[Type]::Empty` idiom mappings; Codex STOPS AND FLAGS any API / logic / behavior change for the
+      owner's explicit approval BEFORE applying it. (Under this rule, build-1's TryParse change is a
+      flag-item the owner now rules on; Codex's `[RegistryValueKind]::TryParse(...)` + pre-typed init
+      is both-5.1-and-7 compatible and keeps TryParse, so it satisfies the target - pending owner OK.)
+  Owner APPROVED both on 2026-06-09 ("do it"): the TryParse both-compatible solution AND the
+  `[Type]::Empty` idiom table - the idiom mapping in `docs/build/owner-idiom-decisions.md` is now
+  APPROVED and applied freely going forward. The owner also made a style refinement during review
+  (added vertical blank-line spacing between logical blocks in `src/Get-RegistryValueKindStr.ps1`) -
+  preserved + merged. PR #14 merged. Next = build 2: scale make-it-run across the remaining leaf
+  functions under the flag-API boundary.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads
