@@ -970,7 +970,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: Test/Set Execution-Dispatch Design (determine the objectively-best way to fold Get/Test/Set into the owner's single execution path; analysis + Draft ADR 0007). Then the per-function build (Phase 6, paused). Last updated: 2026-06-09.
+Active phase: Phase 6 - Registry build on the owner's canonical code, R3 dispatch (owner APPROVED R3 internal-dispatcher + thin Get/Test/Set shims; observed-state shape = B's {Ensure,Key,ValueName,ValueKind,ValueData}; make-it-run = Codex applies minimal style-preserving fixes, owner reviews each). Building one function at a time in `src/`; `recovered/canonical/` is the faithful record. Build 1 = make-it-run CALIBRATION on Get-RegistryValueKindStr + the `[Type]::Empty` idiom proposal. Last updated: 2026-06-09.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -1013,8 +1013,8 @@ Phase status (names match Section 6):
 | - | CORRECTIVE: Faithful Source Reconstruction | COMPLETE - merged PR #11 (squash `b43115c`); all 18 functions recovered verbatim into `recovered/06042026.ps1` (A) + `06042026_001.ps1` (B); owner's style preserved (audit-validated faithful) | 2026-06-09 |
 | - | Execution-map audit | COMPLETE - exhaustive multi-agent audit of the recovered code -> `docs/design/execution-map.md` (inventory, missing functions, unified single-path map, MS-DSC comparison, ordered forward plan) | 2026-06-09 |
 | - | CORRECTIVE: Canonical Selection | COMPLETE - merged PR #12 (squash `729c80a`); 14 canonical + 6 archived (verbatim); owner CONFIRMED File A's contract as the spine; refactored `src/`/`tests/` removed | 2026-06-09 |
-| - | Test/Set Execution-Dispatch Design | ACTIVE - assigned in current TASK.md. Determine the objectively-best way to fold Get/Test/Set into the single path (analysis + Draft ADR 0007); owner decides the route. | - | 2026-06-09 |
-| 6 | Registry Proof Implementation | PAUSED - resumes after the Test/Set dispatch design, building one function at a time on the owner's faithful canonical code (`recovered/canonical/`). JSON + Pester-mocks decisions on hold for it. | - | 2026-06-09 |
+| - | Test/Set Execution-Dispatch Design | COMPLETE - merged PR #13 (`1ca45a4`); ADR 0007 Draft. Owner APPROVED route R3 (internal dispatcher + thin Get/Test/Set shims) and observed-state shape = B's {Ensure,Key,ValueName,ValueKind,ValueData}. | 2026-06-09 |
+| 6 | Registry Proof Implementation | ACTIVE - build on the owner's canonical code, R3 dispatch, one function at a time. FIRST gating decision: the owner's reserved "make it run" call (canonical does not parse as-is). JSON declaration (ADR 0004) + Pester mocks (ADR 0006). | - | 2026-06-09 |
 | 7 | Engine and STIG Roadmap | NOT STARTED | - | - |
 
 Rule: whenever a phase's status changes, update this table AND add a Section 10
@@ -1266,6 +1266,26 @@ Long-horizon (do NOT block current work):
   thin shims vs another route), as an analysis + Draft ADR 0007, for owner decision. Note: ADRs 0005
   (evidence) + 0006 (mutation/ShouldProcess) already frame a Get/Test/Plan/Apply operation-mode model
   with a read-only/Apply split - prior art the design must reconcile with. Then the per-function build.
+- 2026-06-09: TEST/SET DISPATCH DESIGN executed by Codex, audited + admin-merged by Claude (PR #13 ->
+  `1ca45a4`). Objective analysis of R1 (one mode-driven body) / R2 (shared setup + thin shims) /
+  R3 (internal dispatcher + thin DSC-compatible shims); recommended R3. Draft ADR 0007. The OWNER
+  APPROVED route R3 and chose observed-state shape = B's `{Ensure,Key,ValueName,ValueKind,ValueData}`
+  (DSC-contract shape; can be wrapped by the ADR 0005 evidence envelope for Test/Plan/Apply). R3 flow:
+  internal dispatcher does `setup once (Start-ProviderSetup) -> read current once -> compare/plan ->
+  optionally mutate`; public `Get/Test/Set-TargetResource` are thin wrappers; `Set` only under Apply
+  mode (ADR 0006). ADR 0007 stays Draft (Locked Rule) until the owner explicitly approves the status
+  transition - direction is approved. Remaining ADR-0007 owner decisions to settle during the build:
+  dispatcher name (`Invoke-RegistryResourceOperation` vs `Get-TargetResourceInternal`); how much of
+  `Start-ProviderSetup` runs in read-only modes (it calls `Mount-RegistryHive`); `Get-TypedObject`
+  completion vs a fresh typed converter.
+- 2026-06-09: PENDING GATING DECISION before Phase 6 build proceeds: the owner's reserved "MAKE IT
+  RUN" call. The faithful canonical code does NOT parse as-is (OCR artifacts: `[Type]::Empty`
+  pseudo-initializers, leading-comma attribute lists, brace/bracket swaps, doubled quotes; plus
+  genuine stubs). Need the owner's direction on HOW to make their code run (minimal style-preserving
+  fixes by Codex with per-diff owner review vs owner does it vs build new functions first), because
+  the owner is protective of their exact style (prior refactor incident). NOTE the stale closed
+  PR #10 branch `recovery/phase-6-registry-readonly` is the abandoned read-only proof on the
+  REFACTORED code - not to be reused; safe to delete.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads

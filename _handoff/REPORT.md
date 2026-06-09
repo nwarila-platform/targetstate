@@ -1,121 +1,128 @@
-Test/Set design status: COMPLETE
+Phase 6 build 1 status: COMPLETE
 
 ## Adversarial review verdict
 
-Goal: execute the Test/Set execution-dispatch design task on branch
-`recovery/test-set-design`: produce an objective options analysis for unifying
-Get/Test/Set into the owner's single execution path, draft ADR 0007 as
-`Status: Draft`, commit the analysis/ADR/handoff updates, push the branch, open
-a PR to `main`, and stop for owner review.
+Goal: execute Phase 6 build 1 on branch `recovery/phase6-build-1`: copy only
+`recovered/canonical/Get-RegistryValueKindStr.ps1` into `src/`, make that one
+function parse and run on Windows PowerShell 5.1 with minimal style-preserving
+changes, add focused Pester tests, document every change, propose the
+systematic `[Type]::Empty` mapping, push a PR to `main`, and stop for owner
+review.
 
-Decision: PROCEED. This is a design-analysis task only. It does not require
-opening, parsing, OCR'ing, or modifying the PDFs; it does not require live
-registry/system access; and it does not authorize source, tests, module
-manifest, or `.mof` creation. The ADR remains Draft until the owner approves the
-route.
+Decision: PROCEED and COMPLETE for this calibration. The narrow one-function
+scope is correct: `Get-RegistryValueKindStr` is pure, needs no live registry
+access, and is enough to expose the owner idiom decision before the build scales.
+`recovered/canonical/` remains the faithful record; `src/` is the runnable copy.
 
-Branch check: PROCEED on `recovery/test-set-design`, not `main`.
+Branch check: PROCEED on `recovery/phase6-build-1`, not `main`.
 
-Candidate routes evaluated:
-- R1: one mode-driven body with a single operation/dispatch path.
-- R2: shared setup plus thin `Get-/Test-/Set-TargetResource` method shims.
-- R3: internal dispatcher plus thin compatibility shims.
+Chosen output locations: `src/Get-RegistryValueKindStr.ps1`,
+`tests/Get-RegistryValueKindStr.Tests.ps1`,
+`docs/build/make-it-run-log.md`,
+`docs/build/owner-idiom-decisions.md`, `_handoff/REPORT.md`, and
+`_handoff/REPORT-ARCHIVE.md`. `.gitignore` already allowlisted `src/` and
+`tests/`, so it was not changed.
 
-Scoring dimensions used:
-- Fit to the owner's single-path and run-only-necessary-steps constraint.
-- Reuse of `Start-ProviderSetup`, mount-once behavior, and canonical
-  `Get-TargetResource`.
-- Composition of Test compare behavior and Set/Apply mutation under
-  `ShouldProcess`.
-- DSC-name compatibility.
-- Pester-mock testability.
-- Evidence/result shape alignment with ADR 0005.
-- Fit to the owner's recovered coding style.
-- Pros, cons, and risks.
+Classified changes applied to the runnable copy:
 
-Chosen output locations: `docs/design/test-set-unification.md`,
-`docs/adr/0007-test-set-execution-dispatch.md`, `_handoff/REPORT.md`, and
-`_handoff/REPORT-ARCHIVE.md`. Existing planner files are preserved as-is for
-durability; Codex did not edit `PLAN.md`, `TASK.md`, or
-`CLAUDE-RESTART-PROMPT.md` content.
+| Canonical token | Running token | Class |
+| --- | --- | --- |
+| `[System.Boolean]::Empty` for `ValueKindIsNullorEmpty` and `IsValidValueKind` | `$False` | ii - idiom mapping |
+| line-wrapped `-` + `Value:` on three `New-Variable` initializers | single logical `-Value:` token | iii - minimal PS 5.1 run fix |
+| `[Microsoft.Win32.RegistryValueKind]::Empty` for `NormalizedValueKind`, `ValueKindIsUnknown`, and `Result` | `[Microsoft.Win32.RegistryValueKind]::None` | ii - idiom mapping |
+| no immediate typed value after `Clear-Variable` before `TryParse` | reinitialize `NormalizedValueKind` to enum `None` before `TryParse` | iii - minimal PS 5.1 run fix |
+| `[Enum]::TryParse([Microsoft.Win32.RegistryValueKind], $ValueKind, [Ref ]$NormalizedValueKind)` | `[Microsoft.Win32.RegistryValueKind]::TryParse($ValueKind, [Ref ]$NormalizedValueKind)` | iii - minimal PS 5.1 run fix |
 
-Recommendation summary:
-- R1 is viable but not best. It best satisfies a literal one-body reading, but
-  weakens DSC-name compatibility and risks a public mega-function.
-- R2 is safe and familiar. It preserves DSC names, but it weakens the single
-  execution path and can repeat setup/read work.
-- R3 is recommended. It keeps one internal Registry operation path while
-  preserving thin public `Get-TargetResource`, `Test-TargetResource`, and
-  `Set-TargetResource` wrappers for compatibility and reviewability.
+No class `i` OCR-artifact correction was applied.
 
 ## What changed
 
-- Archived the prior `REPORT.md` to the top of `_handoff/REPORT-ARCHIVE.md` under
-  `## Archived 2026-06-09T...Z - Test/Set design`.
-- Added `docs/design/test-set-unification.md` with R1/R2/R3 evaluation against
-  all required dimensions and an R3 recommendation.
-- Added `docs/adr/0007-test-set-execution-dispatch.md` with `Status: Draft`,
-  the recommended dispatcher-plus-shims design, consequences, owner questions,
-  and owner gate.
-- Preserved pre-existing Claude/planner handoff edits as-is.
+- Archived the prior `REPORT.md` to the top of `_handoff/REPORT-ARCHIVE.md`.
+- Added runnable `src/Get-RegistryValueKindStr.ps1`.
+- Added Pester 5 tests in `tests/Get-RegistryValueKindStr.Tests.ps1`.
+- Added `docs/build/make-it-run-log.md` with every canonical-to-runnable token
+  change classified.
+- Added `docs/build/owner-idiom-decisions.md` with the proposed `[Type]::Empty`
+  mapping for owner approval.
 
 ## What was intentionally not changed
 
-- No source, tests, module manifest, `.mof`, PDF, or `_recovery/` content was
-  created or modified.
-- No live Windows registry or system state was touched.
-- No ADR was marked Accepted.
+- No other canonical function was copied, parsed for make-it-run changes, or
+  tested.
+- `recovered/canonical/` and `recovered/archive/` were not modified.
+- No PDFs, `_recovery/`, registry state, live system state, dispatcher/Test/Set
+  implementation, module manifest, `.mof`, or ADR status were changed.
 - `PLAN.md`, `TASK.md`, and `CLAUDE-RESTART-PROMPT.md` content was not edited by
-  Codex.
-- Phase 6 implementation was not started.
+  Codex; their pre-existing local changes were preserved as-is.
 
 ## Verification output
 
-Analysis coverage:
+Parse:
 
 ```text
-R1=True
-R2=True
-R3=True
-dimension_a=True
-dimension_b=True
-dimension_c=True
-dimension_d=True
-dimension_e=True
-dimension_f=True
-dimension_g=True
-dimension_h=True
-recommendation=True
+ParseErrors=0
 ```
 
-ADR 0007 exists:
+Pester:
 
 ```text
-0007-test-set-execution-dispatch.md
+PesterVersion=5.7.1
+Total=5 Passed=5 Failed=0 Skipped=0 Inconclusive=0 NotRun=0
+Passed: returns None for an empty value kind
+Passed: returns None for a whitespace value kind
+Passed: returns the parsed registry value kind for a valid value kind string
+Passed: throws for an invalid value kind string
+Passed: throws for Unknown even though the enum parser accepts it
 ```
 
-ADR 0007 status:
+Fidelity diff:
 
-```text
-docs\adr\0007-test-set-execution-dispatch.md:3:Status: Draft
+```diff
+diff --git "a/recovered\\canonical\\Get-RegistryValueKindStr.ps1" "b/src\\Get-RegistryValueKindStr.ps1"
+index 563307f..365b7ed 100644
+--- "a/recovered\\canonical\\Get-RegistryValueKindStr.ps1"
++++ "b/src\\Get-RegistryValueKindStr.ps1"
+@@ -19,14 +19,11 @@ Function Get-RegistryValueKindStr {
+   Begin {
+     Write-Debug -Message:'Entering Block:  Begin'
+     # Initalize DYNAMIC Variables
+-    New-Variable -Force -Option:'Private'  -Name:'ValueKindIsNullorEmpty'  -Value:([System.Boolean]::Empty)
+-    New-Variable -Force -Option:'Private'  -Name: 'IsValidValueKind'        -Value:([System.Boolean]::Empty)
+-    New-Variable -Force -Option:'Private'  -Name: 'NormalizedValueKind'     -
+-Value:([Microsoft.Win32.RegistryValueKind]::Empty)
+-    New-Variable -Force -Option:'Private'  -Name: 'ValueKindIsUnknown'      -
+-Value:([Microsoft.Win32.RegistryValueKind]::Empty)
+-    New-Variable -Force -Option:'Private'  -Name: 'Result'                  -
+-Value:([Microsoft.Win32.RegistryValueKind]::Empty)
++    New-Variable -Force -Option:'Private'  -Name:'ValueKindIsNullorEmpty'  -Value:($False)
++    New-Variable -Force -Option:'Private'  -Name: 'IsValidValueKind'        -Value:($False)
++    New-Variable -Force -Option:'Private'  -Name: 'NormalizedValueKind'     -Value:([Microsoft.Win32.RegistryValueKind]::None)
++    New-Variable -Force -Option:'Private'  -Name: 'ValueKindIsUnknown'      -Value:([Microsoft.Win32.RegistryValueKind]::None)
++    New-Variable -Force -Option:'Private'  -Name: 'Result'                  -Value:([Microsoft.Win32.RegistryValueKind]::None)
+     Write-Debug -Message:'Exiting Block:  Begin'
+   } Process {
+     Write-Debug -Message:'Entering Block:  Process'
+@@ -46,10 +43,12 @@ Value:([Microsoft.Win32.RegistryValueKind]::Empty)
+       )
+     } Else {
+       # Validate the Registry Hive value against a list of valid and support registry hives.
++      Set-Variable -Name: 'NormalizedValueKind'  -Value:(
++        [Microsoft.Win32.RegistryValueKind]::None
++      )
+       Set-Variable -Name:'IsValidValueKind'  -Value: (
+         [System.Boolean] (
+-          [Enum]::TryParse(
+-             [Microsoft.Win32.RegistryValueKind],
++          [Microsoft.Win32.RegistryValueKind]::TryParse(
+             $ValueKind,
+             [Ref ]$NormalizedValueKind
+           )
+warning: in the working copy of 'src\Get-RegistryValueKindStr.ps1', LF will be replaced by CRLF the next time Git touches it
 ```
 
-ADR 0007 citations requested by TASK.md:
+`recovered/canonical/` and `recovered/archive/` unchanged:
 
 ```text
-docs\adr\0007-test-set-execution-dispatch.md:3:Status: Draft
-docs\adr\0007-test-set-execution-dispatch.md:17:mechanics. ADR 0003 proposes TargetState `Get`, `Test`, and `Set` operations
-docs\adr\0007-test-set-execution-dispatch.md:18:with direct dispatch. ADR 0005 proposes structured operation evidence for
-docs\adr\0007-test-set-execution-dispatch.md:19:Get/Test/Plan/Apply. ADR 0006 requires a hard boundary between read-only
-docs\adr\0007-test-set-execution-dispatch.md:23:`docs/design/execution-map.md` records the recovered unified-path intent, the
-docs\adr\0007-test-set-execution-dispatch.md:25:complete JSON-driven path. `docs/design/test-set-unification.md` compares three
-docs\adr\0007-test-set-execution-dispatch.md:32:This ADR cites ADR 0003 for the resource contract, ADR 0004 for the no-MOF
-docs\adr\0007-test-set-execution-dispatch.md:33:declaration-document boundary, ADR 0005 for evidence shape, and ADR 0006 for
-docs\adr\0007-test-set-execution-dispatch.md:65:   `InDesiredState` boolean plus ADR 0005 evidence.
-docs\adr\0007-test-set-execution-dispatch.md:79:ADR 0005 evidence envelope and ADR 0006 read-only/apply split.
-docs\adr\0007-test-set-execution-dispatch.md:92:- `Start-ProviderSetup` currently calls `Mount-RegistryHive`, and ADR 0006 says
-docs\adr\0007-test-set-execution-dispatch.md:97:  or wraps either inside the ADR 0005 envelope.
-docs\adr\0007-test-set-execution-dispatch.md:106:  archived B `Ensure`/`Key` payload, or an ADR 0005 wrapper containing one of
 ```
 
 All ADRs still Draft:
@@ -123,108 +130,81 @@ All ADRs still Draft:
 ```text
 ```
 
-No source/module/.mof inventory under `src,recovered/canonical` using relative
-paths. The command listed only pre-existing canonical recovered source; no new
-source appeared:
+`git check-ignore -v src tests`:
 
 ```text
-.\recovered\canonical\Convert-ByteArrayToHexString.ps1
-.\recovered\canonical\ConvertFrom-Array.ps1
-.\recovered\canonical\Get-NormalizedRegistryKey.ps1
-.\recovered\canonical\Get-RegistryKeyHiveObj.ps1
-.\recovered\canonical\Get-RegistryKeyNameStr.ps1
-.\recovered\canonical\Get-RegistryKeyPathStr.ps1
-.\recovered\canonical\Get-RegistryResourceObject.ps1
-.\recovered\canonical\Get-RegistryValueKindStr.ps1
-.\recovered\canonical\Get-RegistryValueNameStr.ps1
-.\recovered\canonical\Get-TargetResource.ps1
-.\recovered\canonical\Get-TypedObject.ps1
-.\recovered\canonical\Mount-RegistryHive.ps1
-.\recovered\canonical\Start-ProviderSetup.ps1
-.\recovered\canonical\ThrowError.ps1
+.gitignore:19:!/src/	src
+.gitignore:20:!/tests/	tests
+exit=0
 ```
 
-`git status --short src recovered\canonical`:
+Sensitive scan over added diff lines:
 
 ```text
-```
-
-Branch:
-
-```text
-recovery/test-set-design
-```
-
-Trackable new artifacts:
-
-```text
-docs/adr/0007-test-set-execution-dispatch.md
-docs/design/test-set-unification.md
-```
-
-Sensitive-content scan over the new public design/ADR files and this report:
-
-```text
+Sensitive scan clean for added diff lines.
+warning: in the working copy of '_handoff/REPORT-ARCHIVE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '_handoff/REPORT.md', LF will be replaced by CRLF the next time Git touches it
 ```
 
 `git diff --check`:
 
 ```text
+warning: in the working copy of '_handoff/REPORT-ARCHIVE.md', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of '_handoff/REPORT.md', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of '_handoff/TASK.md', LF will be replaced by CRLF the next time Git touches it
 ```
 
-Commit-signing preflight:
+`git status --short --branch`:
 
 ```text
-commit.gpgsign=true
-gpg.format=ssh
+## recovery/phase6-build-1
+ M _handoff/CLAUDE-RESTART-PROMPT.md
+ M _handoff/PLAN.md
+ M _handoff/REPORT-ARCHIVE.md
+ M _handoff/REPORT.md
+ M _handoff/TASK.md
+?? docs/build/
+?? src/
+?? tests/
 ```
 
-Final `git log --show-signature -1` output is intentionally not embedded here:
-the final signed commit necessarily includes this report, so recording the final
-commit's own signature inside the same committed report is self-referential. It
-will be run immediately after commit and included in the PR body and handback.
+Final signed-commit verification:
+
+```text
+Pending final `git log --show-signature -1` after the commit exists. Recording
+the final commit signature inside the same committed report is self-referential;
+the output will be run after commit and included in the PR body and handback.
+```
 
 ## Deviations from `TASK.md` and why
 
-- I did not embed the final post-commit signature output in this committed
-  report because doing so would require an endless amend/re-sign cycle. I will
-  run `git log --show-signature -1` after the final commit and report it in the
-  PR body and final response.
-- The no-source inventory command lists existing files under `recovered/canonical`
-  because that directory is the committed source-of-truth input. The paired
-  `git status --short src recovered\canonical` check is empty, proving this task
-  created no new source and left `recovered/canonical` unchanged.
-- ADR 0004 currently still says YAML, while the later owner decision in
-  `PLAN.md` says JSON for the first proof. This task stayed format-neutral and
-  cited ADR 0004 only for the no-MOF declaration boundary; the JSON update is
-  already deferred in the plan to the Phase 6 resume.
+- I used Pester `-PassThru -Output None` and printed a public-safe summary from
+  the actual Pester result object. Normal Pester console output includes the
+  local user-profile path, which would violate the public-repo sensitive-path
+  rule.
+- The printed `[Enum]::TryParse` form does not bind under Windows PowerShell 5.1
+  in this environment, and PS 5.1 cannot call generic static methods with
+  type-argument syntax. I kept `TryParse` but used the enum-type static
+  `TryParse` form and reinitialized `NormalizedValueKind` after `Clear-Variable`
+  so the by-ref target has the enum type. This is documented as a minimal
+  PS 5.1 run fix for owner review.
+- Final `git log --show-signature -1` output cannot be embedded in the same
+  commit it verifies without an endless amend cycle; it will be captured after
+  commit and included in the PR body/final response.
 
 ## Open objections that must be resolved before advancing
 
-- Owner should approve, reject, or revise the R3 recommendation.
-- Owner should choose the internal dispatcher name:
-  `Invoke-RegistryResourceOperation`, `Get-TargetResourceInternal`, or another
-  name.
-- Owner should decide whether `Get-TargetResource` output keeps A's
-  `KeyExists`/`ValueExists` payload, adopts B's archived `Ensure`/`Key` payload,
-  or wraps either shape inside the ADR 0005 evidence envelope.
-- Owner should decide whether read-only Get/Test/Plan may perform the
-  session-local PSDrive setup in `Mount-RegistryHive`, or whether provider
-  mounting must be mocked/split until registry isolation is approved.
-- Owner should decide whether `Set-TargetResource` is directly callable by
-  advanced users or only through TargetState Apply mode.
-- Owner should decide whether typed desired-value comparison completes
-  `Get-TypedObject` or uses a fresh conversion helper.
+- Owner should confirm or revise the proposed `[Type]::Empty` idiom mapping
+  before it is applied to any other function.
+- Owner should confirm that the PS 5.1 `TryParse` binding fix is acceptable:
+  enum-type static `TryParse` plus typed reinitialization after `Clear-Variable`.
 
 ## Owner decisions needed
 
-- Review PR and decide the dispatch route.
-- Keep ADR 0007 Draft unless the owner explicitly approves an Accepted status
-  transition.
+- Review the PR and decide whether the make-it-run diff preserves the owner's
+  style closely enough for the next function.
+- Approve, reject, or revise the `[Type]::Empty` mapping in
+  `docs/build/owner-idiom-decisions.md`.
 - Do not merge until owner review is complete; Codex must not merge.
-- After owner approval, Claude/owner can advance to the per-function build /
-  Phase 6 resume task.
 
-Test/Set design status: COMPLETE
+Phase 6 build 1 status: COMPLETE
