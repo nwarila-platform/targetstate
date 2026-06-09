@@ -64,21 +64,23 @@ NOT NOW (gated future phases - do not let Codex jump ahead):
 - No engine/contract design before its Draft ADR (Phase 5).
 
 Current expected next step:
-A COURSE CORRECTION reset the source-of-truth: the Phase 3 "stabilization" had REFACTORED the
-owner's code, so it was redone as a FAITHFUL verbatim reconstruction (all 18 functions ->
-`recovered/06042026.ps1` (A) + `06042026_001.ps1` (B), merged PR #11 / `b43115c`, audit-validated
-faithful). Claude then ran an exhaustive multi-agent EXECUTION-MAP AUDIT -> `docs/design/execution-map.md`
-(inventory, missing functions, the owner's unified single-path map, MS-DSC comparison, ordered
-forward plan). Key finding: the two PDFs are two ENTANGLED versions with incompatible interface
-seams. Owner decisions: (a) resolve by PER-FUNCTION MATURITY COMPARISON - canonical = the most
-mature version per function, archive the alternate; (b) the Test/Set unification design gets its
-OWN dedicated step. The active task (`_handoff/TASK.md`) is the CANONICAL SELECTION cycle: choose
-canonical per function (verbatim), archive alternates, commit the execution map, and remove the
-rejected refactored `src/`/`tests/`. RECOVERY FIDELITY Locked Rule (Section 4) applies - verbatim,
-no refactoring. Your job: keep `_handoff/TASK.md` correct; audit the selection for fidelity
-(verbatim extracts, one whole version per function, sound maturity rationale). After this: the
-dedicated Test/Set unification-design step, then the per-function build. Phase 6 build PAUSED
-(JSON + mocks decisions on hold for it). PDFs + `_recovery/` stay ignored.
+The source-of-truth is now the owner's FAITHFUL recovered code, organized into a canonical set.
+History: Phase 3 had REFACTORED the owner's code, so it was redone as a verbatim FAITHFUL
+reconstruction (PR #11 / `b43115c`); Claude ran an exhaustive EXECUTION-MAP AUDIT
+(`docs/design/execution-map.md`) finding the two PDFs are two ENTANGLED versions with incompatible
+seams; the CANONICAL SELECTION cycle (PR #12 / `729c80a`) then chose the most-mature version per
+function (14 canonical in `recovered/canonical/` + 6 archived verbatim in `recovered/archive/`),
+with the owner CONFIRMING File A's contract as the spine; the refactored `src/`/`tests/` were
+removed. The active task (`_handoff/TASK.md`) is the TEST/SET EXECUTION-DISPATCH DESIGN: an
+objective analysis of how Get/Test/Set fold into the owner's single execution path (one
+mode-driven body vs shared-setup + thin shims vs another route) + a Draft ADR 0007, for the owner
+to decide the route. ANALYSIS + Draft ADR ONLY - no source/.mof; all ADRs stay Draft (Locked Rule).
+Prior art to reconcile: ADRs 0005 (evidence) + 0006 (mutation/ShouldProcess) already frame a
+Get/Test/Plan/Apply operation-mode model. Your job: keep `_handoff/TASK.md` correct; audit the
+analysis for objectivity + grounding in the recovered code, and that no ADR was marked Accepted.
+After this: the per-function build on `recovered/canonical/`, one function at a time (finalize the
+contract, complete the incomplete converters, build Test/Set). Phase 6 build PAUSED (JSON + Pester-
+mocks decisions on hold for it). PDFs + `_recovery/` stay ignored.
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
 introduce a separate "Step" counter; owner-initiated governance tasks may be
@@ -90,8 +92,9 @@ interleaved and are labeled "Governance:", not a Phase):
 - Phase 3 - Recovered-code stabilization (superseded - was REFACTORED; replaced by faithful recovery)
 - CORRECTIVE - Faithful source reconstruction (COMPLETE, merged PR #11; verbatim, all 18 functions)
 - Execution-map audit (COMPLETE; docs/design/execution-map.md)
-- CORRECTIVE - Canonical selection by maturity (ACTIVE; choose mature version per function, archive alternates)
-- Test/Set unification design (NEXT; dedicated step)
+- CORRECTIVE - Canonical selection by maturity (COMPLETE, merged PR #12; A-spine, 14 canonical + 6 archived)
+- Test/Set execution-dispatch design (ACTIVE; analysis + Draft ADR 0007; owner decides the route)
+- Per-function build on recovered/canonical (NEXT; one function at a time)
 - Phase 4 - Microsoft DSC surface audit (COMPLETE, merged; 24 records, citations verified)
 - Phase 4b - Port/adapt/skip checklist + backlog (COMPLETE, merged)
 - Phase 5 - TargetState contract design (COMPLETE, merged; 4 Draft ADRs; owner chose JSON + mocks)

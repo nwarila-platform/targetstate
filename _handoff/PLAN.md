@@ -970,7 +970,7 @@ RED action: stop, mark `BLOCKED`/`NEEDS-OWNER` in `REPORT.md`, do not proceed.
 `TASK.md` must state which gate is currently GREEN.
 
 ## 7. Current State Ledger
-Active phase: CORRECTIVE - Canonical Selection by maturity (choose the most-mature version per function from the faithful recovery; archive the alternates) + commit the execution-map audit. Phase 6 build PAUSED until the canonical set + a dedicated Test/Set unification-design step are done. Last updated: 2026-06-09.
+Active phase: Test/Set Execution-Dispatch Design (determine the objectively-best way to fold Get/Test/Set into the owner's single execution path; analysis + Draft ADR 0007). Then the per-function build (Phase 6, paused). Last updated: 2026-06-09.
 
 Repo facts:
 - Repo created by `nwarila-platform/github-terraform-runner` as public
@@ -1012,8 +1012,9 @@ Phase status (names match Section 6):
 | 5 | TargetState Contract Design | COMPLETE - merged PR #9 (squash `3ac0c3a`); 4 Draft contract ADRs 0003-0006 | 2026-06-08 |
 | - | CORRECTIVE: Faithful Source Reconstruction | COMPLETE - merged PR #11 (squash `b43115c`); all 18 functions recovered verbatim into `recovered/06042026.ps1` (A) + `06042026_001.ps1` (B); owner's style preserved (audit-validated faithful) | 2026-06-09 |
 | - | Execution-map audit | COMPLETE - exhaustive multi-agent audit of the recovered code -> `docs/design/execution-map.md` (inventory, missing functions, unified single-path map, MS-DSC comparison, ordered forward plan) | 2026-06-09 |
-| - | CORRECTIVE: Canonical Selection | ACTIVE - assigned in current TASK.md. Per-function maturity comparison: choose the most-mature version (A vs B) as canonical, archive the alternate; remove the rejected refactored `src/`/`tests/`. | - | 2026-06-09 |
-| 6 | Registry Proof Implementation | PAUSED - read-only proof (PR #10) closed (built on refactored functions). Resumes after canonical selection + a dedicated Test/Set unification-design step, on the owner's faithful code. | - | 2026-06-09 |
+| - | CORRECTIVE: Canonical Selection | COMPLETE - merged PR #12 (squash `729c80a`); 14 canonical + 6 archived (verbatim); owner CONFIRMED File A's contract as the spine; refactored `src/`/`tests/` removed | 2026-06-09 |
+| - | Test/Set Execution-Dispatch Design | ACTIVE - assigned in current TASK.md. Determine the objectively-best way to fold Get/Test/Set into the single path (analysis + Draft ADR 0007); owner decides the route. | - | 2026-06-09 |
+| 6 | Registry Proof Implementation | PAUSED - resumes after the Test/Set dispatch design, building one function at a time on the owner's faithful canonical code (`recovered/canonical/`). JSON + Pester-mocks decisions on hold for it. | - | 2026-06-09 |
 | 7 | Engine and STIG Roadmap | NOT STARTED | - | - |
 
 Rule: whenever a phase's status changes, update this table AND add a Section 10
@@ -1251,6 +1252,20 @@ Long-horizon (do NOT block current work):
   best route. Next: the canonical-selection cycle (in current TASK); then the Test/Set design step;
   then the per-function build. The rejected refactored `src/`/`tests/` are removed in the canonical
   cycle (fidelity now confirmed by the audit).
+- 2026-06-09: CANONICAL SELECTION executed by Codex, audited + admin-merged by Claude (PR #12 ->
+  `729c80a`). 14 canonical + 6 archived bodies (verbatim - byte-identical extracts confirmed; no
+  refactoring); refactored `src/`/`tests/` removed. Codex resolved the entanglement by choosing
+  File A's contract as the coherent spine (rich-object `Start-ProviderSetup` + A's `Get-TargetResource`
+  + separated-field normalizers + the A JSON driver), filling in B where single-source or more
+  mature (`Get-TypedObject` value-data coercer). Owner CONFIRMED the A-spine baseline; the deeper
+  contract (separated-field vs full-key, A vs B `Get-TargetResource` output shape, hive descriptor
+  vs string) is deferred to the Test/Set design step and finalized there (archives preserved =
+  reversible). Selection ledger: `docs/design/canonical-selection.md`.
+- 2026-06-09: Next = Test/Set Execution-Dispatch Design (current TASK): determine the objectively
+  best way to fold Get/Test/Set into the owner's single path (one mode-driven body vs shared-setup +
+  thin shims vs another route), as an analysis + Draft ADR 0007, for owner decision. Note: ADRs 0005
+  (evidence) + 0006 (mutation/ShouldProcess) already frame a Get/Test/Plan/Apply operation-mode model
+  with a read-only/Apply split - prior art the design must reconcile with. Then the per-function build.
 
 ## 11. Step Advancement Protocol
 1. Exactly ONE phase is active in `TASK.md` at a time. The H1 reads

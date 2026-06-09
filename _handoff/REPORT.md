@@ -1,185 +1,230 @@
-Canonical selection status: COMPLETE
+Test/Set design status: COMPLETE
 
 ## Adversarial review verdict
 
-Goal: execute the corrective canonical-selection task on branch `recovery/canonical-selection`: split faithful recovered function bodies into `recovered/canonical/`, archive non-chosen alternates under `recovered/archive/`, commit the execution-map deliverable, remove rejected refactored `src/` and `tests/`, and open a PR to `main` for owner review. This is selection and archival only: no refactoring, no glyph fixes, no behavior completion, no live registry/system changes, and no PDF or `_recovery/` mutation.
+Goal: execute the Test/Set execution-dispatch design task on branch
+`recovery/test-set-design`: produce an objective options analysis for unifying
+Get/Test/Set into the owner's single execution path, draft ADR 0007 as
+`Status: Draft`, commit the analysis/ADR/handoff updates, push the branch, open
+a PR to `main`, and stop for owner review.
 
-Decision: PROCEED. The task is appropriate because the faithful recovered source is now the source of truth and the old refactored `src/`/`tests/` are explicitly rejected. The main risk is a wording conflict: TASK D says every execution-map function name should have a canonical file, while A0 says equivalent A/B roles must pick one whole version and archive the other. I followed A0 as the higher-signal owner-decided method: every recovered function body is accounted for as either canonical or archived, but non-chosen equivalents are not also placed in canonical.
+Decision: PROCEED. This is a design-analysis task only. It does not require
+opening, parsing, OCR'ing, or modifying the PDFs; it does not require live
+registry/system access; and it does not authorize source, tests, module
+manifest, or `.mof` creation. The ADR remains Draft until the owner approves the
+route.
 
-Branch check: PROCEED on `recovery/canonical-selection`, not `main`.
+Branch check: PROCEED on `recovery/test-set-design`, not `main`.
 
-Verbatim contract: PROCEED. `recovered/canonical/*.ps1` and `recovered/archive/*.ps1` are exact line-range extracts from `recovered/06042026.ps1` (A) or `recovered/06042026_001.ps1` (B). No character edits, no splicing, no rename inside function text, no completion.
+Candidate routes evaluated:
+- R1: one mode-driven body with a single operation/dispatch path.
+- R2: shared setup plus thin `Get-/Test-/Set-TargetResource` method shims.
+- R3: internal dispatcher plus thin compatibility shims.
 
-Chosen output locations: `recovered/canonical/*.ps1`, `recovered/archive/*.ps1`, `docs/design/canonical-selection.md`, `docs/design/execution-map.md`, removal of tracked `src/` and `tests/`, `_handoff/REPORT.md`, and `_handoff/REPORT-ARCHIVE.md`.
+Scoring dimensions used:
+- Fit to the owner's single-path and run-only-necessary-steps constraint.
+- Reuse of `Start-ProviderSetup`, mount-once behavior, and canonical
+  `Get-TargetResource`.
+- Composition of Test compare behavior and Set/Apply mutation under
+  `ShouldProcess`.
+- DSC-name compatibility.
+- Pester-mock testability.
+- Evidence/result shape alignment with ADR 0005.
+- Fit to the owner's recovered coding style.
+- Pros, cons, and risks.
 
-Selection table:
+Chosen output locations: `docs/design/test-set-unification.md`,
+`docs/adr/0007-test-set-execution-dispatch.md`, `_handoff/REPORT.md`, and
+`_handoff/REPORT-ARCHIVE.md`. Existing planner files are preserved as-is for
+durability; Codex did not edit `PLAN.md`, `TASK.md`, or
+`CLAUDE-RESTART-PROMPT.md` content.
 
-| Function / role | Canonical choice | Archive choice | Maturity reason |
-| --- | --- | --- | --- |
-| `ThrowError` | B `ThrowError` | none | Single-source structured error sink used by both recovered halves. |
-| `Start-ProviderSetup` | A `Start-ProviderSetup` | B `Start-ProviderSetup` | A emits a populated setup object and is wired to A's JSON path; B has placeholder result fields and broken variable/parameter wiring. |
-| `Get-TargetResource` | A `Get-TargetResource` | B `Get-TargetResource` | A interoperates with A setup and JSON driver; B has the better public evidence shape but depends on the broken B setup/string seam, so it is archived for owner review. |
-| Hive normalizer | A `Get-RegistryKeyHiveObj` | B `Get-RegistryKeyHive` | A returns the rich hive descriptor required by `Mount-RegistryHive`; B's long-form string is useful but incompatible with that mount contract. |
-| Path helper | A `Get-RegistryKeyPathStr` | B `Get-RegistryKeyPath` | A validates the separated path used by the A setup object; B extracts from a full-key contract that is not the chosen setup path. |
-| Key-name helper | A `Get-RegistryKeyNameStr` | B `Get-RegistryKeyName` | A validates the separated name used by the A setup object; B extracts from the alternate full-key contract. |
-| `Get-RegistryValueNameStr` | A `Get-RegistryValueNameStr` | none | Single-source value-name validator; preserves empty default-value support. |
-| Value-kind helper | A `Get-RegistryValueKindStr` | none | Single-source recovered value-kind normalizer; B's `Get-RegistryKeyType` is referenced but not recovered. |
-| `Mount-RegistryHive` | A `Mount-RegistryHive` | none | Single-source mount helper and the only recovered implementation. |
-| Value-data coercer | B `Get-TypedObject` | A `Get-RegistryValueData` | B covers more declared type/hex cases despite being unfinished; A has more empty numeric/binary stubs. |
-| Array/string display helper | A `ConvertFrom-Array` | none | Single recovered array flattener; B's `ArrayToString` is a missing reference, not an archiveable body. |
-| Binary display helper | B `Convert-ByteArrayToHexString` | none | Single recovered binary-to-hex helper. |
-| Full-key pre-normalizer | B `Get-NormalizedRegistryKey` | none | Single-source helper; retained because no A body provides the same full-key pre-normalization role. |
-| Full-key composer | B `Get-RegistryResourceObject` | none | Single-source orphaned composer; retained for later owner decision on whether it is the header's `Get-RegistryKeyString` stage. |
+Recommendation summary:
+- R1 is viable but not best. It best satisfies a literal one-body reading, but
+  weakens DSC-name compatibility and risks a public mega-function.
+- R2 is safe and familiar. It preserves DSC names, but it weakens the single
+  execution path and can repeat setup/read work.
+- R3 is recommended. It keeps one internal Registry operation path while
+  preserving thin public `Get-TargetResource`, `Test-TargetResource`, and
+  `Set-TargetResource` wrappers for compatibility and reviewability.
 
 ## What changed
 
-- Archived the prior `REPORT.md` to the top of `_handoff/REPORT-ARCHIVE.md` under `## Archived 2026-06-09 - Canonical selection`.
-- Created 14 verbatim canonical function files under `recovered/canonical/`.
-- Created 6 verbatim archived alternate function files under `recovered/archive/`.
-- Added `docs/design/canonical-selection.md` with per-function maturity choices, line-range citations, archived paths, and owner-confirmable seams.
-- Added `docs/design/execution-map.md` to the staged commit and sanitized its source list from local absolute paths to repo-relative paths before the sensitive-content scan.
-- Removed the rejected refactored rewrite under tracked `src/` and `tests/`.
-- Staged the existing handoff planner files as-is, per TASK.md; Codex did not edit their content.
+- Archived the prior `REPORT.md` to the top of `_handoff/REPORT-ARCHIVE.md` under
+  `## Archived 2026-06-09T...Z - Test/Set design`.
+- Added `docs/design/test-set-unification.md` with R1/R2/R3 evaluation against
+  all required dimensions and an R3 recommendation.
+- Added `docs/adr/0007-test-set-execution-dispatch.md` with `Status: Draft`,
+  the recommended dispatcher-plus-shims design, consequences, owner questions,
+  and owner gate.
+- Preserved pre-existing Claude/planner handoff edits as-is.
 
 ## What was intentionally not changed
 
-- No function text inside `recovered/06042026.ps1`, `recovered/06042026_001.ps1`, `recovered/canonical/*.ps1`, or `recovered/archive/*.ps1` was refactored, completed, renamed internally, glyph-fixed, or spliced.
-- No PDFs or `_recovery/` files were modified.
+- No source, tests, module manifest, `.mof`, PDF, or `_recovery/` content was
+  created or modified.
 - No live Windows registry or system state was touched.
-- `docs/recovery/GAPS.md` was left in place because it still records missing-name evidence not fully superseded by the execution map.
-- No Test/Set unification design or Registry implementation work was started.
+- No ADR was marked Accepted.
+- `PLAN.md`, `TASK.md`, and `CLAUDE-RESTART-PROMPT.md` content was not edited by
+  Codex.
+- Phase 6 implementation was not started.
 
 ## Verification output
 
-Coverage / accounting:
+Analysis coverage:
 
 ```text
-expected_bodies=20
-canonical_files=14
-archive_files=6
-missing_paths=NONE
-B:280-357 Get-RegistryKeyHive -> recovered\archive\Get-RegistryKeyHive.from-B.ps1 (archive)
-B:358-419 Get-RegistryKeyPath -> recovered\archive\Get-RegistryKeyPath.from-B.ps1 (archive)
-B:185-279 Get-NormalizedRegistryKey -> recovered\canonical\Get-NormalizedRegistryKey.ps1 (canonical)
-B:44-101 ThrowError -> recovered\canonical\ThrowError.ps1 (canonical)
-B:102-183 Start-ProviderSetup -> recovered\archive\Start-ProviderSetup.from-B.ps1 (archive)
-B:593-779 Get-TypedObject -> recovered\canonical\Get-TypedObject.ps1 (canonical)
-B:780-918 Get-TargetResource -> recovered\archive\Get-TargetResource.from-B.ps1 (archive)
-B:553-592 Convert-ByteArrayToHexString -> recovered\canonical\Convert-ByteArrayToHexString.ps1 (canonical)
-B:420-483 Get-RegistryKeyName -> recovered\archive\Get-RegistryKeyName.from-B.ps1 (archive)
-B:485-552 Get-RegistryResourceObject -> recovered\canonical\Get-RegistryResourceObject.ps1 (canonical)
-A:326-402 Get-RegistryKeyNameStr -> recovered\canonical\Get-RegistryKeyNameStr.ps1 (canonical)
-A:403-469 Get-RegistryValueNameStr -> recovered\canonical\Get-RegistryValueNameStr.ps1 (canonical)
-A:228-325 Get-RegistryKeyPathStr -> recovered\canonical\Get-RegistryKeyPathStr.ps1 (canonical)
-A:1-121 Start-ProviderSetup -> recovered\canonical\Start-ProviderSetup.ps1 (canonical)
-A:122-227 Get-RegistryKeyHiveObj -> recovered\canonical\Get-RegistryKeyHiveObj.ps1 (canonical)
-A:803-939 Get-RegistryValueData -> recovered\archive\Get-RegistryValueData.from-A.ps1 (archive)
-A:940-1025 ConvertFrom-Array -> recovered\canonical\ConvertFrom-Array.ps1 (canonical)
-A:658-801 Get-TargetResource -> recovered\canonical\Get-TargetResource.ps1 (canonical)
-A:470-568 Get-RegistryValueKindStr -> recovered\canonical\Get-RegistryValueKindStr.ps1 (canonical)
-A:569-656 Mount-RegistryHive -> recovered\canonical\Mount-RegistryHive.ps1 (canonical)
+R1=True
+R2=True
+R3=True
+dimension_a=True
+dimension_b=True
+dimension_c=True
+dimension_d=True
+dimension_e=True
+dimension_f=True
+dimension_g=True
+dimension_h=True
+recommendation=True
 ```
 
-Byte-for-byte fidelity checks for all extracts:
+ADR 0007 exists:
 
 ```text
-OK recovered\canonical\ThrowError.ps1 == recovered\06042026_001.ps1:44-101 bytes=1631
-OK recovered\canonical\Start-ProviderSetup.ps1 == recovered\06042026.ps1:1-121 bytes=5431
-OK recovered\canonical\Get-TargetResource.ps1 == recovered\06042026.ps1:658-801 bytes=6989
-OK recovered\canonical\Get-RegistryKeyHiveObj.ps1 == recovered\06042026.ps1:122-227 bytes=4349
-OK recovered\canonical\Get-RegistryKeyPathStr.ps1 == recovered\06042026.ps1:228-325 bytes=4294
-OK recovered\canonical\Get-RegistryKeyNameStr.ps1 == recovered\06042026.ps1:326-402 bytes=3521
-OK recovered\canonical\Get-RegistryValueNameStr.ps1 == recovered\06042026.ps1:403-469 bytes=2964
-OK recovered\canonical\Get-RegistryValueKindStr.ps1 == recovered\06042026.ps1:470-568 bytes=4469
-OK recovered\canonical\Mount-RegistryHive.ps1 == recovered\06042026.ps1:569-656 bytes=3857
-OK recovered\canonical\Get-TypedObject.ps1 == recovered\06042026_001.ps1:593-779 bytes=9009
-OK recovered\canonical\ConvertFrom-Array.ps1 == recovered\06042026.ps1:940-1025 bytes=3971
-OK recovered\canonical\Convert-ByteArrayToHexString.ps1 == recovered\06042026_001.ps1:553-592 bytes=1918
-OK recovered\canonical\Get-NormalizedRegistryKey.ps1 == recovered\06042026_001.ps1:185-279 bytes=5253
-OK recovered\canonical\Get-RegistryResourceObject.ps1 == recovered\06042026_001.ps1:485-552 bytes=3779
-OK recovered\archive\Start-ProviderSetup.from-B.ps1 == recovered\06042026_001.ps1:102-183 bytes=4078
-OK recovered\archive\Get-TargetResource.from-B.ps1 == recovered\06042026_001.ps1:780-918 bytes=8211
-OK recovered\archive\Get-RegistryKeyHive.from-B.ps1 == recovered\06042026_001.ps1:280-357 bytes=4454
-OK recovered\archive\Get-RegistryKeyPath.from-B.ps1 == recovered\06042026_001.ps1:358-419 bytes=3561
-OK recovered\archive\Get-RegistryKeyName.from-B.ps1 == recovered\06042026_001.ps1:420-483 bytes=3604
-OK recovered\archive\Get-RegistryValueData.from-A.ps1 == recovered\06042026.ps1:803-939 bytes=4811
-fail_count=0
+0007-test-set-execution-dispatch.md
 ```
 
-Sample no-diff checks:
+ADR 0007 status:
 
 ```text
-diff Start-ProviderSetup canonical vs A:1-121
-exit=0
-diff Get-TypedObject canonical vs B:593-779
-exit=0
+docs\adr\0007-test-set-execution-dispatch.md:3:Status: Draft
 ```
 
-`src/` and `tests/` removal:
+ADR 0007 citations requested by TASK.md:
 
 ```text
-NO OUTPUT from: git ls-files src/ tests/
+docs\adr\0007-test-set-execution-dispatch.md:3:Status: Draft
+docs\adr\0007-test-set-execution-dispatch.md:17:mechanics. ADR 0003 proposes TargetState `Get`, `Test`, and `Set` operations
+docs\adr\0007-test-set-execution-dispatch.md:18:with direct dispatch. ADR 0005 proposes structured operation evidence for
+docs\adr\0007-test-set-execution-dispatch.md:19:Get/Test/Plan/Apply. ADR 0006 requires a hard boundary between read-only
+docs\adr\0007-test-set-execution-dispatch.md:23:`docs/design/execution-map.md` records the recovered unified-path intent, the
+docs\adr\0007-test-set-execution-dispatch.md:25:complete JSON-driven path. `docs/design/test-set-unification.md` compares three
+docs\adr\0007-test-set-execution-dispatch.md:32:This ADR cites ADR 0003 for the resource contract, ADR 0004 for the no-MOF
+docs\adr\0007-test-set-execution-dispatch.md:33:declaration-document boundary, ADR 0005 for evidence shape, and ADR 0006 for
+docs\adr\0007-test-set-execution-dispatch.md:65:   `InDesiredState` boolean plus ADR 0005 evidence.
+docs\adr\0007-test-set-execution-dispatch.md:79:ADR 0005 evidence envelope and ADR 0006 read-only/apply split.
+docs\adr\0007-test-set-execution-dispatch.md:92:- `Start-ProviderSetup` currently calls `Mount-RegistryHive`, and ADR 0006 says
+docs\adr\0007-test-set-execution-dispatch.md:97:  or wraps either inside the ADR 0005 envelope.
+docs\adr\0007-test-set-execution-dispatch.md:106:  archived B `Ensure`/`Key` payload, or an ADR 0005 wrapper containing one of
 ```
 
-Design docs tracked after staging:
+All ADRs still Draft:
 
 ```text
-docs/design/canonical-selection.md
-docs/design/execution-map.md
 ```
 
-Sensitive-content scan:
+No source/module/.mof inventory under `src,recovered/canonical` using relative
+paths. The command listed only pre-existing canonical recovered source; no new
+source appeared:
 
 ```text
-NO HITS from sensitive-content scan over new design/canonical/archive files and added diff lines.
-warning: in the working copy of '_handoff/REPORT-ARCHIVE.md', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of '_handoff/REPORT.md', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of '_handoff/TASK.md', LF will be replaced by CRLF the next time Git touches it
+.\recovered\canonical\Convert-ByteArrayToHexString.ps1
+.\recovered\canonical\ConvertFrom-Array.ps1
+.\recovered\canonical\Get-NormalizedRegistryKey.ps1
+.\recovered\canonical\Get-RegistryKeyHiveObj.ps1
+.\recovered\canonical\Get-RegistryKeyNameStr.ps1
+.\recovered\canonical\Get-RegistryKeyPathStr.ps1
+.\recovered\canonical\Get-RegistryResourceObject.ps1
+.\recovered\canonical\Get-RegistryValueKindStr.ps1
+.\recovered\canonical\Get-RegistryValueNameStr.ps1
+.\recovered\canonical\Get-TargetResource.ps1
+.\recovered\canonical\Get-TypedObject.ps1
+.\recovered\canonical\Mount-RegistryHive.ps1
+.\recovered\canonical\Start-ProviderSetup.ps1
+.\recovered\canonical\ThrowError.ps1
 ```
 
-PDF hashes unchanged (leaf filenames only, to avoid publishing local absolute paths):
+`git status --short src recovered\canonical`:
 
 ```text
-B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F 06042026.pdf
-D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E 06042026_001.pdf
-```
-
-`recovered/canonical` and `recovered/archive` are not ignored:
-
-```text
-exit=1
 ```
 
 Branch:
 
 ```text
-recovery/canonical-selection
+recovery/test-set-design
 ```
 
-Post-commit signature check:
+Trackable new artifacts:
 
 ```text
-Pending final `git log --show-signature -1` after the commit exists; this cannot be made self-contained inside the same commit without amending and invalidating the recorded output. It will be run immediately after commit and reported in the handback.
+docs/adr/0007-test-set-execution-dispatch.md
+docs/design/test-set-unification.md
 ```
+
+Sensitive-content scan over the new public design/ADR files and this report:
+
+```text
+```
+
+`git diff --check`:
+
+```text
+warning: in the working copy of '_handoff/REPORT.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '_handoff/TASK.md', LF will be replaced by CRLF the next time Git touches it
+```
+
+Commit-signing preflight:
+
+```text
+commit.gpgsign=true
+gpg.format=ssh
+```
+
+Final `git log --show-signature -1` output is intentionally not embedded here:
+the final signed commit necessarily includes this report, so recording the final
+commit's own signature inside the same committed report is self-referential. It
+will be run immediately after commit and included in the PR body and handback.
 
 ## Deviations from `TASK.md` and why
 
-- TASK D's literal coverage wording says every execution-map function name should have a canonical file. That conflicts with A0's owner-decided rule to pick one equivalent version and archive the other. I followed A0 and verified every recovered body is either canonical or archived.
-- I sanitized local absolute paths in `docs/design/execution-map.md` to repo-relative paths before commit. This is a public-repo safety correction, not a design/content rewrite.
-- The PDF hash verification is recorded with leaf filenames rather than the default absolute local paths to avoid adding a user-profile path to the public report.
-- The final commit signature check is reported after commit in the handback because it cannot be embedded in the same commit's `REPORT.md` without a circular amend.
+- I did not embed the final post-commit signature output in this committed
+  report because doing so would require an endless amend/re-sign cycle. I will
+  run `git log --show-signature -1` after the final commit and report it in the
+  PR body and final response.
+- The no-source inventory command lists existing files under `recovered/canonical`
+  because that directory is the committed source-of-truth input. The paired
+  `git status --short src recovered\canonical` check is empty, proving this task
+  created no new source and left `recovered/canonical` unchanged.
+- ADR 0004 currently still says YAML, while the later owner decision in
+  `PLAN.md` says JSON for the first proof. This task stayed format-neutral and
+  cited ADR 0004 only for the no-MOF declaration boundary; the JSON update is
+  already deferred in the plan to the Phase 6 resume.
 
 ## Open objections that must be resolved before advancing
 
-- Owner should confirm or reject the major A-path choice: A `Start-ProviderSetup` + A `Get-TargetResource` are the coherent JSON/rich-object path, while B has the more public TargetState-shaped `Ensure/Key/ValueName/ValueKind/ValueData` output.
-- Owner should confirm the hive-shape seam: A rich `{Name,ShortName,Abbreviation}` descriptor versus B canonical long-form string.
-- Owner should confirm the value-data choice: B `Get-TypedObject` is selected because it has broader type/hex branch coverage, but it is still unfinished and has missing exception-hash/array-guard gaps.
-- Owner should confirm whether the B full-key helpers retained as canonical single-source evidence should survive the next design step or be retired in favor of the A separated-field contract.
+- Owner should approve, reject, or revise the R3 recommendation.
+- Owner should choose the internal dispatcher name:
+  `Invoke-RegistryResourceOperation`, `Get-TargetResourceInternal`, or another
+  name.
+- Owner should decide whether `Get-TargetResource` output keeps A's
+  `KeyExists`/`ValueExists` payload, adopts B's archived `Ensure`/`Key` payload,
+  or wraps either shape inside the ADR 0005 evidence envelope.
+- Owner should decide whether read-only Get/Test/Plan may perform the
+  session-local PSDrive setup in `Mount-RegistryHive`, or whether provider
+  mounting must be mocked/split until registry isolation is approved.
+- Owner should decide whether `Set-TargetResource` is directly callable by
+  advanced users or only through TargetState Apply mode.
+- Owner should decide whether typed desired-value comparison completes
+  `Get-TypedObject` or uses a fresh conversion helper.
 
 ## Owner decisions needed
 
-- Review the PR and confirm the canonical selections or request a different A/B choice.
-- Merge to `main` only by owner/admin action; Codex must not merge.
-- After merge/owner acceptance, advance to the dedicated Test/Set unification-design step before any Registry implementation resumes.
+- Review PR and decide the dispatch route.
+- Keep ADR 0007 Draft unless the owner explicitly approves an Accepted status
+  transition.
+- Do not merge until owner review is complete; Codex must not merge.
+- After owner approval, Claude/owner can advance to the per-function build /
+  Phase 6 resume task.
 
-Canonical selection status: COMPLETE
+Test/Set design status: COMPLETE
