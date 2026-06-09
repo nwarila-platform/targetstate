@@ -70,18 +70,22 @@ PHASE 6 BUILD is now active (one function at a time, in `src/`). History: faithf
 canonical selection (PR #12 / `729c80a`, 14 canonical + 6 archived, owner confirmed File A's spine);
 Test/Set dispatch design (PR #13 / `1ca45a4`, Draft ADR 0007). Owner decisions locked: route = R3
 (internal dispatcher + thin Get/Test/Set shims); observed-state shape = B's
-`{Ensure,Key,ValueName,ValueKind,ValueData}`; make-it-run = Codex applies MINIMAL, style-preserving
-fixes that the owner reviews per change. The canonical code is faithful but does NOT parse (OCR
-artifacts + a systematic `[Type]::Empty` initializer idiom + WIP stubs); `recovered/canonical/` is
-the immutable faithful RECORD, the runnable module is built in `src/`. The active task
-(`_handoff/TASK.md`) is BUILD STEP 1, a deliberate CALIBRATION: make ONLY `Get-RegistryValueKindStr`
-parse + run with documented, classified, style-preserving changes, and PROPOSE the `[Type]::Empty`
-idiom mapping for owner approval - nothing else is touched. Your job: keep `_handoff/TASK.md`
-correct; audit the make-it-run for fidelity (style/logic/comments preserved, every change minimal +
-classified, canonical record unchanged, no ADR Accepted). After the owner approves the idiom mapping
-+ make-it-run fidelity: scale make-it-run across the leaf functions, then complete Mount-RegistryHive
-+ Get-TypedObject + Start-ProviderSetup, then build the R3 read leg -> dispatcher -> Test -> Plan ->
-Set -> thin shims, one function at a time. PDFs + `_recovery/` stay ignored.
+`{Ensure,Key,ValueName,ValueKind,ValueData}`. Build 1 (make-it-run CALIBRATION on
+`Get-RegistryValueKindStr`) is merged (PR #14 / `e709777`) and yielded TWO DURABLE CONSTRAINTS the
+owner set: (1) TARGET = BOTH PowerShell 5.1 AND 7 (lowest-common-denominator APIs - the owner's code
+has PS7/.NET-Core idioms like the 3-arg `[Enum]::TryParse` that must be made both-compatible); (2)
+MAKE-IT-RUN BOUNDARY = Codex applies OCR-artifact corrections + the APPROVED `[Type]::Empty` idiom
+table + the approved enum-parse pattern FREELY, but STOPS AND FLAGS any other API/logic/behavior
+change for explicit owner approval. The canonical code is faithful but does NOT parse; `recovered/canonical/`
+is the immutable faithful RECORD, the runnable module is built in `src/`. The active task
+(`_handoff/TASK.md`) is BUILD 2: make-it-run the 8 remaining PURE leaf functions (ThrowError, the
+`Get-Registry*Str` validators, `Get-RegistryKeyHiveObj`, `Get-NormalizedRegistryKey`, `ConvertFrom-Array`,
+`Convert-ByteArrayToHexString`) on 5.1+7, applying approved patterns freely + flagging anything novel,
+with per-function tests + diffs. Your job: keep `_handoff/TASK.md` correct; audit for fidelity
+(style/logic/comments preserved, both-runtime, every change minimal + classified, flags not silently
+applied, canonical unchanged, no ADR Accepted). After: complete `Mount-RegistryHive` + `Get-TypedObject`,
+finalize `Start-ProviderSetup`, then build the R3 read leg -> dispatcher -> Test -> Plan -> Set -> thin
+shims, one function at a time. PDFs + `_recovery/` stay ignored.
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
 introduce a separate "Step" counter; owner-initiated governance tasks may be
@@ -98,5 +102,5 @@ interleaved and are labeled "Governance:", not a Phase):
 - Phase 4 - Microsoft DSC surface audit (COMPLETE, merged; 24 records, citations verified)
 - Phase 4b - Port/adapt/skip checklist + backlog (COMPLETE, merged)
 - Phase 5 - TargetState contract design (COMPLETE, merged; 4 Draft ADRs; owner chose JSON + mocks)
-- Phase 6 - Registry build on canonical code, R3 dispatch (ACTIVE; build 1 = make-it-run calibration on Get-RegistryValueKindStr + idiom proposal; then scale, then build R3 spine)
+- Phase 6 - Registry build on canonical code, R3 dispatch (ACTIVE; constraints: BOTH 5.1+7, flag-API boundary. Build 1 calibration MERGED PR #14; build 2 (current) = make-it-run the 8 leaf functions; then completions + Start-ProviderSetup, then R3 spine)
 - Phase 7 - Engine and STIG roadmap
