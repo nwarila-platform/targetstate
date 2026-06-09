@@ -1,96 +1,114 @@
-# TASK - Test/Set Execution-Dispatch Design (analysis + Draft ADR; objectively best route)
-_Read `_handoff/PLAN.md` first (Sections 1 Mission, 4 Locked Rules, 0.2, 2). Read `docs/design/execution-map.md` (the owner's unified single-path) and the canonical functions in `recovered/canonical/`. This is a DESIGN-ANALYSIS step: it produces an analysis + a Draft ADR, NOT source._
+# TASK - Phase 6 build (1): make-it-run CALIBRATION on Get-RegistryValueKindStr (+ idiom proposal)
+_Read `_handoff/PLAN.md` first (Mission, Section 4 Locked Rules incl. RECOVERY FIDELITY, Sections 0.2, 2). This is the FIRST build step and a deliberate CALIBRATION: make ONE function run, and surface the systematic `[Type]::Empty` idiom decision for the owner - before touching any other function._
 
 ## Context
-The canonical A-spine function set is merged (PR #12 / `729c80a`): one entrypoint
-(`Get-TargetResource`) + one shared setup (`Start-ProviderSetup`, rich-object contract) +
-the separated-field normalizers, plus B's single-source/more-mature helpers. Only the GET
-leg + shared setup exist; `Test-TargetResource` and `Set-TargetResource` are not yet built.
-The owner reserved a full step to determine the OBJECTIVELY BEST way to fold Get/Test/Set
-into the single execution path - one mode-driven body, shared-setup + thin shims, or another
-route. This step decides the dispatch design; the build comes after.
+Owner decisions now locked: execution dispatch = R3 (internal dispatcher + thin Get/Test/Set
+shims); observed-state shape = B's `{Ensure,Key,ValueName,ValueKind,ValueData}`; make-it-run =
+Codex applies MINIMAL, style-preserving fixes that the owner reviews per change. The owner's
+canonical code (`recovered/canonical/`) is faithful but does NOT parse (OCR artifacts + a
+systematic `[Type]::Empty` initializer idiom + WIP stubs). The canonical tree is the immutable
+FAITHFUL RECORD; the runnable module is built in `src/`. This step makes ONE pure function run
+and proposes the idiom mapping; it does NOT scale to other functions yet.
 
 ## Goal
-Produce a thorough, objective options analysis of how Get/Test/Set unify into the owner's
-single execution path, a clear recommendation grounded in the recovered code + the DSC audit,
-and a Draft ADR capturing the recommended dispatch design for owner approval. NO source,
-tests, module, or `.mof`. The owner decides the route; this step informs and proposes.
+Stand up a minimal `src/` module entry and make `recovered/canonical/Get-RegistryValueKindStr.ps1`
+PARSE + RUN on Windows PowerShell 5.1 in `src/Get-RegistryValueKindStr.ps1`, changing ONLY what is
+required to run, with the owner's structure/logic/comments/style fully preserved. Document every
+change. Surface the systematic `[Type]::Empty` idiom as a PROPOSED owner-decision mapping. Prove
+it runs with Pester. recovered/canonical/ stays byte-unchanged.
 
-## A0. Decision posture
-- ADR is `Status: Draft`; do NOT mark Accepted (Locked Rule). The owner approves the route.
-- Be genuinely OBJECTIVE: present each route's real trade-offs; the recommendation must be
-  defensible from the recovered design + DSC contract, not assumed. Ground everything in the
-  owner's actual unified-path intent (one entrypoint, shared setup, run only necessary steps,
-  mount-once, soft-return, the owner's style) - do NOT default to a generic DSC 3-method
-  pattern unless the analysis shows it is objectively best for THIS design.
+## A0. Make-it-run rules (the contract for THIS and every later build step)
+- PRESERVE EXACTLY, do not touch: Begin/Process/End blocks + their Write-Debug bookends;
+  `New-Variable -Force -Option:'Private'` declarations; colon-parameter syntax (`-Name:`/`-Value:`/
+  `-Message:`); every comment (including typos like "Initalize"); the soft-return; `$True`/`$False`;
+  `Clear-Variable`/`Remove-Variable` hygiene; the owner's logic, ordering, naming, and spacing.
+- Do NOT refactor, restructure, rename, collapse blocks, idiomize, modernize, swap APIs
+  (keep `[Enum]::TryParse`), "fix" logic bugs, or change behavior. Make-it-run != improve.
+- Classify EVERY change as exactly one of:
+  (i) OCR-artifact correction - a token that is clearly an OCR misread of the owner's real code
+      (e.g. `Position = Q` -> `0`; `-Name:(a(` -> `-Name:(@(`; doubled quotes `''X'` -> `'X'`;
+      brace/bracket swaps `}]`->`)]`, `(Microsoft...]`->`[Microsoft...]`; stray leading commas in
+      `[CmdletBinding(`/`[Parameter(` lists). Restore the owner's real token. Cite the page image
+      `_recovery/06042026/images/` (or `_recovery/06042026_001/images/`) line where it confirms the
+      intended glyph; if you cannot view the image, say so and rely on the OCR `corrected/` text +
+      immediate context, and mark the evidence as text-only.
+  (ii) idiom mapping - the systematic `[Type]::Empty` initializer (see A1).
+  (iii) minimal parse fix - smallest possible change to parse, no image evidence, no logic change.
+- If a parse blocker cannot be resolved without a LOGIC or STYLE decision, STOP and flag it for the
+  owner in REPORT.md. NEVER guess at the owner's intent.
+
+## A1. The `[Type]::Empty` idiom (the key calibration decision)
+The owner initializes variables with `New-Variable ... -Value:([SomeType]::Empty)`. Only
+`[System.String]::Empty` is a real .NET member; the others (`[System.Boolean]::Empty`,
+`[Microsoft.Win32.RegistryValueKind]::Empty`, `[PSCustomObject]::Empty`, `[Hashtable]::Empty`,
+`[System.Int32]::Empty`, etc.) are not and will not run. This is the owner's idiom, NOT a simple
+OCR fix.
+- Produce `docs/build/owner-idiom-decisions.md`: a PROPOSED mapping table from each `[Type]::Empty`
+  to a running default that best preserves the evident intent (a placeholder default the code then
+  overwrites). Propose, with rationale, e.g.: `[System.String]::Empty` -> keep (already valid);
+  `[System.Boolean]::Empty` -> `$false`; `[Microsoft.Win32.RegistryValueKind]::Empty` -> a single
+  chosen default (e.g. `[Microsoft.Win32.RegistryValueKind]::Unknown` or `0`/`None` - propose ONE
+  and explain); `[Hashtable]::Empty` -> `@{}`; `[PSCustomObject]::Empty` -> `$null` or `[PSCustomObject]@{}`.
+  Mark these PROPOSED - owner must approve before they are applied anywhere else.
+- For THIS function only, APPLY your proposed mapping so it runs, and clearly list (in the make-it-run
+  log) each applied `::Empty` substitution so the owner can confirm or correct it. Do NOT apply the
+  mapping to any other canonical function this step.
 
 ## A. Adversarial Review Gate
 Archive the current `_handoff/REPORT.md` to the TOP of `_handoff/REPORT-ARCHIVE.md`
-(`## Archived <UTC date> - Test/Set design`, append-only), then write a new `REPORT.md`
-beginning with a verdict that: restates the goal; confirms branch `recovery/test-set-design`
-(not `main`); confirms ANALYSIS-ONLY (no source; ADR stays Draft); lists the candidate routes
-you will evaluate and the dimensions you will score them on.
+(`## Archived <UTC date> - Phase 6 build 1`, append-only), then write a new `REPORT.md` whose
+verdict: restates the goal; confirms branch `recovery/phase6-build-1` (not `main`); confirms ONLY
+`Get-RegistryValueKindStr` is touched (no other canonical function altered); states that
+recovered/canonical/ is unchanged; lists each change with its classification.
 
-## B. Expected Changes (branch `recovery/test-set-design`)
-- `docs/design/test-set-unification.md` - the options analysis. Evaluate AT LEAST these routes
-  (add any the analysis surfaces):
-  - **R1: One mode-driven body** - a single entrypoint takes an operation/mode (Get/Test/Set,
-    or `-WhatIf`-style) and runs the shared setup once, then branches at the action point,
-    running only the steps necessary for the requested mode.
-  - **R2: Shared setup + thin method shims** - keep `Get-/Test-/Set-TargetResource` as 3 thin
-    entrypoints that all call the one `Start-ProviderSetup` and consume the same canonical
-    state object; only the action differs.
-  - **R3: Any other route** the analysis finds defensible (e.g. a staged read->compare->apply
-    pipeline, or a hybrid).
-  For EACH route, evaluate on these dimensions (cite the recovered code + DSC audit):
-  (a) fit to the owner's "single entrypoint / run only necessary steps" intent;
-  (b) reuse of `Start-ProviderSetup` (shared setup, mount-once) and the canonical `Get-TargetResource`;
-  (c) how Test (desired-vs-actual compare) and Set (apply under `ShouldProcess`, per ADR 0006) compose;
-  (d) DSC-name compatibility - does it keep the `Get/Test/Set` names DSC tooling / `Invoke-DscResource` expect (per the DSC audit), or diverge, and does that matter for the mission?;
-  (e) testability with Pester mocks (the registry-isolation decision);
-  (f) evidence/result shape (ADR 0005);
-  (g) fit to the owner's coding style (Begin/Process/End, soft-return, single ThrowError sink);
-  (h) clear pros / cons / risks.
-  End with a RECOMMENDATION of the objectively-best route + the rationale, and note what the
-  owner must still decide.
-- `docs/adr/0007-<kebab-title>.md` (`Status: Draft`) - the Test/Set execution-dispatch decision:
-  the recommended dispatch/entrypoint design, how Get/Test/Set unify, where mutation is gated,
-  and how it consumes the canonical setup + state object. Cite the analysis, `docs/design/execution-map.md`,
-  and ADRs 0003-0006. Sections: Context / Decision / Consequences / Open questions for owner / Owner gate.
+## B. Expected Changes (branch `recovery/phase6-build-1`)
+- `src/Get-RegistryValueKindStr.ps1` - the canonical function, made to parse + run, minimal
+  style-preserving changes only.
+- `tests/Get-RegistryValueKindStr.Tests.ps1` - Pester 5.x tests. This function is a pure
+  string->`[Microsoft.Win32.RegistryValueKind]` normalizer (NO registry access, so NO mocks needed):
+  cover empty/whitespace -> the chosen None/default; a valid kind string -> parsed kind; an invalid
+  kind and `Unknown` -> `ThrowError`. (ThrowError must be loadable for the throw cases - dot-source
+  `recovered/canonical/ThrowError.ps1` or a minimal shim in the test; do NOT modify ThrowError this step.)
+- `docs/build/make-it-run-log.md` - the per-change ledger for this function: canonical token ->
+  running token, classification (i/ii/iii), and image/line evidence or "text-only".
+- `docs/build/owner-idiom-decisions.md` - the proposed `[Type]::Empty` mapping table (A1) for owner approval.
+- `.gitignore` - if `src/` and/or `tests/` are not already allow-listed, add `!/src/` and `!/tests/`
+  (deny-by-default policy, ADR 0002). Verify with `git check-ignore`.
+- Do NOT create the full module manifest yet (defer `.psd1`/`.psm1` until more functions land).
 
 ## C. Guardrails
-- ANALYSIS + Draft ADR ONLY. No source, tests, module manifest, or `.mof`. ADR `Status: Draft`;
-  do NOT mark any ADR Accepted.
-- Ground every claim in the recovered canonical code (cite functions/line ranges) and the DSC
-  audit (`docs/dsc-audit/`). Do not invent recovered behavior; where the recovered design is
-  ambiguous, surface it as an open question, not an assumption.
-- Branch `recovery/test-set-design`, never `main`; preserve signing; stage explicit paths
-  (`docs/design/test-set-unification.md`, `docs/adr/0007-*`, `_handoff/*.md`). PDFs + `_recovery/`
-  stay ignored. Do NOT edit `PLAN.md`/`TASK.md`/`CLAUDE-RESTART-PROMPT.md` content, but commit
-  them as-is for durability. ASCII; offline is fine (no new web research - the DSC audit is the source).
+- ONLY `Get-RegistryValueKindStr` is made-to-run this step. Do NOT touch any other canonical
+  function, do NOT build dispatcher/Test/Set, do NOT apply the idiom mapping elsewhere.
+- recovered/canonical/ and recovered/archive/ stay BYTE-UNCHANGED (faithful record).
+- No live registry access anywhere (this function needs none); no live mutation; ADRs stay Draft.
+- Sensitive-content scan (PLAN 1.9) over newly committed files before committing.
+- Branch `recovery/phase6-build-1`, never `main`; preserve signing; stage explicit paths. PDFs +
+  `_recovery/` stay ignored. Do NOT edit `PLAN.md`/`TASK.md`/`CLAUDE-RESTART-PROMPT.md` content; commit as-is.
 
 ## D. Verification (run each; paste output verbatim into REPORT.md)
-- The analysis covers R1, R2, and any surfaced route, each scored on dimensions (a)-(h), with a
-  clear recommendation.
-- `docs/adr/0007-*.md` exists and is `Status: Draft`; ALL ADRs still Draft (the all-ADR Draft
-  scan prints nothing).
-- No source/module/.mof created (`Get-ChildItem -Recurse -Include *.ps1,*.psm1,*.psd1,*.mof -Path src,recovered/canonical` shows no NEW files; recovered/canonical unchanged).
+- Parse: `[System.Management.Automation.Language.Parser]::ParseFile('src/Get-RegistryValueKindStr.ps1',[ref]$null,[ref]$errs)`
+  reports 0 errors.
+- Pester: the test file passes (all cases green) on PS 5.1 / Pester 5.x.
+- Fidelity diff: `git diff --no-index recovered/canonical/Get-RegistryValueKindStr.ps1 src/Get-RegistryValueKindStr.ps1`
+  pasted in full, so every change is visible and matches the classified log (nothing unexplained).
+- recovered/canonical/ + recovered/archive/ unchanged: `git status` shows no modifications there.
+- All ADRs still Draft; `git check-ignore -v src tests` resolves as tracked; sensitive scan clean.
 - `git branch --show-current` (not `main`); `git log --show-signature -1` good.
 
-## E. Definition of Done (ALL hold; else REPORT `Test/Set design status: BLOCKED | NEEDS-OWNER`)
-- `docs/design/test-set-unification.md` objectively evaluates the routes on the listed
-  dimensions and makes a defensible, code-grounded recommendation.
-- `docs/adr/0007-*` exists, `Status: Draft`, capturing the recommended dispatch design with
-  open questions for the owner; no ADR Accepted; no source/.mof.
-- `REPORT.md` has the verdict, a short summary of each route's verdict + the recommendation,
-  the Section D output, and a final line `Test/Set design status: COMPLETE | BLOCKED | NEEDS-OWNER`.
+## E. Definition of Done (ALL hold; else REPORT `Phase 6 build 1 status: BLOCKED | NEEDS-OWNER`)
+- `src/Get-RegistryValueKindStr.ps1` parses (0 errors) and its Pester tests pass.
+- Every change is minimal, style-preserving, and classified in `docs/build/make-it-run-log.md`;
+  the full canonical->src diff is in REPORT.md with no unexplained change.
+- `docs/build/owner-idiom-decisions.md` proposes the `[Type]::Empty` mapping for owner approval.
+- recovered/canonical/ + archive/ byte-unchanged; ADRs Draft; sensitive scan clean.
+- `REPORT.md` has the verdict, the classified change list, the Section D output, and a final line
+  `Phase 6 build 1 status: COMPLETE | BLOCKED | NEEDS-OWNER`.
 
 ## F. End State (how this cycle hands back)
-- Commit on `recovery/test-set-design` with a signed message (e.g.
-  `docs(design): test/set execution-dispatch analysis + draft ADR 0007`). Commit the analysis
-  + ADR + `_handoff/REPORT*.md` + the Claude-updated planner docs. Never commit to `main`;
-  never bypass signing.
-- Push the branch and open a PR to `main` titled `Test/Set execution-dispatch design (ADR 0007 Draft)`;
-  in the PR body summarize each route's verdict + the recommendation so the owner can decide.
-- Finish `REPORT.md` per Section E, then STOP. Do NOT merge - the owner reviews the recommendation
-  and decides the route (ADR stays Draft until owner approval). The per-function build comes after.
+- Commit on `recovery/phase6-build-1` with a signed message (e.g.
+  `feat(registry): make-it-run Get-RegistryValueKindStr (calibration) + [Type]::Empty idiom proposal`).
+  Never commit to `main`; never bypass signing.
+- Push and open a PR to `main` titled `Phase 6 build 1: make-it-run calibration (Get-RegistryValueKindStr)`;
+  in the PR body paste the canonical->src diff + the proposed idiom mapping so the owner reviews both.
+- Finish `REPORT.md` per Section E, then STOP. Do NOT merge - the owner reviews the make-it-run
+  fidelity and APPROVES the idiom mapping before the build scales to the other functions.

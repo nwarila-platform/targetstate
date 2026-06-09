@@ -64,23 +64,24 @@ NOT NOW (gated future phases - do not let Codex jump ahead):
 - No engine/contract design before its Draft ADR (Phase 5).
 
 Current expected next step:
-The source-of-truth is now the owner's FAITHFUL recovered code, organized into a canonical set.
-History: Phase 3 had REFACTORED the owner's code, so it was redone as a verbatim FAITHFUL
-reconstruction (PR #11 / `b43115c`); Claude ran an exhaustive EXECUTION-MAP AUDIT
-(`docs/design/execution-map.md`) finding the two PDFs are two ENTANGLED versions with incompatible
-seams; the CANONICAL SELECTION cycle (PR #12 / `729c80a`) then chose the most-mature version per
-function (14 canonical in `recovered/canonical/` + 6 archived verbatim in `recovered/archive/`),
-with the owner CONFIRMING File A's contract as the spine; the refactored `src/`/`tests/` were
-removed. The active task (`_handoff/TASK.md`) is the TEST/SET EXECUTION-DISPATCH DESIGN: an
-objective analysis of how Get/Test/Set fold into the owner's single execution path (one
-mode-driven body vs shared-setup + thin shims vs another route) + a Draft ADR 0007, for the owner
-to decide the route. ANALYSIS + Draft ADR ONLY - no source/.mof; all ADRs stay Draft (Locked Rule).
-Prior art to reconcile: ADRs 0005 (evidence) + 0006 (mutation/ShouldProcess) already frame a
-Get/Test/Plan/Apply operation-mode model. Your job: keep `_handoff/TASK.md` correct; audit the
-analysis for objectivity + grounding in the recovered code, and that no ADR was marked Accepted.
-After this: the per-function build on `recovered/canonical/`, one function at a time (finalize the
-contract, complete the incomplete converters, build Test/Set). Phase 6 build PAUSED (JSON + Pester-
-mocks decisions on hold for it). PDFs + `_recovery/` stay ignored.
+The source-of-truth is the owner's FAITHFUL recovered code, organized into a canonical set, and the
+PHASE 6 BUILD is now active (one function at a time, in `src/`). History: faithful reconstruction
+(PR #11 / `b43115c`); execution-map audit (`docs/design/execution-map.md`, two ENTANGLED versions);
+canonical selection (PR #12 / `729c80a`, 14 canonical + 6 archived, owner confirmed File A's spine);
+Test/Set dispatch design (PR #13 / `1ca45a4`, Draft ADR 0007). Owner decisions locked: route = R3
+(internal dispatcher + thin Get/Test/Set shims); observed-state shape = B's
+`{Ensure,Key,ValueName,ValueKind,ValueData}`; make-it-run = Codex applies MINIMAL, style-preserving
+fixes that the owner reviews per change. The canonical code is faithful but does NOT parse (OCR
+artifacts + a systematic `[Type]::Empty` initializer idiom + WIP stubs); `recovered/canonical/` is
+the immutable faithful RECORD, the runnable module is built in `src/`. The active task
+(`_handoff/TASK.md`) is BUILD STEP 1, a deliberate CALIBRATION: make ONLY `Get-RegistryValueKindStr`
+parse + run with documented, classified, style-preserving changes, and PROPOSE the `[Type]::Empty`
+idiom mapping for owner approval - nothing else is touched. Your job: keep `_handoff/TASK.md`
+correct; audit the make-it-run for fidelity (style/logic/comments preserved, every change minimal +
+classified, canonical record unchanged, no ADR Accepted). After the owner approves the idiom mapping
++ make-it-run fidelity: scale make-it-run across the leaf functions, then complete Mount-RegistryHive
++ Get-TypedObject + Start-ProviderSetup, then build the R3 read leg -> dispatcher -> Test -> Plan ->
+Set -> thin shims, one function at a time. PDFs + `_recovery/` stay ignored.
 
 Canonical pipeline = PLAN.md Phase 0..7 (the only authoritative numbering; never
 introduce a separate "Step" counter; owner-initiated governance tasks may be
@@ -93,10 +94,9 @@ interleaved and are labeled "Governance:", not a Phase):
 - CORRECTIVE - Faithful source reconstruction (COMPLETE, merged PR #11; verbatim, all 18 functions)
 - Execution-map audit (COMPLETE; docs/design/execution-map.md)
 - CORRECTIVE - Canonical selection by maturity (COMPLETE, merged PR #12; A-spine, 14 canonical + 6 archived)
-- Test/Set execution-dispatch design (ACTIVE; analysis + Draft ADR 0007; owner decides the route)
-- Per-function build on recovered/canonical (NEXT; one function at a time)
+- Test/Set execution-dispatch design (COMPLETE, merged PR #13; Draft ADR 0007; owner approved R3 + B output shape)
 - Phase 4 - Microsoft DSC surface audit (COMPLETE, merged; 24 records, citations verified)
 - Phase 4b - Port/adapt/skip checklist + backlog (COMPLETE, merged)
 - Phase 5 - TargetState contract design (COMPLETE, merged; 4 Draft ADRs; owner chose JSON + mocks)
-- Phase 6 - Registry proof implementation (PAUSED; resumes on a faithful, owner-approved foundation)
+- Phase 6 - Registry build on canonical code, R3 dispatch (ACTIVE; build 1 = make-it-run calibration on Get-RegistryValueKindStr + idiom proposal; then scale, then build R3 spine)
 - Phase 7 - Engine and STIG roadmap
