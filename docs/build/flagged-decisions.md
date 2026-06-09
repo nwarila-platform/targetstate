@@ -54,3 +54,36 @@ Proposed both-compatible fix: use `-match ('\\{2,}')` for doubled backslashes an
 Status: RESOLVED - owner-approved, applied 2026-06-09. The runnable copy now uses
 regex matching for doubled backslashes and trims trailing registry backslashes;
 `recovered/canonical/` remains unchanged.
+
+## Mount-RegistryHive - WhatIf Propagates to Internal Variable Cmdlets
+
+Printed/canonical behavior:
+
+- `Mount-RegistryHive` declares `SupportsShouldProcess = $True`.
+- The function uses `New-Variable`, `Clear-Variable`, and `Set-Variable` for its
+  internal state.
+- Under `-WhatIf`, PowerShell propagates WhatIf behavior to nested cmdlets that
+  support ShouldProcess. The scoped Pester run printed WhatIf messages for
+  `New-Variable` and `Set-Variable`, meaning those internal state updates were
+  suppressed before the explicit `$PSCmdlet.ShouldProcess(...)` guard around
+  `New-PSDrive`.
+
+Why this matters:
+
+- The approved Build 4 change wraps `New-PSDrive` with the standard
+  `ShouldProcess($RegistryHive.Name, 'Mount registry hive')`, and the test proves
+  `New-PSDrive` is not called under `-WhatIf`.
+- It does NOT prove a clean explicit `ShouldProcess` false branch, because
+  internal variable setup is also affected by `-WhatIf`.
+- Fixing that may require a deliberate behavior/style decision, such as adding
+  `-WhatIf:$False` to internal `New-Variable`/`Set-Variable` calls, replacing
+  internal variable cmdlets with assignments, or accepting the current behavior
+  until module assembly changes the pattern.
+
+Proposed both-compatible fix: defer for owner decision. If the owner wants
+`Mount-RegistryHive -WhatIf` to execute all internal bookkeeping while suppressing
+only registry mutation, add explicit `-WhatIf:$False` to internal variable cmdlets
+or switch internal state to assignment in a separately approved style decision.
+
+Status: not applied. Build 4 leaves the owner's variable-cmdlet style unchanged
+and only applies the owner-approved `New-PSDrive` `ShouldProcess` guard.

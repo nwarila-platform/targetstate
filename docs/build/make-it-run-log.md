@@ -144,3 +144,24 @@ Runnable copies: scoped `src/` functions only.
 | `Get-RegistryValueNameStr` | `$ValueName -match  '\P{Cc}\p{Cn}\p{Cs}'` | `$ValueName -match  '[\p{Cc}\p{Cn}\p{Cs}]'` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix uses a character class. |
 | `Get-NormalizedRegistryKey` | `$RegistryKeyStr -contains ('\\')` | `$RegistryKeyStr -match ('\\{2,}')` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix uses regex matching for doubled backslashes. |
 | `Get-NormalizedRegistryKey` | `$RegistryKeyStr.TrimEnd('/')` | `$RegistryKeyStr.TrimEnd('\')` | owner-approved behavior fix | `docs/build/flagged-decisions.md`; the approved fix trims trailing registry backslashes. |
+
+## Phase 6 Build 4 - Mount-RegistryHive
+
+Source: `recovered/canonical/Mount-RegistryHive.ps1`
+
+Runnable copy: `src/Mount-RegistryHive.ps1`
+
+| Canonical token | Running token | Class | Evidence |
+| --- | --- | --- | --- |
+| `[CmdletBinding(` with `,,  ConfirmImpact` | `[CmdletBinding(` with first argument `ConfirmImpact` | i | TASK Build 4 A0 names the doubled `,,` as an OCR artifact; first attribute argument cannot begin with a separator in runnable PowerShell. |
+| `[Parameter(` with first argument `, Mandatory` | `[Parameter(` with first argument `Mandatory` | i | Same approved metadata separator cleanup pattern used in Build 2; first attribute argument cannot begin with a separator in runnable PowerShell. |
+| `[System.Boolean]::Empty` initializers | `$False` | ii | Approved owner idiom table in `docs/build/owner-idiom-decisions.md`; TASK Build 4 A0 permits this mapping. |
+| `$PSCmdlet.ShouldProcess(''),  $null,  $null` | `$PSCmdlet.ShouldProcess($RegistryHive.Name,  'Mount registry hive')` | owner-approved completion | TASK Build 4 A0 records the owner's chosen standard target/action form and removal of malformed null arguments. |
+| `# ---------------------------------- J` | `# ----------------------------------` | i | TASK Build 4 A0 names the garbled comment marker as an OCR artifact. |
+| bare `Throw "Unable to mount registry"` plus commented `ThrowError` draft | active `ThrowError` call with `RegistryHiveMountFailed`, `InvalidOperation`, `System.IO.IOException`, `$RegistryHive`, and literal message | owner-approved completion | TASK Build 4 A0 records the owner's choice to restore a structured `ThrowError`; literal message used because module `$LocalizedData` table assembly is pending. |
+| `System.I0.IOException` | `System.IO.IOException` | i | TASK Build 4 A0 names the `I0` -> `IO` correction. |
+| leading `;` before commented exception message | removed with the obsolete commented draft | i / owner-approved completion | TASK Build 4 A0 names the stray `;` as OCR and instructs removing the commented original lines. |
+| failure `If` block traps `Result`, soft return, and debug exit | close failure `If` immediately after `ThrowError` | owner-approved completion | TASK Build 4 A0 records the brace fix so success-path result/debug statements run outside the failure branch. |
+| `[System.Nullable]$Null` | `$Null` | ii | TASK Build 4 A0 permits this soft-return replacement. |
+| End cleanup list `RegistryKey`, `REGISTRY_NAME`, `Result`, `RegistryKeyStr`, `ShouldMountDrive` | `Result`, `RegistryKeyStr`, `ShouldMountRegistry`, `RegistryIsMounted` | owner-approved completion | TASK Build 4 A0 records the declared-variable cleanup list. |
+| missing function-closing brace | final function-closing brace | owner-approved completion | TASK Build 4 A0 records the missing function brace fix. |
