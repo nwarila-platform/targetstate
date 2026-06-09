@@ -1,3 +1,378 @@
+## Archived 2026-06-09T08:53:06Z - Faithful reconstruction
+
+Phase/Task status: NEEDS-OWNER
+
+## Adversarial review verdict
+
+Goal: execute the corrective faithful source reconstruction task on branch `recovery/faithful-source-rebuild`: rebuild both PDF code printouts into `recovered/06042026.ps1` and `recovered/06042026_001.ps1`, preserving owner style from rendered page images, with all Codex notes in `*.provenance.md`.
+
+Decision: PROCEED with best-effort reconstruction, but STOP before commit/push. I cannot honestly mark this COMPLETE because the sensitive-content scan produced a hit and the generated draft still contains OCR-risk lines that need owner/Claude review against the page images.
+
+Branch check: PROCEED on `recovery/faithful-source-rebuild`, not `main`.
+
+Image input check: PROCEED. `_recovery/06042026/images/*.png` has 17 images; `_recovery/06042026_001/images/*.png` has 16 images. I treated the images as authority and OCR/TSV as navigation aids.
+
+Fidelity contract restated: this is transcription, not stabilization. I preserved `Begin`/`Process`/`End` structure, `New-Variable` declarations, colon-parameter style, comments, soft-return shape, owner casing, and the printed `[Enum]::TryParse` path where recovered. I did not run-fix, refactor, add tests, modify `src/`/`tests/`, or intentionally swap APIs. Remaining OCR damage is not hidden; it is the reason for NEEDS-OWNER.
+
+Chosen output location: `recovered/06042026.ps1`, `recovered/06042026_001.ps1`, `recovered/06042026.provenance.md`, `recovered/06042026_001.provenance.md`, `.gitignore`, `_handoff/REPORT.md`, `_handoff/REPORT-ARCHIVE.md`.
+
+## What changed
+
+- Archived the prior Phase 5 report to the top of `_handoff/REPORT-ARCHIVE.md`.
+- Created best-effort reconstructed source files under `recovered/`.
+- Created provenance sidecars listing OCR glyph corrections by page.
+- Added `!/recovered/` to `.gitignore` so the directory is deliberately trackable when approved.
+
+## What was intentionally not changed
+
+- No `src/` or `tests/` files were changed.
+- No PDFs or `_recovery/` files were modified.
+- No live registry or Windows state was touched.
+- No `PLAN.md`, `TASK.md`, or `CLAUDE-RESTART-PROMPT.md` content was edited by Codex.
+- No commit, push, or PR was made because the scan/fidelity gate did not clear.
+
+## Verification output
+
+Coverage:
+
+```text
+recovered/06042026.ps1
+  Start-ProviderSetup
+  Get-RegistryKeyHiveObj
+  Get-RegistryKeyPathStr
+  Get-RegistryKeyNameStr
+  Get-RegistryValueNameStr
+  Get-RegistryValueKindStr
+  Mount-RegistryHive
+  Get-TargetResource
+  Get-RegistryValueData
+  ConvertFrom-Array
+recovered/06042026_001.ps1
+  ThrowError
+  Start-ProviderSetup
+  Get-NormalizedRegistryKey
+  Get-RegistryKeyHive
+  Get-RegistryKeyPath
+  Get-RegistryKeyName
+  Get-RegistryResourceObject
+  Convert-ByteArrayToHexString
+  Get-TypedObject
+  Get-TargetResource
+Inventoried functions: 18
+Found unique functions: 18
+Missing inventoried functions: NONE
+Additional function names: NONE
+```
+
+Fidelity spot-check, `Get-RegistryValueKindStr`: image pages 0008-0009 show this function with `Begin`/`Process`/`End`, `New-Variable`, comments, soft return, and `[Enum]::TryParse`. Reconstructed excerpt:
+
+```powershell
+Function Get-RegistryValueKindStr {
+  [CmdletBinding(
+    DefaultParameterSetName =  'Default'
+    ,  PositionalBinding     = $True
+    ,  ConfirmImpact          =  'None'
+  )]
+  Param(
+    [Parameter(
+      ParameterSetName  =  'Default',
+      Position           = 0,
+      Mandatory          = $True,
+      ValueFromPipeline = $True
+    )]
+    [AllowEmptyString()]
+    [ValidateNotNull()]
+    [System.String]
+    $ValueKind
+  )
+  Begin {
+    Write-Debug -Message:'Entering Block:  Begin'
+    # Initalize DYNAMIC Variables
+    New-Variable -Force -Option: 'Private'  -Name:'ValueKindIsNullorEmpty'  -Value:([System.Boolean]::Empty)
+    New-Variable -Force -Option:'Private'  -Name: 'IsValidValueKind'        -Value:([System.Boolean]::Empty)
+    New-Variable -Force -Option:'Private'  -Name: 'NormalizedValueKind'     =
+Value: ( [Microsoft.Win32.RegistryValueKind]::Empty)
+    New-Variable -Force -Option:'Private'  -Name: 'ValueKindIsUnknown'      -
+Value: ( [Microsoft.Win32.RegistryValueKind]::Empty)
+    New-Variable -Force -Option:'Private'  -Name: 'Result'                  =
+Value: ( [Microsoft.Win32.RegistryValueKind]::Empty)
+    Write-Debug -Message:'Exiting Block:  Begin'
+  } Process {
+    Write-Debug -Message:'Entering Block:  Process'
+    # Clear all variables immediately upon entering the  'Process'  loop to ensure no stale
+    #    values are carried over between piped datasets.
+    Clear-Variable -Force -ErrorAction: 'SilentlyContinue'  -Name:(@(
+       'ValueKindIsNullorEmpty',  'IsValidValueKind',  'NormalizedValueKind',
+       'ValueKindIsUnknown',  'Result'
+    ))
+    Set-Variable -Name:'ValueKindIsNullorEmpty'  -Value:([System.Boolean] (
+      [System.String]::IsNullOrwhiteSpace($ValueKind)
+    ))
+    If ($ValueKindIsNullorEmpty -eq $True) {
+
+      Set-Variable -Name: 'NormalizedValueKind'  -Value:(
+        [Microsoft.Win32.RegistryValueKind]::None
+      )
+    } Else {
+      # Validate the Registry Hive value against a list of valid and support registry hives.
+      Set-Variable -Name:'IsValidValueKind'  -Value: (
+        [System.Boolean] (
+          [Enum]::TryParse(
+             [Microsoft.Win32.RegistryValueKind],
+            $ValueKind,
+            [Ref ]$NormalizedValueKind
+          )
+        )
+      )
+```
+
+Second spot-check, `ThrowError`: image page `06042026_001/page-0001.png` shows this function and the reconstruction preserves the inline CmdletBinding/Parameter style rather than replacing it with the refactored helper shape:
+
+```powershell
+Function ThrowError {
+  [CmdletBinding(
+    ,  DefaultParameterSetName =  'Default'
+    # , SupportsShouldProcess = $True
+    ;  PositionalBinding = $True
+    , ConfirmImpact =  'Low'
+  )] Param(
+    [Parameter(
+      ; Mandatory          = $True
+      ,,  ParameterSetName  =  'Default'
+      ,  Position           = 0
+      , ValueFromPipeline = $true
+    )]
+    [ValidateNotNullOrEmpty()]
+    [System.String]
+    $ExceptionName,
+```
+
+Fidelity statement:
+
+```text
+No block was intentionally collapsed, no declaration was intentionally removed, no comment was intentionally stripped, no API was intentionally swapped, and no logic was intentionally changed. However, the draft still has OCR-risk artifacts (examples include doubled commas, doubled apostrophes, and one damaged regex line), so I cannot certify it as faithful enough to commit.
+```
+
+Unreadable tokens:
+
+```text
+No <#OCR-UNREADABLE#> tokens were inserted. Instead, remaining uncertainty is reported here as a blocking fidelity risk because the images are legible enough that owner/Claude review should decide the exact glyphs rather than letting Codex invent them.
+```
+
+Sensitive-content scan:
+
+```text
+recovered\06042026_001.ps1:371:            "C2: "E*\\\r\n]4\\(?<RegistryKeyPath>.*<)\\.+$)'
+```
+
+Interpretation: this appears to be a damaged recovered regex string, not obvious PII, but the TASK says on any sensitive scan hit do NOT commit, list it, and mark NEEDS-OWNER. I complied.
+
+PDF SHA-256 unchanged:
+
+```text
+Algorithm Hash                                                             Path
+--------- ----                                                             ----
+SHA256    B6BD5239D642D09368E255E21064B1F48C63D075DD43F8374098300DB9ED155F C:\Users\HellBomb\Documents\GitHub\nwaril...
+SHA256    D6BE73056B47FB9EEA9126A9EA5BC232BCF733A5562306AC2A601FA57FFC051E C:\Users\HellBomb\Documents\GitHub\nwaril...
+```
+
+Ignore policy:
+
+```text
+.gitignore:27:	recovered/
+.gitignore:24:/06042026.pdf	06042026.pdf
+.gitignore:25:/06042026_001.pdf	06042026_001.pdf
+.gitignore:26:/_recovery/	_recovery/
+```
+
+No `src/` or `tests/` changes; status:
+
+```text
+## recovery/faithful-source-rebuild
+ M .gitignore
+ M _handoff/CLAUDE-RESTART-PROMPT.md
+ M _handoff/PLAN.md
+ M _handoff/REPORT-ARCHIVE.md
+ M _handoff/REPORT.md
+ M _handoff/TASK.md
+?? recovered/
+```
+
+Branch/signature check:
+
+```text
+recovery/faithful-source-rebuild
+commit 3ac0c3a21d8e9b2bf8e6d1707878db3d99ba22e4
+gpg: Signature made Mon Jun  8 22:53:36 2026 CUT
+gpg:                using RSA key B5690EEEBB952194
+gpg: Can't check signature: No public key
+Author:     Smarter  Harder <33955773+NWarila@users.noreply.github.com>
+AuthorDate: Mon Jun 8 22:53:36 2026 +0000
+Commit:     GitHub <noreply@github.com>
+CommitDate: Mon Jun 8 22:53:36 2026 +0000
+```
+
+No new commit exists for this cycle, so there is no new signed commit to verify.
+
+## Deviations from `TASK.md` and why
+
+- Did not commit, push, or open a PR. Reason: the sensitive scan produced a hit and the fidelity draft still has visible OCR-risk artifacts.
+- Did not mark COMPLETE. Reason: the output is a reviewable best-effort reconstruction draft, not a certified faithful reconstruction.
+- Did not run parse/Pester checks. Reason: the task explicitly says there is no parse/Pester requirement, and fidelity over runnability is the rule.
+
+## Open objections that must be resolved before advancing
+
+- The recovered files should not be treated as owner-approved faithful source yet.
+- The sensitive scan hit at `recovered/06042026_001.ps1:371` must be classified by owner/Claude before any commit.
+- Remaining OCR-risk artifacts need page-image review. Examples include doubled commas in parameter blocks, doubled apostrophes in string literals, and damaged low-confidence regex/parameter glyphs in `06042026_001`.
+
+## Owner decisions needed
+
+- Decide whether the `06042026_001.ps1:371` scan hit is benign source text or must be redacted/removed before commit.
+- Decide whether Codex should continue with a slower manual page-by-page transcription pass, or whether this draft should be reviewed/corrected by the owner first.
+- Approve when `recovered/` may be committed and pushed; no public commit was made this cycle.
+
+Faithful recovery status: NEEDS-OWNER
+
+## Archived 2026-06-08T23:35:11Z - Faithful reconstruction
+
+Phase/Task status: COMPLETE
+
+## Adversarial review verdict
+
+Goal: execute Phase 5 on branch `recovery/phase-5-contract-adrs` by drafting four coherent TargetState contract ADR proposals:
+`docs/adr/0003-resource-contract.md`, `docs/adr/0004-declaration-document-format.md`,
+`docs/adr/0005-evidence-reporting-model.md`, and `docs/adr/0006-mutation-shouldprocess-safety.md`.
+The ADRs remain `Status: Draft`, cite committed Phase 4/4b evidence, and prepare the Registry proof without implementing source, tests, module manifests, or `.mof` artifacts.
+
+Branch check: PROCEED on `recovery/phase-5-contract-adrs`, not `main`.
+
+Input check: PROCEED. The required committed inputs are present:
+
+```text
+docs/dsc-audit/CHECKLIST.md: True
+docs/dsc-audit/BACKLOG.md: True
+docs/dsc-audit/AUDIT.md: True
+src/: True
+docs/recovery/GAPS.md: True
+```
+
+DRAFT-ONLY check: PROCEED. All four new ADRs are proposals with `Status: Draft`; nothing is accepted or locked. Each ADR decision traces to at least one BACKLOG item and at least one AUDIT surface. No source/tests/module/`.mof` files were created.
+
+Adversarial challenge: the plan was directionally sound, but the risk was over-specifying an engine before owner approval. The ADRs contain proposed directions and keep consequential forks in `Open questions for owner` instead of treating the contract as accepted.
+
+Chosen output location: `docs/adr/0003-resource-contract.md`, `docs/adr/0004-declaration-document-format.md`, `docs/adr/0005-evidence-reporting-model.md`, `docs/adr/0006-mutation-shouldprocess-safety.md`, `_handoff/REPORT.md`, and `_handoff/REPORT-ARCHIVE.md`.
+
+## What changed
+
+- Archived the prior Phase 4b report to the top of `_handoff/REPORT-ARCHIVE.md` under `## Archived 2026-06-08 - Phase 5`.
+- Added `docs/adr/0003-resource-contract.md`: proposes the TargetState resource contract around resource identity, metadata, Get/Test/Set operations, direct dispatch, `Ensure`, typed properties, evidence-friendly returns, recovered helper fit, fresh missing-helper design boundaries, and the DSC compatibility boundary.
+- Added `docs/adr/0004-declaration-document-format.md`: proposes YAML as the first TargetState declaration format, explicitly excludes DSC `Configuration`/`Node` blocks and generated MOF, and includes a small Draft illustrative Registry declaration.
+- Added `docs/adr/0005-evidence-reporting-model.md`: proposes structured operation evidence for Get/Test/Plan/Apply with per-resource status, differences, observed state, mutation flags, messages, and errors, without an LCM or pull reporting store.
+- Added `docs/adr/0006-mutation-shouldprocess-safety.md`: proposes strict read-only vs apply separation, owner-gated mutation, PS 5.1 `ShouldProcess` semantics, and a required Registry test-isolation strategy before side-effecting tests.
+
+## What was intentionally not changed
+
+- No ADR was marked `Accepted`.
+- No source, tests, module manifest, or `.mof` files were created or modified.
+- No PDFs, `_recovery/` content, live registry state, or live Windows system state were touched.
+- No `PLAN.md`, `TASK.md`, or `CLAUDE-RESTART-PROMPT.md` content was edited by Codex; the pre-existing Claude/owner handoff edits were preserved for durability.
+- No new network research was performed; the committed audit/backlog/checklist/gaps/source artifacts were the design evidence.
+
+## Verification output
+
+ADR existence:
+
+```text
+True
+True
+True
+True
+```
+
+Every ADR is Draft:
+
+```text
+NO OUTPUT from: Get-ChildItem docs\adr\*.md | Where-Object { (Get-Content $_ -Raw) -notmatch "(?m)^Status:\s*Draft\s*$" } | ForEach-Object { Write-Error "ADR not Draft: $($_.Name)" }
+```
+
+Traceability:
+
+```text
+PASS 0003-resource-contract.md
+PASS 0004-declaration-document-format.md
+PASS 0005-evidence-reporting-model.md
+PASS 0006-mutation-shouldprocess-safety.md
+```
+
+Required sections and dates:
+
+```text
+PASS docs\adr\0003-resource-contract.md
+PASS docs\adr\0004-declaration-document-format.md
+PASS docs\adr\0005-evidence-reporting-model.md
+PASS docs\adr\0006-mutation-shouldprocess-safety.md
+```
+
+No source/module/.mof created:
+
+```text
+NO OUTPUT from: Get-ChildItem -Recurse -Include *.psm1,*.psd1,*.mof -Path . -ErrorAction SilentlyContinue
+```
+
+No new `.ps1` under `src/`:
+
+```text
+NO OUTPUT from: git status --short src
+```
+
+Branch:
+
+```text
+recovery/phase-5-contract-adrs
+```
+
+Diff whitespace hygiene:
+
+```text
+warning: in the working copy of '_handoff/REPORT.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '_handoff/TASK.md', LF will be replaced by CRLF the next time Git touches it
+```
+
+Git status before final staging:
+
+```text
+## recovery/phase-5-contract-adrs
+ M _handoff/CLAUDE-RESTART-PROMPT.md
+ M _handoff/PLAN.md
+ M _handoff/REPORT-ARCHIVE.md
+ M _handoff/REPORT.md
+ M _handoff/TASK.md
+?? docs/adr/0003-resource-contract.md
+?? docs/adr/0004-declaration-document-format.md
+?? docs/adr/0005-evidence-reporting-model.md
+?? docs/adr/0006-mutation-shouldprocess-safety.md
+```
+
+Commit signing verification is run after the commit exists; the post-commit output is included in the PR/final execution note.
+
+## Deviations from `TASK.md` and why
+
+- `REPORT.md` cannot embed the final commit's `git log --show-signature -1` output without changing the commit being verified. I will run the post-commit signature check and include the output in the PR/final execution note.
+- `git diff --check` emitted Git line-ending normalization warnings for handoff text files. It exited successfully and did not report whitespace errors.
+
+## Open objections that must be resolved before advancing
+
+- Claude should audit whether the ADRs remain proposal-shaped and internally consistent before the owner accepts the contract direction for Phase 6.
+
+## Owner decisions needed
+
+- Owner review of the four Draft ADR proposals and their open questions.
+- Owner approval of the Phase 5 -> Phase 6 contract direction before implementation.
+- Owner merge to `main` after Claude audit.
+
+Phase 5 status: COMPLETE
+
 ## Archived 2026-06-08 - Phase 5
 
 Phase/Task status: COMPLETE
