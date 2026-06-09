@@ -87,3 +87,30 @@ or switch internal state to assignment in a separately approved style decision.
 
 Status: not applied. Build 4 leaves the owner's variable-cmdlet style unchanged
 and only applies the owner-approved `New-PSDrive` `ShouldProcess` guard.
+
+## Start-ProviderSetup - WhatIf Propagates to Internal Variable Cmdlets
+
+Printed/canonical behavior:
+
+- `Start-ProviderSetup` declares `SupportsShouldProcess = $True`.
+- The function uses `New-Variable`, `Clear-Variable`, and `Set-Variable` for its
+  internal state.
+- As with `Mount-RegistryHive`, running the function with `-WhatIf` may suppress
+  internal bookkeeping before any later explicit mutation guard is reached.
+
+Why this matters:
+
+- Build 5 does not add Apply-mode behavior and does not rely on `-WhatIf` as a
+  clean bookkeeping-preserving path.
+- `Start-ProviderSetup` is the shared setup leg for the future R3 dispatcher, so
+  the same Apply-mode decision should cover both `Start-ProviderSetup` and
+  `Mount-RegistryHive`.
+
+Proposed both-compatible fix: defer for the same owner decision already recorded
+for `Mount-RegistryHive`. If the owner wants `-WhatIf` to suppress only external
+mutation while preserving internal bookkeeping, approve a consistent pattern for
+the SupportsShouldProcess functions during the Apply/Set build.
+
+Status: not applied. Build 5 leaves the owner's variable-cmdlet style unchanged
+and only documents that the existing deferred Apply-mode WhatIf decision also
+applies to `Start-ProviderSetup`.
