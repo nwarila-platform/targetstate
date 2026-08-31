@@ -7,7 +7,7 @@
 # To track a NEW top-level directory later (e.g. src/, tests/), add a matching
 # `!/<dir>/` line below. NEVER add a `!` allowlist entry for the PDFs or _recovery/.
 # ============================================================================
-/*
+**
 
 # --- Allowlist: tracked top-level entries (directories need a trailing slash) ---
 !/.github/
